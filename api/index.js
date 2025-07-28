@@ -1,0 +1,423 @@
+const express = require('express');
+const cors = require('cors');
+const mongoose = require('mongoose');
+
+const app = express();
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// MongoDB bağlantısı
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/tesis-kontrol';
+
+mongoose.connect(MONGODB_URI, {
+  serverSelectionTimeoutMS: 10000,
+  socketTimeoutMS: 45000,
+  connectTimeoutMS: 10000,
+  bufferCommands: false,
+  bufferMaxEntries: 0,
+  maxPoolSize: 1,
+  minPoolSize: 0,
+  maxIdleTimeMS: 30000,
+  retryWrites: true,
+  w: 'majority'
+});
+
+// Schemas
+const bagTVFacilitySchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  tvCount: { type: Number, default: 0 },
+  description: String,
+  status: { type: String, default: 'Aktif' },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const bagTVControlSchema = new mongoose.Schema({
+  facilityId: { type: String, required: true },
+  date: { type: String, required: true },
+  action: { type: String, required: true },
+  description: String,
+  checkedBy: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const facilitySchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  description: String,
+  status: { type: String, default: 'active' },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
+
+const controlItemSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  description: String,
+  period: { type: String, required: true },
+  date: { type: String, required: true },
+  facilityId: String,
+  workDone: String,
+  user: String,
+  status: String,
+  createdAt: { type: Date, default: Date.now }
+});
+
+const messageSchema = new mongoose.Schema({
+  date: { type: String, required: true },
+  totalCount: { type: Number, required: true },
+  pulledCount: { type: Number, required: true },
+  description: { type: String, required: true },
+  account: String,
+  createdAt: { type: Date, default: Date.now }
+});
+
+const userSchema = new mongoose.Schema({
+  username: { type: String, required: true, unique: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  role: { type: String, default: 'user', enum: ['user', 'admin'] },
+  createdAt: { type: Date, default: Date.now }
+});
+
+// Models
+const BagTVFacility = mongoose.model('BagTVFacility', bagTVFacilitySchema);
+const BagTVControl = mongoose.model('BagTVControl', bagTVControlSchema);
+const Facility = mongoose.model('Facility', facilitySchema);
+const ControlItem = mongoose.model('ControlItem', controlItemSchema);
+const Message = mongoose.model('Message', messageSchema);
+const User = mongoose.model('User', userSchema);
+
+// Test endpoint
+app.get('/api/test', (req, res) => {
+  res.json({ 
+    message: 'Server çalışıyor!',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Login endpoint
+app.post('/api/login', async (req, res) => {
+  try {
+    console.log('Login attempt:', req.body);
+    const { username, password } = req.body;
+    
+    if (!username || !password) {
+      console.log('Missing username or password');
+      return res.status(400).json({ error: 'Kullanıcı adı ve şifre gerekli' });
+    }
+    
+    // Basit kontrol
+    if (username === 'admin' && password === 'admin123') {
+      console.log('Login successful for user:', username);
+      res.json({
+        id: 'admin-id',
+        username: 'admin',
+        email: 'admin@admin.com',
+        role: 'admin'
+      });
+    } else {
+      console.log('Login failed: Invalid credentials');
+      res.status(401).json({ error: 'Kullanıcı adı veya şifre hatalı' });
+    }
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Sunucu hatası' });
+  }
+});
+
+// BagTV Facilities endpoints
+app.get('/api/bagtv-facilities', async (req, res) => {
+  try {
+    console.log('Getting BagTV facilities...');
+    const facilities = await BagTVFacility.find();
+    console.log('Found facilities:', facilities.length);
+    res.json(facilities);
+  } catch (error) {
+    console.error('Error getting BagTV facilities:', error);
+    res.status(500).json({ error: 'BagTV facilities alınamadı' });
+  }
+});
+
+app.post('/api/bagtv-facilities', async (req, res) => {
+  try {
+    console.log('Creating BagTV facility:', req.body);
+    const { name, tvCount, description, status } = req.body;
+    
+    if (!name) {
+      return res.status(400).json({ error: 'Tesis adı gerekli' });
+    }
+    
+    const newFacility = await BagTVFacility.create({
+      name,
+      tvCount: Number(tvCount) || 0,
+      description: description || '',
+      status: status || 'Aktif',
+      createdAt: new Date()
+    });
+    
+    console.log('Created facility:', newFacility);
+    res.status(201).json(newFacility);
+  } catch (error) {
+    console.error('Error creating BagTV facility:', error);
+    res.status(500).json({ error: 'BagTV facility oluşturulamadı: ' + error.message });
+  }
+});
+
+app.put('/api/bagtv-facilities/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, tvCount, description, status } = req.body;
+    
+    const updatedFacility = await BagTVFacility.findByIdAndUpdate(
+      id, 
+      { name, tvCount: Number(tvCount), description, status }, 
+      { new: true }
+    );
+    
+    if (!updatedFacility) {
+      return res.status(404).json({ error: 'BagTV facility bulunamadı.' });
+    }
+    
+    res.json(updatedFacility);
+  } catch (error) {
+    res.status(500).json({ error: 'BagTV facility güncellenemedi' });
+  }
+});
+
+app.delete('/api/bagtv-facilities/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedFacility = await BagTVFacility.findByIdAndDelete(id);
+    
+    if (!deletedFacility) {
+      return res.status(404).json({ error: 'BagTV facility bulunamadı.' });
+    }
+    
+    res.json({ message: 'BagTV facility silindi', id });
+  } catch (error) {
+    res.status(500).json({ error: 'BagTV facility silinemedi' });
+  }
+});
+
+// BagTV Controls endpoints
+app.get('/api/bagtv-controls', async (req, res) => {
+  try {
+    const { facilityId } = req.query;
+    let query = {};
+    if (facilityId) {
+      query = { facilityId };
+    }
+    const controls = await BagTVControl.find(query);
+    res.json(controls);
+  } catch (error) {
+    res.status(500).json({ error: 'BagTV controls alınamadı' });
+  }
+});
+
+app.post('/api/bagtv-controls', async (req, res) => {
+  try {
+    const { facilityId, date, action, description, checkedBy } = req.body;
+    const newControl = await BagTVControl.create({
+      facilityId,
+      date,
+      action,
+      description,
+      checkedBy,
+      createdAt: new Date()
+    });
+    res.status(201).json(newControl);
+  } catch (error) {
+    res.status(500).json({ error: 'BagTV control oluşturulamadı' });
+  }
+});
+
+app.delete('/api/bagtv-controls/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedControl = await BagTVControl.findByIdAndDelete(id);
+    if (!deletedControl) {
+      return res.status(404).json({ error: 'BagTV control bulunamadı.' });
+    }
+    res.json({ message: 'BagTV control silindi', id });
+  } catch (error) {
+    res.status(500).json({ error: 'BagTV control silinemedi' });
+  }
+});
+
+// Facilities endpoints
+app.get('/api/facilities', async (req, res) => {
+  try {
+    const facilities = await Facility.find();
+    res.json(facilities);
+  } catch (error) {
+    res.status(500).json({ error: 'Facilities alınamadı' });
+  }
+});
+
+app.post('/api/facilities', async (req, res) => {
+  try {
+    const { name, description, status } = req.body;
+    const newFacility = await Facility.create({
+      name,
+      description,
+      status: status || 'active',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+    res.status(201).json(newFacility);
+  } catch (error) {
+    res.status(500).json({ error: 'Facility oluşturulamadı' });
+  }
+});
+
+app.put('/api/facilities/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description, status } = req.body;
+    const updatedFacility = await Facility.findByIdAndUpdate(
+      id, 
+      { name, description, status, updatedAt: new Date() }, 
+      { new: true }
+    );
+    if (!updatedFacility) {
+      return res.status(404).json({ error: 'Facility bulunamadı.' });
+    }
+    res.json(updatedFacility);
+  } catch (error) {
+    res.status(500).json({ error: 'Facility güncellenemedi' });
+  }
+});
+
+app.delete('/api/facilities/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedFacility = await Facility.findByIdAndDelete(id);
+    if (!deletedFacility) {
+      return res.status(404).json({ error: 'Facility bulunamadı.' });
+    }
+    res.json({ message: 'Facility silindi', id });
+  } catch (error) {
+    res.status(500).json({ error: 'Facility silinemedi' });
+  }
+});
+
+// Control Items endpoints
+app.get('/api/control-items', async (req, res) => {
+  try {
+    const items = await ControlItem.find();
+    res.json(items);
+  } catch (error) {
+    res.status(500).json({ error: 'Control items alınamadı' });
+  }
+});
+
+app.post('/api/control-items', async (req, res) => {
+  try {
+    const { title, description, period, date, facilityId, workDone, user, status } = req.body;
+    const newItem = await ControlItem.create({
+      title,
+      description,
+      period,
+      date,
+      facilityId,
+      workDone,
+      user,
+      status,
+      createdAt: new Date()
+    });
+    res.status(201).json(newItem);
+  } catch (error) {
+    res.status(500).json({ error: 'Control item oluşturulamadı' });
+  }
+});
+
+app.put('/api/control-items/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, period, date, facilityId, workDone, user, status } = req.body;
+    const updatedItem = await ControlItem.findByIdAndUpdate(
+      id, 
+      { title, description, period, date, facilityId, workDone, user, status }, 
+      { new: true }
+    );
+    if (!updatedItem) {
+      return res.status(404).json({ error: 'Control item bulunamadı.' });
+    }
+    res.json(updatedItem);
+  } catch (error) {
+    res.status(500).json({ error: 'Control item güncellenemedi' });
+  }
+});
+
+app.delete('/api/control-items/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedItem = await ControlItem.findByIdAndDelete(id);
+    if (!deletedItem) {
+      return res.status(404).json({ error: 'Control item bulunamadı.' });
+    }
+    res.json({ message: 'Control item silindi', id });
+  } catch (error) {
+    res.status(500).json({ error: 'Control item silinemedi' });
+  }
+});
+
+// Messages endpoints
+app.get('/api/messages', async (req, res) => {
+  try {
+    const messages = await Message.find();
+    res.json(messages);
+  } catch (error) {
+    res.status(500).json({ error: 'Messages alınamadı' });
+  }
+});
+
+app.post('/api/messages', async (req, res) => {
+  try {
+    const { date, totalCount, pulledCount, description, account } = req.body;
+    const newMessage = await Message.create({
+      date,
+      totalCount,
+      pulledCount,
+      description,
+      account,
+      createdAt: new Date()
+    });
+    res.status(201).json(newMessage);
+  } catch (error) {
+    res.status(500).json({ error: 'Message oluşturulamadı' });
+  }
+});
+
+app.put('/api/messages/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { date, totalCount, pulledCount, description, account } = req.body;
+    const updatedMessage = await Message.findByIdAndUpdate(
+      id, 
+      { date, totalCount, pulledCount, description, account }, 
+      { new: true }
+    );
+    if (!updatedMessage) {
+      return res.status(404).json({ error: 'Message bulunamadı.' });
+    }
+    res.json(updatedMessage);
+  } catch (error) {
+    res.status(500).json({ error: 'Message güncellenemedi' });
+  }
+});
+
+app.delete('/api/messages/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedMessage = await Message.findByIdAndDelete(id);
+    if (!deletedMessage) {
+      return res.status(404).json({ error: 'Message bulunamadı.' });
+    }
+    res.json({ message: 'Message silindi', id });
+  } catch (error) {
+    res.status(500).json({ error: 'Message silinemedi' });
+  }
+});
+
+module.exports = app; 
