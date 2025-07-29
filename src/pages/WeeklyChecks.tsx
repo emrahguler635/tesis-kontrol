@@ -136,7 +136,7 @@ export const WeeklyChecks: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="mb-6">
         <div className="flex items-center gap-4">
           <div className="p-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl shadow-lg">
             <svg className="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -149,24 +149,6 @@ export const WeeklyChecks: React.FC = () => {
             </h1>
             <p className="text-gray-600 mt-1">Haftalık iş takibi ve planlama sistemi</p>
           </div>
-        </div>
-        <div className="flex items-center justify-end space-x-4 flex-wrap">
-          <button
-            onClick={() => setCopyModalOpen(true)}
-            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 font-medium whitespace-nowrap"
-          >
-            <Copy className="h-5 w-5" />
-            <span>Günlük İşleri Taşı</span>
-          </button>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 font-medium whitespace-nowrap"
-          >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            <span>Yeni Ekle</span>
-          </button>
         </div>
       </div>
 
@@ -232,6 +214,26 @@ export const WeeklyChecks: React.FC = () => {
           </table>
         </div>
       </Card>
+
+      {/* Butonlar - Sayfanın Alt Kısmında */}
+      <div className="flex items-center justify-center space-x-6 mt-8">
+        <button
+          onClick={() => setCopyModalOpen(true)}
+          className="flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 font-medium text-lg"
+        >
+          <Copy className="h-6 w-6" />
+          <span>Günlük İşleri Taşı</span>
+        </button>
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 font-medium text-lg"
+        >
+          <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+          <span>Yeni Ekle</span>
+        </button>
+      </div>
 
       {/* Kopyalama Modal */}
       {copyModalOpen && (
