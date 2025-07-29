@@ -150,19 +150,22 @@ export const WeeklyChecks: React.FC = () => {
             <p className="text-gray-600 mt-1">Haftalık iş takibi ve planlama sistemi</p>
           </div>
         </div>
-        <div className="space-x-2">
+        <div className="flex items-center gap-3">
           <button
             onClick={() => setCopyModalOpen(true)}
-            className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center gap-2"
+            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 font-medium"
           >
-            <Copy className="h-4 w-4" />
-            Günlük İşleri Taşı
+            <Copy className="h-5 w-5" />
+            <span>Günlük İşleri Taşı</span>
           </button>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 font-medium"
           >
-            Yeni Ekle
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            <span>Yeni Ekle</span>
           </button>
         </div>
       </div>
