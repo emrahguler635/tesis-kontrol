@@ -134,13 +134,17 @@ const Messages: React.FC = () => {
     setEditingId(null);
     // Bugünün tarihini ve kullanıcı bilgilerini otomatik olarak ekle
     const today = new Date().toISOString().split('T')[0];
-    setEditItem({ 
+    console.log('Current user in Messages:', user);
+    console.log('User username in Messages:', user?.username);
+    const editItemWithUser = { 
       date: today, 
       totalCount: '', 
       pulledCount: '', 
       account: user?.username || '', 
       description: '' 
-    });
+    };
+    console.log('Setting edit item:', editItemWithUser);
+    setEditItem(editItemWithUser);
     setModalOpen(true);
   };
 

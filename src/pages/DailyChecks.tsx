@@ -144,7 +144,9 @@ const DailyChecks: React.FC = () => {
             setEditIndex(null);
             // Bugünün tarihini ve kullanıcı bilgilerini otomatik olarak ekle
             const today = new Date().toISOString().split('T')[0];
-            setFormData({
+            console.log('Current user:', user);
+            console.log('User username:', user?.username);
+            const formDataWithUser = {
               title: '',
               workDone: '',
               plannedDate: today,
@@ -153,7 +155,9 @@ const DailyChecks: React.FC = () => {
               user: user?.username || '',
               facilityId: '',
               status: ''
-            });
+            };
+            console.log('Setting form data:', formDataWithUser);
+            setFormData(formDataWithUser);
             setModalOpen(true);
           }}
           className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
