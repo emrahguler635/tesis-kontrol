@@ -154,72 +154,95 @@ const Messages: React.FC = () => {
           <div className="text-lg text-gray-600">Yükleniyor...</div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {messages.map(message => (
-            <Card key={message.id} className="hover:shadow-lg transition-shadow duration-200">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3 flex-1">
-                  <div className="p-3 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg">
-                    <MessageSquare className="h-6 w-6 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                      {message.account}
-                    </h3>
-                    <p className="text-sm text-gray-500 mb-2">
-                      {message.description}
-                    </p>
-                    <div className="flex items-center gap-2 text-xs">
-                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
-                        {message.totalCount} / {message.pulledCount}
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Hesap
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Tarih
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Toplam
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Çekilen
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Açıklama
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Oluşturulma
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    İşlemler
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {messages.map(message => (
+                  <tr key={message.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-8 w-8">
+                          <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center">
+                            <MessageSquare className="h-4 w-4 text-white" />
+                          </div>
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-900">
+                            {message.account}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {message.date}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                        {message.totalCount}
                       </span>
-                    </div>
-                  </div>
-                </div>
-                <button 
-                  className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                  onClick={() => handleDelete(message.id)}
-                  title="Sil"
-                >
-                  <Plus className="h-4 w-4 rotate-45" />
-                </button>
-              </div>
-              
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">Tarih</span>
-                  <span className="font-medium">{message.date}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm mt-1">
-                  <span className="text-gray-500">Toplam</span>
-                  <span className="font-medium">{message.totalCount}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm mt-1">
-                  <span className="text-gray-500">Çekilen</span>
-                  <span className="font-medium">{message.pulledCount}</span>
-                </div>
-                {message.created_at && (
-                  <div className="flex items-center justify-between text-sm mt-1">
-                    <span className="text-gray-500">Oluşturulma</span>
-                    <span className="text-gray-600">
-                      {new Date(message.created_at).toLocaleDateString('tr-TR')}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </Card>
-          ))}
-        </div>
-      )}
-
-      {!loading && messages.length === 0 && (
-        <Card>
-          <div className="text-center py-8">
-            <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Henüz mesaj yok</h3>
-            <p className="text-gray-500">İlk mesajınızı eklemek için yukarıdaki butonu kullanın.</p>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                        {message.pulledCount}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">
+                      <div className="max-w-xs truncate" title={message.description}>
+                        {message.description}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {message.created_at ? new Date(message.created_at).toLocaleDateString('tr-TR') : '-'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <button 
+                        onClick={() => handleDelete(message.id)}
+                        className="text-red-600 hover:text-red-900 p-2 rounded-lg hover:bg-red-50 transition-colors"
+                        title="Sil"
+                      >
+                        <Plus className="h-4 w-4 rotate-45" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </Card>
+          
+          {messages.length === 0 && (
+            <div className="text-center py-8">
+              <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Henüz mesaj yok</h3>
+              <p className="text-gray-500">İlk mesajınızı eklemek için yukarıdaki butonu kullanın.</p>
+            </div>
+          )}
+        </div>
       )}
 
       {/* Modal */}
