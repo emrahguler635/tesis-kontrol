@@ -14,6 +14,7 @@ export interface ControlItem {
   title: string;
   description?: string;
   period: string;
+  frequency?: string; // Backend'de frequency alanı da kullanılıyor
   date: string;
   facility_id?: number;
   work_done?: string;

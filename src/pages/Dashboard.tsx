@@ -40,10 +40,29 @@ export function Dashboard() {
   };
 
   const getPeriodCounts = () => {
-    return controlTypes.map(type => ({
-      ...type,
-      count: controlItems.filter(item => item.period === type.key).length
-    }));
+    console.log('Dashboard - Control Items:', controlItems);
+    console.log('Dashboard - Control Items periods:', controlItems.map(item => ({ 
+      id: item.id, 
+      period: item.period, 
+      frequency: item.frequency,
+      title: item.title 
+    })));
+    
+    return controlTypes.map(type => {
+      const count = controlItems.filter(item => 
+        item.period === type.key || 
+        item.frequency === type.key ||
+        item.period === type.label ||
+        item.frequency === type.label
+      ).length;
+      
+      console.log(`Dashboard - ${type.key} count:`, count);
+      
+      return {
+        ...type,
+        count
+      };
+    });
   };
 
   const getRecentActivities = () => {
