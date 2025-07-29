@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Download, BarChart3, MessageSquare, TrendingUp, CheckCircle, Calendar, Hash, User, Edit, Trash2 } from 'lucide-react';
 import { apiService } from '../services/api';
 import { Card } from '../components/Card';
+import { useAuthStore } from '../store';
 
 interface Message {
   id: number;
@@ -30,6 +31,7 @@ function exportToCSV(data: any[], filename: string) {
 }
 
 const Messages: React.FC = () => {
+  const { user } = useAuthStore();
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [editItem, setEditItem] = useState({
@@ -130,13 +132,13 @@ const Messages: React.FC = () => {
 
   const handleAddClick = () => {
     setEditingId(null);
-    // Bugünün tarihini otomatik olarak ekle
+    // Bugünün tarihini ve kullanıcı bilgilerini otomatik olarak ekle
     const today = new Date().toISOString().split('T')[0];
     setEditItem({ 
       date: today, 
       totalCount: '', 
       pulledCount: '', 
-      account: '', 
+      account: user?.username || '', 
       description: '' 
     });
     setModalOpen(true);

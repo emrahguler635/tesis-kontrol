@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { Card } from '../components/Card';
 import { Plus, Edit, Trash2, Calendar, User, Building, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { apiService, ControlItem, Facility } from '../services/api';
+import { useAuthStore } from '../store';
 
 const DailyChecks: React.FC = () => {
+  const { user } = useAuthStore();
   const [items, setItems] = useState<ControlItem[]>([]);
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [loading, setLoading] = useState(true);
@@ -140,7 +142,7 @@ const DailyChecks: React.FC = () => {
         <button
           onClick={() => {
             setEditIndex(null);
-            // Bugünün tarihini otomatik olarak ekle
+            // Bugünün tarihini ve kullanıcı bilgilerini otomatik olarak ekle
             const today = new Date().toISOString().split('T')[0];
             setFormData({
               title: '',
@@ -148,7 +150,7 @@ const DailyChecks: React.FC = () => {
               plannedDate: today,
               completedDate: today,
               description: '',
-              user: '',
+              user: user?.username || '',
               facilityId: '',
               status: ''
             });
