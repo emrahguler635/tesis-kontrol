@@ -53,9 +53,17 @@ const DailyChecks: React.FC = () => {
 
   const handleDelete = async (index: number) => {
     if (window.confirm('Bu işi silmek istediğinize emin misiniz?')) {
-      const item = items[index];
-      await apiService.deleteControlItem(item.id);
-      setItems(items.filter((_, i) => i !== index));
+      try {
+        const item = items[index];
+        console.log('Deleting control item:', item.id);
+        await apiService.deleteControlItem(item.id);
+        console.log('Control item deleted successfully');
+        // State'i güncelle
+        setItems(prevItems => prevItems.filter((_, i) => i !== index));
+      } catch (error) {
+        console.error('Delete error:', error);
+        alert('Silme işlemi başarısız oldu. Lütfen tekrar deneyin.');
+      }
     }
   };
 
