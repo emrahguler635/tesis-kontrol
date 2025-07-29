@@ -81,14 +81,14 @@ class ApiService {
     });
   }
 
-  async updateControlItem(id: string, item: { title: string; description?: string; period: string; date: string; facilityId?: string; workDone?: string; user?: string; status?: string }): Promise<ControlItem> {
+  async updateControlItem(id: number, item: { title: string; description?: string; period: string; date: string; facilityId?: string; workDone?: string; user?: string; status?: string }): Promise<ControlItem> {
     return this.request<ControlItem>(`/control-items/${id}`, {
       method: 'PUT',
       body: JSON.stringify(item),
     });
   }
 
-  async deleteControlItem(id: string): Promise<any> {
+  async deleteControlItem(id: number): Promise<any> {
     return this.request<any>(`/control-items/${id}`, {
       method: 'DELETE',
     });

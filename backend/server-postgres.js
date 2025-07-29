@@ -246,6 +246,38 @@ app.post('/api/control-items', async (req, res) => {
   }
 });
 
+app.put('/api/control-items/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, period, date, facilityId, workDone, user, status } = req.body;
+    console.log('Control item update request body:', req.body);
+    
+    const result = await pool.query(
+      'UPDATE control_items SET item_name = $1, description = $2, frequency = $3, date = $4, facility_id = $5, work_done = $6, user_name = $7, status = $8 WHERE id = $9 RETURNING *',
+      [title, description, period, date, facilityId, workDone, user, status, id]
+    );
+    console.log('Control item updated:', result.rows[0]);
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Control item update error:', error);
+    res.status(500).json({ error: 'Control item güncellenemedi', message: error.message });
+  }
+});
+
+app.delete('/api/control-items/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log('Deleting control item with id:', id);
+    
+    await pool.query('DELETE FROM control_items WHERE id = $1', [id]);
+    console.log('Control item deleted successfully');
+    res.json({ message: 'Control item silindi' });
+  } catch (error) {
+    console.error('Control item delete error:', error);
+    res.status(500).json({ error: 'Control item silinemedi', message: error.message });
+  }
+});
+
 app.get('/api/messages', async (req, res) => {
   try {
     console.log('Messages GET endpoint called');

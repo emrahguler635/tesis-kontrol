@@ -39,12 +39,12 @@ const DailyChecks: React.FC = () => {
     const item = items[index];
     setFormData({
       title: item.title,
-      workDone: item.workDone || '',
+      workDone: item.work_done || '',
       plannedDate: '',
       completedDate: item.date,
       description: item.description || '',
       user: item.user || '',
-      facilityId: item.facilityId || '',
+      facilityId: item.facility_id?.toString() || '',
       status: item.status || ''
     });
     setEditIndex(index);
@@ -54,7 +54,7 @@ const DailyChecks: React.FC = () => {
   const handleDelete = async (index: number) => {
     if (window.confirm('Bu işi silmek istediğinize emin misiniz?')) {
       const item = items[index];
-      await apiService.deleteControlItem(item._id);
+      await apiService.deleteControlItem(item.id);
       setItems(items.filter((_, i) => i !== index));
     }
   };
@@ -72,7 +72,7 @@ const DailyChecks: React.FC = () => {
       status: formData.status
     };
     if (editIndex !== null) {
-      const updated = await apiService.updateControlItem(items[editIndex]._id, newItem);
+      const updated = await apiService.updateControlItem(items[editIndex].id, newItem);
       const newItems = [...items];
       newItems[editIndex] = updated;
       setItems(newItems);
@@ -125,19 +125,19 @@ const DailyChecks: React.FC = () => {
         ) : (
           <div className="space-y-4">
             {items.map((item, idx) => (
-              <div key={item._id} className="border-b pb-4 last:border-b-0">
+              <div key={item.id} className="border-b pb-4 last:border-b-0">
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="font-semibold text-lg">{item.title}</h3>
                     <p className="text-gray-600">{item.description}</p>
                     <div className="text-sm text-gray-500 mt-1">
-                      <span>Yapılan İş: {item.workDone || '-'}</span>
+                      <span>Yapılan İş: {item.work_done || '-'}</span>
                       <span className="mx-2">•</span>
                       <span>Tarih: {item.date}</span>
                       <span className="mx-2">•</span>
                       <span>Kullanıcı: {item.user || '-'}</span>
                       <span className="mx-2">•</span>
-                      <span>Tesis: {facilities.find(f => f._id === item.facilityId)?.name || '-'}</span>
+                      <span>Tesis: {facilities.find(f => f.id === item.facility_id)?.name || '-'}</span>
                       <span className="mx-2">•</span>
                       <span>Durum: {item.status || '-'}</span>
                     </div>
@@ -236,7 +236,7 @@ const DailyChecks: React.FC = () => {
                 >
                   <option value="">Tesis Seçin</option>
                   {facilities.map(f => (
-                    <option key={f._id} value={f._id}>{f.name}</option>
+                    <option key={f.id} value={f.id}>{f.name}</option>
                   ))}
                 </select>
               </div>
