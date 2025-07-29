@@ -140,11 +140,13 @@ const DailyChecks: React.FC = () => {
         <button
           onClick={() => {
             setEditIndex(null);
+            // Bugünün tarihini otomatik olarak ekle
+            const today = new Date().toISOString().split('T')[0];
             setFormData({
               title: '',
               workDone: '',
-              plannedDate: '',
-              completedDate: '',
+              plannedDate: today,
+              completedDate: today,
               description: '',
               user: '',
               facilityId: '',
