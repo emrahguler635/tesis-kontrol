@@ -189,17 +189,37 @@ export function Dashboard() {
             <BarChart3 className="h-5 w-5 text-gray-400" />
           </div>
           <div className="space-y-4">
-            {periodCounts.map((type) => (
-              <div key={type.key} className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className={`w-3 h-3 rounded-full ${type.bar} mr-3`}></div>
-                  <span className="text-sm font-medium text-gray-700">{type.label}</span>
+            {periodCounts.map((type) => {
+              const totalItems = controlItems.length;
+              const percentage = totalItems > 0 ? Math.round((type.count / totalItems) * 100) : 0;
+              
+              return (
+                <div key={type.key} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <div className={`w-3 h-3 rounded-full ${type.bar} mr-3`}></div>
+                      <span className="text-sm font-medium text-gray-700">{type.label}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">{percentage}%</span>
+                      <div className={`px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r ${type.color} text-white`}>
+                        {type.count}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className={`h-2 rounded-full bg-gradient-to-r ${type.color}`}
+                      style={{ width: `${percentage}%` }}
+                    ></div>
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>Toplam: {type.count} iş</span>
+                    <span>Oran: {percentage}%</span>
+                  </div>
                 </div>
-                <div className={`px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r ${type.color} text-white`}>
-                  {type.count}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </Card>
 
@@ -210,44 +230,42 @@ export function Dashboard() {
             <Activity className="h-5 w-5 text-gray-400" />
           </div>
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <CheckCircle className="w-4 h-4 text-green-500 mr-3" />
-                <span className="text-sm font-medium text-gray-700">Tamamlandı</span>
-              </div>
-              <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                {statusCounts.tamamlandi}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <Clock className="w-4 h-4 text-yellow-500 mr-3" />
-                <span className="text-sm font-medium text-gray-700">Beklemede</span>
-              </div>
-              <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                {statusCounts.beklemede}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <AlertCircle className="w-4 h-4 text-red-500 mr-3" />
-                <span className="text-sm font-medium text-gray-700">Yapılmadı</span>
-              </div>
-              <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                {statusCounts.yapilmadi}
-              </span>
-            </div>
-            {statusCounts.belirsiz > 0 && (
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <Activity className="w-4 h-4 text-gray-500 mr-3" />
-                  <span className="text-sm font-medium text-gray-700">Belirsiz</span>
+            {[
+              { label: 'Tamamlandı', count: statusCounts.tamamlandi, icon: CheckCircle, color: 'green', bgColor: 'bg-green-100', textColor: 'text-green-800' },
+              { label: 'Beklemede', count: statusCounts.beklemede, icon: Clock, color: 'yellow', bgColor: 'bg-yellow-100', textColor: 'text-yellow-800' },
+              { label: 'Yapılmadı', count: statusCounts.yapilmadi, icon: AlertCircle, color: 'red', bgColor: 'bg-red-100', textColor: 'text-red-800' },
+              ...(statusCounts.belirsiz > 0 ? [{ label: 'Belirsiz', count: statusCounts.belirsiz, icon: Activity, color: 'gray', bgColor: 'bg-gray-100', textColor: 'text-gray-800' }] : [])
+            ].map((status) => {
+              const totalItems = controlItems.length;
+              const percentage = totalItems > 0 ? Math.round((status.count / totalItems) * 100) : 0;
+              
+              return (
+                <div key={status.label} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <status.icon className={`w-4 h-4 text-${status.color}-500 mr-3`} />
+                      <span className="text-sm font-medium text-gray-700">{status.label}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">{percentage}%</span>
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${status.bgColor} ${status.textColor}`}>
+                        {status.count}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className={`h-2 rounded-full bg-${status.color}-500`}
+                      style={{ width: `${percentage}%` }}
+                    ></div>
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>Toplam: {status.count} iş</span>
+                    <span>Oran: {percentage}%</span>
+                  </div>
                 </div>
-                <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                  {statusCounts.belirsiz}
-                </span>
-              </div>
-            )}
+              );
+            })}
           </div>
         </Card>
       </div>
