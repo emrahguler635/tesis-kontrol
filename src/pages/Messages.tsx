@@ -130,8 +130,10 @@ const Messages: React.FC = () => {
 
   const handleAddClick = () => {
     setEditingId(null);
+    // Bugünün tarihini otomatik olarak ekle
+    const today = new Date().toISOString().split('T')[0];
     setEditItem({ 
-      date: '', 
+      date: today, 
       totalCount: '', 
       pulledCount: '', 
       account: '', 
