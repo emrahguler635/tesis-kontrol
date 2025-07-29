@@ -113,11 +113,11 @@ async function initializeDatabase() {
     await client.query(`
       CREATE TABLE IF NOT EXISTS messages (
         id SERIAL PRIMARY KEY,
-        title VARCHAR(200) NOT NULL,
-        content TEXT NOT NULL,
-        sender VARCHAR(100),
-        priority VARCHAR(20) DEFAULT 'Normal',
-        status VARCHAR(20) DEFAULT 'Aktif',
+        date DATE NOT NULL,
+        total_count INTEGER NOT NULL,
+        pulled_count INTEGER NOT NULL,
+        account VARCHAR(100) NOT NULL,
+        description TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
@@ -395,11 +395,11 @@ app.post('/api/setup-database', async (req, res) => {
     await client.query(`
       CREATE TABLE IF NOT EXISTS messages (
         id SERIAL PRIMARY KEY,
-        title VARCHAR(200) NOT NULL,
-        content TEXT NOT NULL,
-        sender VARCHAR(100),
-        priority VARCHAR(20) DEFAULT 'Normal',
-        status VARCHAR(20) DEFAULT 'Aktif',
+        date DATE NOT NULL,
+        total_count INTEGER NOT NULL,
+        pulled_count INTEGER NOT NULL,
+        account VARCHAR(100) NOT NULL,
+        description TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
