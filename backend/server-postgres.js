@@ -248,10 +248,13 @@ app.post('/api/control-items', async (req, res) => {
 
 app.get('/api/messages', async (req, res) => {
   try {
+    console.log('Messages GET endpoint called');
     const result = await pool.query('SELECT * FROM messages ORDER BY created_at DESC');
+    console.log('Messages query result:', result.rows);
     res.json(result.rows);
   } catch (error) {
-    res.status(500).json({ error: 'Messages alınamadı' });
+    console.error('Messages GET error:', error);
+    res.status(500).json({ error: 'Messages alınamadı', message: error.message });
   }
 });
 

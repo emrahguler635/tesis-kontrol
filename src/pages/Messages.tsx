@@ -52,7 +52,9 @@ const Messages: React.FC = () => {
     const fetchMessages = async () => {
       setLoading(true);
       try {
+        console.log('Fetching messages...');
         const messagesData = await apiService.getMessages();
+        console.log('Messages data received:', messagesData);
         setMessages(messagesData);
       } catch (error) {
         console.error('Mesajlar yüklenirken hata:', error);
