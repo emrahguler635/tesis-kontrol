@@ -34,11 +34,11 @@ export interface User {
 // Message type definition
 export interface Message {
   id: number;
-  title: string;
-  content: string;
-  sender?: string;
-  priority?: string;
-  status?: string;
+  date: string;
+  totalCount: number;
+  pulledCount: number;
+  account: string;
+  description: string;
   created_at?: string;
 }
 
@@ -137,14 +137,14 @@ class ApiService {
     return this.request<Message[]>('/messages');
   }
 
-  async createMessage(message: { title: string; content: string; sender?: string; priority?: string; status?: string }): Promise<Message> {
+  async createMessage(message: { date: string; totalCount: number; pulledCount: number; account: string; description: string }): Promise<Message> {
     return this.request<Message>('/messages', {
       method: 'POST',
       body: JSON.stringify(message),
     });
   }
 
-  async updateMessage(id: number, message: { title: string; content: string; sender?: string; priority?: string; status?: string }): Promise<Message> {
+  async updateMessage(id: number, message: { date: string; totalCount: number; pulledCount: number; account: string; description: string }): Promise<Message> {
     return this.request<Message>(`/messages/${id}`, {
       method: 'PUT',
       body: JSON.stringify(message),

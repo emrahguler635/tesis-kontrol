@@ -257,12 +257,12 @@ app.get('/api/messages', async (req, res) => {
 
 app.post('/api/messages', async (req, res) => {
   try {
-    const { title, content, sender, priority, status } = req.body;
+    const { date, totalCount, pulledCount, account, description } = req.body;
     console.log('Message request body:', req.body);
     
     const result = await pool.query(
-      'INSERT INTO messages (title, content, sender, priority, status) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [title, content, sender, priority, status]
+      'INSERT INTO messages (date, total_count, pulled_count, account, description) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [date, totalCount, pulledCount, account, description]
     );
     console.log('Message created:', result.rows[0]);
     res.status(201).json(result.rows[0]);
