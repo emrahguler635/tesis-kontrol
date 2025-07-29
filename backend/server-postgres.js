@@ -46,6 +46,57 @@ app.get('/api/postgres-test', async (req, res) => {
   }
 });
 
+// Debug endpoint'i - tüm tabloları kontrol et
+app.get('/api/debug', async (req, res) => {
+  try {
+    const client = await pool.connect();
+    
+    // Tüm tabloları kontrol et
+    const tables = ['users', 'facilities', 'bagtv_facilities', 'control_items', 'messages'];
+    const tableCounts = {};
+    
+    for (const table of tables) {
+      try {
+        const result = await client.query(`SELECT COUNT(*) FROM ${table}`);
+        tableCounts[table] = parseInt(result.rows[0].count);
+      } catch (error) {
+        tableCounts[table] = 'Tablo yok';
+      }
+    }
+    
+    client.release();
+    
+    res.json({
+      message: 'Tüm tablolar debug',
+      tables: tableCounts,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Debug hatası',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Setup database endpoint'i
+app.get('/api/setup-database', async (req, res) => {
+  try {
+    await initializeDatabase();
+    res.json({
+      message: 'Veritabanı başarıyla kuruldu',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Database setup hatası',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 
 
 // Tüm tabloları oluştur ve admin kullanıcısını ekle
