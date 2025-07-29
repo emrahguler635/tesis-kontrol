@@ -150,7 +150,7 @@ export const YearlyChecks: React.FC = () => {
             <p className="text-gray-600 mt-1">Yıllık iş takibi ve planlama sistemi</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center space-x-4">
           <button
             onClick={() => setCopyModalOpen(true)}
             className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 font-medium"
