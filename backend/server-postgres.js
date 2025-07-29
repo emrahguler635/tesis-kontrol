@@ -289,7 +289,16 @@ app.get('/api/control-items', async (req, res) => {
     
     const result = await pool.query(query, params);
     console.log('Control items result:', result.rows);
-    res.json(result.rows);
+    
+    // Eğer veri yoksa, tüm verileri getir
+    if (result.rows.length === 0 && period) {
+      console.log('No data found for period, fetching all data...');
+      const allResult = await pool.query('SELECT * FROM control_items ORDER BY created_at DESC');
+      console.log('All control items result:', allResult.rows);
+      res.json(allResult.rows);
+    } else {
+      res.json(result.rows);
+    }
   } catch (error) {
     console.error('Control items error:', error);
     res.status(500).json({ error: 'Control items alınamadı', message: error.message });
@@ -350,6 +359,18 @@ app.get('/api/messages', async (req, res) => {
     console.log('Messages GET endpoint called');
     const result = await pool.query('SELECT * FROM messages ORDER BY created_at DESC');
     console.log('Messages query result:', result.rows);
+    
+    // Eğer veri yoksa, debug için tablo yapısını kontrol et
+    if (result.rows.length === 0) {
+      console.log('No messages found, checking table structure...');
+      const tableInfo = await pool.query(`
+        SELECT column_name, data_type 
+        FROM information_schema.columns 
+        WHERE table_name = 'messages'
+      `);
+      console.log('Messages table structure:', tableInfo.rows);
+    }
+    
     res.json(result.rows);
   } catch (error) {
     console.error('Messages GET error:', error);
