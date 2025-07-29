@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Download, BarChart3, MessageSquare, TrendingUp, CheckCircle, Calendar, Hash, User } from 'lucide-react';
+import { Plus, Download, BarChart3, MessageSquare, TrendingUp, CheckCircle, Calendar, Hash, User, Edit, Trash2 } from 'lucide-react';
 import { apiService } from '../services/api';
 import { Card } from '../components/Card';
 
@@ -38,6 +38,7 @@ const Messages: React.FC = () => {
     description: ''
   });
   const [modalOpen, setModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'report'>('list');
 
   // Hesap seçenekleri
@@ -73,15 +74,29 @@ const Messages: React.FC = () => {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const newMessage = await apiService.createMessage({
-        date: editItem.date,
-        totalCount: parseInt(editItem.totalCount),
-        pulledCount: parseInt(editItem.pulledCount),
-        account: editItem.account,
-        description: editItem.description
-      });
-      setMessages([newMessage, ...messages]);
+      if (editingId) {
+        // Güncelleme
+        const updatedMessage = await apiService.updateMessage(editingId, {
+          date: editItem.date,
+          totalCount: parseInt(editItem.totalCount),
+          pulledCount: parseInt(editItem.pulledCount),
+          account: editItem.account,
+          description: editItem.description
+        });
+        setMessages(messages.map(msg => msg.id === editingId ? updatedMessage : msg));
+      } else {
+        // Yeni ekleme
+        const newMessage = await apiService.createMessage({
+          date: editItem.date,
+          totalCount: parseInt(editItem.totalCount),
+          pulledCount: parseInt(editItem.pulledCount),
+          account: editItem.account,
+          description: editItem.description
+        });
+        setMessages([newMessage, ...messages]);
+      }
       setModalOpen(false);
+      setEditingId(null);
       setEditItem({ 
         date: '', 
         totalCount: '', 
@@ -95,11 +110,31 @@ const Messages: React.FC = () => {
     }
   };
 
+  const handleEdit = (message: Message) => {
+    setEditingId(message.id);
+    setEditItem({
+      date: message.date,
+      totalCount: message.totalCount.toString(),
+      pulledCount: message.pulledCount.toString(),
+      account: message.account,
+      description: message.description
+    });
+    setModalOpen(true);
+  };
+
   const handleExport = () => {
     exportToCSV(messages, 'mesajlar.csv');
   };
 
   const handleAddClick = () => {
+    setEditingId(null);
+    setEditItem({ 
+      date: '', 
+      totalCount: '', 
+      pulledCount: '', 
+      account: '', 
+      description: '' 
+    });
     setModalOpen(true);
   };
 
@@ -204,12 +239,12 @@ const Messages: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
-                        {message.totalCount}
+                        {message.totalCount || 0}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
-                        {message.pulledCount}
+                        {message.pulledCount || 0}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">
@@ -221,13 +256,22 @@ const Messages: React.FC = () => {
                       {message.created_at ? new Date(message.created_at).toLocaleDateString('tr-TR') : '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button 
-                        onClick={() => handleDelete(message.id)}
-                        className="text-red-600 hover:text-red-900 p-2 rounded-lg hover:bg-red-50 transition-colors"
-                        title="Sil"
-                      >
-                        <Plus className="h-4 w-4 rotate-45" />
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        <button 
+                          onClick={() => handleEdit(message)}
+                          className="text-blue-600 hover:text-blue-900 p-2 rounded-lg hover:bg-blue-50 transition-colors"
+                          title="Düzenle"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(message.id)}
+                          className="text-red-600 hover:text-red-900 p-2 rounded-lg hover:bg-red-50 transition-colors"
+                          title="Sil"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -250,7 +294,9 @@ const Messages: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold">Yeni Mesaj Ekle</h2>
+              <h2 className="text-xl font-semibold">
+                {editingId ? 'Mesaj Düzenle' : 'Yeni Mesaj Ekle'}
+              </h2>
               <button
                 onClick={() => setModalOpen(false)}
                 className="text-gray-400 hover:text-gray-600"
@@ -369,7 +415,7 @@ const Messages: React.FC = () => {
                   type="submit"
                   className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
                 >
-                  Kaydet
+                  {editingId ? 'Güncelle' : 'Kaydet'}
                 </button>
               </div>
             </form>
