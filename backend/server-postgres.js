@@ -273,10 +273,26 @@ app.delete('/api/bagtv-facilities/:id', async (req, res) => {
 
 app.get('/api/control-items', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM control_items ORDER BY created_at DESC');
+    const { period } = req.query;
+    console.log('Control items request - period:', period);
+    
+    let query = 'SELECT * FROM control_items';
+    let params = [];
+    
+    if (period) {
+      query += ' WHERE frequency = $1';
+      params.push(period);
+    }
+    
+    query += ' ORDER BY created_at DESC';
+    console.log('Control items query:', query, 'params:', params);
+    
+    const result = await pool.query(query, params);
+    console.log('Control items result:', result.rows);
     res.json(result.rows);
   } catch (error) {
-    res.status(500).json({ error: 'Control items alınamadı' });
+    console.error('Control items error:', error);
+    res.status(500).json({ error: 'Control items alınamadı', message: error.message });
   }
 });
 
