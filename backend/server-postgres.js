@@ -275,6 +275,38 @@ app.post('/api/messages', async (req, res) => {
   }
 });
 
+app.put('/api/messages/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { date, totalCount, pulledCount, account, description } = req.body;
+    console.log('Message update request body:', req.body);
+    
+    const result = await pool.query(
+      'UPDATE messages SET date = $1, total_count = $2, pulled_count = $3, account = $4, description = $5 WHERE id = $6 RETURNING *',
+      [date, totalCount, pulledCount, account, description, id]
+    );
+    console.log('Message updated:', result.rows[0]);
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Message update error:', error);
+    res.status(500).json({ error: 'Message güncellenemedi', message: error.message });
+  }
+});
+
+app.delete('/api/messages/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log('Deleting message with id:', id);
+    
+    await pool.query('DELETE FROM messages WHERE id = $1', [id]);
+    console.log('Message deleted successfully');
+    res.json({ message: 'Message silindi' });
+  } catch (error) {
+    console.error('Message delete error:', error);
+    res.status(500).json({ error: 'Message silinemedi', message: error.message });
+  }
+});
+
 // User endpoints
 app.get('/api/users', async (req, res) => {
   try {

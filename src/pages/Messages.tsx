@@ -6,8 +6,10 @@ import { Card } from '../components/Card';
 interface Message {
   id: number;
   date: string;
-  totalCount: number;
-  pulledCount: number;
+  totalCount?: number;
+  total_count?: number;
+  pulledCount?: number;
+  pulled_count?: number;
   account: string;
   description: string;
   created_at?: string;
@@ -114,8 +116,8 @@ const Messages: React.FC = () => {
     setEditingId(message.id);
     setEditItem({
       date: message.date,
-      totalCount: message.totalCount.toString(),
-      pulledCount: message.pulledCount.toString(),
+      totalCount: (message.totalCount || message.total_count || 0).toString(),
+      pulledCount: (message.pulledCount || message.pulled_count || 0).toString(),
       account: message.account,
       description: message.description
     });
@@ -239,12 +241,12 @@ const Messages: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
-                        {message.totalCount || 0}
+                        {message.totalCount || message.total_count || 0}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
-                        {message.pulledCount || 0}
+                        {message.pulledCount || message.pulled_count || 0}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">
