@@ -126,7 +126,7 @@ app.post('/api/add-test-data', async (req, res) => {
     
     for (const item of controlItems) {
       await client.query(
-        'INSERT INTO control_items (title, description, period, date, facility_id, work_done, user, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT DO NOTHING',
+        'INSERT INTO control_items (title, description, period, date, facility_id, work_done, user_name, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT DO NOTHING',
         [item.title, item.description, item.period, item.date, item.facility_id, item.work_done, item.user, item.status]
       );
     }
@@ -230,7 +230,7 @@ async function initializeDatabase() {
         period VARCHAR(20) DEFAULT 'Günlük',
         date DATE,
         work_done TEXT,
-        user VARCHAR(100),
+        user_name VARCHAR(100),
         status VARCHAR(20) DEFAULT 'Aktif',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -387,7 +387,7 @@ app.post('/api/control-items', async (req, res) => {
     console.log('Control item request body:', req.body);
     
     const result = await pool.query(
-      'INSERT INTO control_items (title, description, period, date, facility_id, work_done, user, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
+      'INSERT INTO control_items (title, description, period, date, facility_id, work_done, user_name, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
       [title, description, period, date, facilityId, workDone, user, status]
     );
     console.log('Control item created:', result.rows[0]);
@@ -405,7 +405,7 @@ app.put('/api/control-items/:id', async (req, res) => {
     console.log('Control item update request body:', req.body);
     
     const result = await pool.query(
-      'UPDATE control_items SET title = $1, description = $2, period = $3, date = $4, facility_id = $5, work_done = $6, user = $7, status = $8 WHERE id = $9 RETURNING *',
+      'UPDATE control_items SET title = $1, description = $2, period = $3, date = $4, facility_id = $5, work_done = $6, user_name = $7, status = $8 WHERE id = $9 RETURNING *',
       [title, description, period, date, facilityId, workDone, user, status, id]
     );
     console.log('Control item updated:', result.rows[0]);
