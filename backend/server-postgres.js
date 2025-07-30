@@ -626,13 +626,16 @@ app.post('/api/setup-database', async (req, res) => {
       CREATE TABLE IF NOT EXISTS control_items (
         id SERIAL PRIMARY KEY,
         facility_id INTEGER REFERENCES facilities(id),
-        item_name VARCHAR(100) NOT NULL,
+        title VARCHAR(100) NOT NULL,
         description TEXT,
-        frequency VARCHAR(20) DEFAULT 'Günlük',
+        period VARCHAR(20) DEFAULT 'Günlük',
         date DATE,
         work_done TEXT,
         user_name VARCHAR(100),
         status VARCHAR(20) DEFAULT 'Aktif',
+        approval_status VARCHAR(20) DEFAULT 'pending',
+        approved_by VARCHAR(100),
+        approved_at TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
