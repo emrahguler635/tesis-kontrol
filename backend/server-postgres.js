@@ -97,6 +97,84 @@ app.get('/api/setup-database', async (req, res) => {
   }
 });
 
+// Test verisi ekleme endpoint'i
+app.post('/api/add-test-data', async (req, res) => {
+  try {
+    const client = await pool.connect();
+    
+    // Test tesisleri ekle
+    const facilities = [
+      { name: 'Test Tesis 1', description: 'Test açıklama 1', status: 'Aktif' },
+      { name: 'Test Tesis 2', description: 'Test açıklama 2', status: 'Aktif' },
+      { name: 'Test Tesis 3', description: 'Test açıklama 3', status: 'Pasif' }
+    ];
+    
+    for (const facility of facilities) {
+      await client.query(
+        'INSERT INTO facilities (name, description, status) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
+        [facility.name, facility.description, facility.status]
+      );
+    }
+    
+    // Test kontrol işleri ekle
+    const controlItems = [
+      { title: 'Günlük Test İş 1', description: 'Günlük test açıklama', period: 'Günlük', date: '2025-07-30', facility_id: 1, work_done: 'Test iş yapıldı', user: 'Test Kullanıcı', status: 'Tamamlandı' },
+      { title: 'Haftalık Test İş 1', description: 'Haftalık test açıklama', period: 'Haftalık', date: '2025-07-30', facility_id: 2, work_done: 'Test iş yapıldı', user: 'Test Kullanıcı', status: 'İşlemde' },
+      { title: 'Aylık Test İş 1', description: 'Aylık test açıklama', period: 'Aylık', date: '2025-07-30', facility_id: 1, work_done: 'Test iş yapıldı', user: 'Test Kullanıcı', status: 'Beklemede' },
+      { title: 'Yıllık Test İş 1', description: 'Yıllık test açıklama', period: 'Yıllık', date: '2025-07-30', facility_id: 3, work_done: 'Test iş yapıldı', user: 'Test Kullanıcı', status: 'Tamamlandı' }
+    ];
+    
+    for (const item of controlItems) {
+      await client.query(
+        'INSERT INTO control_items (title, description, period, date, facility_id, work_done, user, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT DO NOTHING',
+        [item.title, item.description, item.period, item.date, item.facility_id, item.work_done, item.user, item.status]
+      );
+    }
+    
+    // Test mesajları ekle
+    const messages = [
+      { date: '2025-07-30', total_count: 100, pulled_count: 85, account: 'Yasin Yıldız', sender: 'Test Kullanıcı', description: 'Test mesaj açıklama 1' },
+      { date: '2025-07-29', total_count: 150, pulled_count: 120, account: 'Abdullah Özdemir', sender: 'Test Kullanıcı', description: 'Test mesaj açıklama 2' },
+      { date: '2025-07-28', total_count: 80, pulled_count: 75, account: 'Bağcılar Belediyesi', sender: 'Test Kullanıcı', description: 'Test mesaj açıklama 3' }
+    ];
+    
+    for (const message of messages) {
+      await client.query(
+        'INSERT INTO messages (date, total_count, pulled_count, account, sender, description) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING',
+        [message.date, message.total_count, message.pulled_count, message.account, message.sender, message.description]
+      );
+    }
+    
+    // Test BağTV tesisleri ekle
+    const bagtvFacilities = [
+      { name: 'BağTV Test Tesis 1', tv_count: 5, description: 'BağTV test açıklama 1', status: 'Aktif' },
+      { name: 'BağTV Test Tesis 2', tv_count: 3, description: 'BağTV test açıklama 2', status: 'Aktif' },
+      { name: 'BağTV Test Tesis 3', tv_count: 7, description: 'BağTV test açıklama 3', status: 'Pasif' }
+    ];
+    
+    for (const facility of bagtvFacilities) {
+      await client.query(
+        'INSERT INTO bagtv_facilities (name, tv_count, description, status) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING',
+        [facility.name, facility.tv_count, facility.description, facility.status]
+      );
+    }
+    
+    client.release();
+    
+    res.json({
+      message: 'Test verileri başarıyla eklendi',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Test verisi ekleme hatası:', error);
+    res.status(500).json({
+      error: 'Test verisi eklenemedi',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 
 
 // Tüm tabloları oluştur ve admin kullanıcısını ekle
@@ -149,12 +227,12 @@ async function initializeDatabase() {
       CREATE TABLE IF NOT EXISTS control_items (
         id SERIAL PRIMARY KEY,
         facility_id INTEGER REFERENCES facilities(id),
-        item_name VARCHAR(100) NOT NULL,
+        title VARCHAR(100) NOT NULL,
         description TEXT,
-        frequency VARCHAR(20) DEFAULT 'Günlük',
+        period VARCHAR(20) DEFAULT 'Günlük',
         date DATE,
         work_done TEXT,
-        user_name VARCHAR(100),
+        user VARCHAR(100),
         status VARCHAR(20) DEFAULT 'Aktif',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -280,11 +358,11 @@ app.get('/api/control-items', async (req, res) => {
     let params = [];
     
     if (period) {
-      query += ' WHERE frequency = $1';
+      query += ' WHERE period = $1';
       params.push(period);
     }
     
-    query += ' ORDER BY created_at DESC';
+    query += ' ORDER BY date DESC';
     console.log('Control items query:', query, 'params:', params);
     
     const result = await pool.query(query, params);
@@ -311,7 +389,7 @@ app.post('/api/control-items', async (req, res) => {
     console.log('Control item request body:', req.body);
     
     const result = await pool.query(
-      'INSERT INTO control_items (item_name, description, frequency, date, facility_id, work_done, user_name, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
+      'INSERT INTO control_items (title, description, period, date, facility_id, work_done, user, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
       [title, description, period, date, facilityId, workDone, user, status]
     );
     console.log('Control item created:', result.rows[0]);
@@ -329,7 +407,7 @@ app.put('/api/control-items/:id', async (req, res) => {
     console.log('Control item update request body:', req.body);
     
     const result = await pool.query(
-      'UPDATE control_items SET item_name = $1, description = $2, frequency = $3, date = $4, facility_id = $5, work_done = $6, user_name = $7, status = $8 WHERE id = $9 RETURNING *',
+      'UPDATE control_items SET title = $1, description = $2, period = $3, date = $4, facility_id = $5, work_done = $6, user = $7, status = $8 WHERE id = $9 RETURNING *',
       [title, description, period, date, facilityId, workDone, user, status, id]
     );
     console.log('Control item updated:', result.rows[0]);
