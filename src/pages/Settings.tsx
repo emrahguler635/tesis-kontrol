@@ -59,6 +59,34 @@ export function Settings() {
           {uploadMsg && <div className="text-green-600 text-sm">{uploadMsg}</div>}
         </div>
       </Card>
+
+      <Card>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Menü Sıralaması</h2>
+        <div className="space-y-3">
+          <p className="text-sm text-gray-600 mb-4">
+            Menü öğelerinin sıralamasını değiştirmek için aşağıdaki ayarları kullanabilirsiniz.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Ana Menü Sıralaması</label>
+              <select className="w-full border border-gray-300 rounded-md px-3 py-2">
+                <option>Varsayılan Sıralama</option>
+                <option>Alfabetik Sıralama</option>
+                <option>Özel Sıralama</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Menü Görünürlüğü</label>
+              <select className="w-full border border-gray-300 rounded-md px-3 py-2">
+                <option>Tüm Menüler</option>
+                <option>Sadece Yetkili Menüler</option>
+                <option>Özel Menü Seti</option>
+              </select>
+            </div>
+          </div>
+          <button type="button" className="btn-primary">Menü Ayarlarını Kaydet</button>
+        </div>
+      </Card>
     </div>
   )
 } 

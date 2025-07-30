@@ -232,6 +232,9 @@ async function initializeDatabase() {
         work_done TEXT,
         user_name VARCHAR(100),
         status VARCHAR(20) DEFAULT 'Aktif',
+        approval_status VARCHAR(20) DEFAULT 'pending',
+        approved_by VARCHAR(100),
+        approved_at TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
@@ -404,9 +407,19 @@ app.put('/api/control-items/:id', async (req, res) => {
     const { title, description, period, date, facilityId, workDone, user, status } = req.body;
     console.log('Control item update request body:', req.body);
     
+    // Status değişikliğinde onay durumunu güncelle
+    let approvalStatus = 'pending';
+    if (status === 'Tamamlandı') {
+      approvalStatus = 'pending'; // Onay bekliyor
+    } else if (status === 'Beklemede') {
+      approvalStatus = 'pending'; // Onay bekliyor
+    } else if (status === 'İptal') {
+      approvalStatus = 'rejected'; // Reddedildi
+    }
+
     const result = await pool.query(
-      'UPDATE control_items SET title = $1, description = $2, period = $3, date = $4, facility_id = $5, work_done = $6, user_name = $7, status = $8 WHERE id = $9 RETURNING *',
-      [title, description, period, date, facilityId, workDone, user, status, id]
+      'UPDATE control_items SET title = $1, description = $2, period = $3, date = $4, facility_id = $5, work_done = $6, user_name = $7, status = $8, approval_status = $9 WHERE id = $10 RETURNING *',
+      [title, description, period, date, facilityId, workDone, user, status, approvalStatus, id]
     );
     console.log('Control item updated:', result.rows[0]);
     res.json(result.rows[0]);
