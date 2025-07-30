@@ -192,6 +192,7 @@ async function initializeDatabase() {
         email VARCHAR(100) UNIQUE NOT NULL,
         password VARCHAR(100) NOT NULL,
         role VARCHAR(20) DEFAULT 'user',
+        permissions JSONB DEFAULT '[]',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
@@ -519,7 +520,7 @@ app.delete('/api/messages/:id', async (req, res) => {
 // User endpoints
 app.get('/api/users', async (req, res) => {
   try {
-    const result = await pool.query('SELECT id, username, email, role, created_at FROM users ORDER BY created_at DESC');
+    const result = await pool.query('SELECT id, username, email, role, permissions, created_at FROM users ORDER BY created_at DESC');
     res.json(result.rows);
   } catch (error) {
     res.status(500).json({ error: 'Users alınamadı' });
@@ -528,12 +529,12 @@ app.get('/api/users', async (req, res) => {
 
 app.post('/api/users', async (req, res) => {
   try {
-    const { username, email, password, role } = req.body;
+    const { username, email, password, role, permissions } = req.body;
     console.log('User request body:', req.body);
     
     const result = await pool.query(
-      'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id, username, email, role, created_at',
-      [username, email, password, role]
+      'INSERT INTO users (username, email, password, role, permissions) VALUES ($1, $2, $3, $4, $5) RETURNING id, username, email, role, permissions, created_at',
+      [username, email, password, role, JSON.stringify(permissions || [])]
     );
     console.log('User created:', result.rows[0]);
     res.status(201).json(result.rows[0]);
@@ -546,21 +547,22 @@ app.post('/api/users', async (req, res) => {
 app.put('/api/users/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { username, email, password, role } = req.body;
+    const { username, email, password, role, permissions } = req.body;
     
     let query, params;
     if (password) {
-      query = 'UPDATE users SET username = $1, email = $2, password = $3, role = $4 WHERE id = $5 RETURNING id, username, email, role, created_at';
-      params = [username, email, password, role, id];
+      query = 'UPDATE users SET username = $1, email = $2, password = $3, role = $4, permissions = $5 WHERE id = $6 RETURNING id, username, email, role, permissions, created_at';
+      params = [username, email, password, role, JSON.stringify(permissions || []), id];
     } else {
-      query = 'UPDATE users SET username = $1, email = $2, role = $3 WHERE id = $4 RETURNING id, username, email, role, created_at';
-      params = [username, email, role, id];
+      query = 'UPDATE users SET username = $1, email = $2, role = $3, permissions = $4 WHERE id = $5 RETURNING id, username, email, role, permissions, created_at';
+      params = [username, email, role, JSON.stringify(permissions || []), id];
     }
     
     const result = await pool.query(query, params);
     res.json(result.rows[0]);
   } catch (error) {
-    res.status(500).json({ error: 'User güncellenemedi' });
+    console.error('User update error:', error);
+    res.status(500).json({ error: 'User güncellenemedi', message: error.message });
   }
 });
 
