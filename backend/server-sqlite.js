@@ -216,6 +216,58 @@ app.post('/api/control-items', (req, res) => {
   );
 });
 
+// Onay bekleyen işleri getir
+app.get('/api/control-items/pending-approvals', (req, res) => {
+  db.all("SELECT * FROM control_items WHERE status = 'pending' ORDER BY createdAt DESC", (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: 'Onay bekleyen işler alınamadı' });
+    }
+    res.json(rows);
+  });
+});
+
+// İşi onayla
+app.post('/api/control-items/:id/approve', (req, res) => {
+  const { id } = req.params;
+  const { approvedBy } = req.body;
+  
+  db.run(`UPDATE control_items SET status = 'approved', approved_by = ?, approved_at = CURRENT_TIMESTAMP WHERE id = ?`,
+    [approvedBy, id],
+    function(err) {
+      if (err) {
+        return res.status(500).json({ error: 'İş onaylanamadı' });
+      }
+      
+      if (this.changes === 0) {
+        return res.status(404).json({ error: 'İş bulunamadı' });
+      }
+      
+      res.json({ message: 'İş başarıyla onaylandı' });
+    }
+  );
+});
+
+// İşi reddet
+app.post('/api/control-items/:id/reject', (req, res) => {
+  const { id } = req.params;
+  const { rejectedBy, reason } = req.body;
+  
+  db.run(`UPDATE control_items SET status = 'rejected', approved_by = ?, approved_at = CURRENT_TIMESTAMP WHERE id = ?`,
+    [rejectedBy, id],
+    function(err) {
+      if (err) {
+        return res.status(500).json({ error: 'İş reddedilemedi' });
+      }
+      
+      if (this.changes === 0) {
+        return res.status(404).json({ error: 'İş bulunamadı' });
+      }
+      
+      res.json({ message: 'İş başarıyla reddedildi', reason });
+    }
+  );
+});
+
 // Messages endpoints
 app.get('/api/messages', (req, res) => {
   db.all("SELECT * FROM messages ORDER BY createdAt DESC", (err, rows) => {
@@ -241,6 +293,111 @@ app.post('/api/messages', (req, res) => {
       });
     }
   );
+});
+
+// ControlItem taşıma (bir periyottan diğerine)
+app.post('/api/control-items/move', async (req, res) => {
+  try {
+    const { sourcePeriod, targetPeriod, startDate, endDate } = req.body;
+    
+    // Kaynak periyottaki işleri getir
+    db.all("SELECT * FROM control_items WHERE period = ?", [sourcePeriod], (err, sourceItems) => {
+      if (err) {
+        console.error('Kaynak işler alınamadı:', err);
+        return res.status(500).json({ error: 'Kaynak işler alınamadı' });
+      }
+      
+      if (sourceItems.length === 0) {
+        return res.status(404).json({ error: `${sourcePeriod} periyotunda taşınacak iş bulunamadı.` });
+      }
+
+      // Tarih aralığındaki işleri filtrele
+      let filteredItems = sourceItems;
+      if (startDate && endDate) {
+        filteredItems = sourceItems.filter((item) => {
+          const itemDate = new Date(item.date);
+          const start = new Date(startDate);
+          const end = new Date(endDate);
+          return itemDate >= start && itemDate <= end;
+        });
+      }
+
+      // SADECE Tamamlandı ve Yapılmadı olanlar
+      filteredItems = filteredItems.filter(item =>
+        item.status === 'Tamamlandı' || item.status === 'Tamamlandi' || item.status === 'Yapılmadı'
+      );
+
+      if (filteredItems.length === 0) {
+        return res.status(404).json({ error: 'Seçilen tarih aralığında taşınacak iş bulunamadı.' });
+      }
+
+      // Hedef periyottaki mevcut işleri kontrol et
+      db.all("SELECT * FROM control_items WHERE period = ?", [targetPeriod], (err, targetItems) => {
+        if (err) {
+          console.error('Hedef işler alınamadı:', err);
+          return res.status(500).json({ error: 'Hedef işler alınamadı' });
+        }
+        
+        // Sadece hedefte olmayan işleri taşı
+        const itemsToMove = filteredItems.filter((item) => {
+          return !targetItems.some((t) =>
+            t.title === item.title &&
+            t.description === item.description &&
+            t.facilityId === item.facilityId
+          );
+        });
+
+        if (itemsToMove.length === 0) {
+          return res.status(400).json({ error: 'Seçilen tarih aralığındaki tüm işler zaten hedef periyotta mevcut.' });
+        }
+
+        // İşlemleri başlat
+        let movedCount = 0;
+        let completed = 0;
+
+        itemsToMove.forEach((item) => {
+          // Yeni iş oluştur
+          db.run(`INSERT INTO control_items (title, description, period, date, facilityId, workDone, user, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [item.title, item.description, targetPeriod, new Date().toISOString().split('T')[0], item.facilityId, item.workDone, item.user, item.status],
+            function(err) {
+              if (err) {
+                console.error('Yeni iş oluşturulamadı:', err);
+                return;
+              }
+
+              // Eski işi sil
+              db.run("DELETE FROM control_items WHERE id = ?", [item.id], (err) => {
+                if (err) {
+                  console.error('Eski iş silinemedi:', err);
+                }
+                
+                movedCount++;
+                completed++;
+                
+                if (completed === itemsToMove.length) {
+                  res.json({ 
+                    message: `${movedCount} adet iş ${sourcePeriod} periyotundan ${targetPeriod} periyotuna taşındı.`,
+                    movedCount: movedCount
+                  });
+                }
+              });
+            }
+          );
+        });
+      });
+    });
+
+  } catch (err) {
+    console.error('Taşıma hatası:', err);
+    console.error('Hata detayları:', {
+      message: err.message,
+      stack: err.stack
+    });
+    res.status(500).json({ 
+      error: 'İşler taşınırken hata oluştu.',
+      details: err.message 
+    });
+  }
 });
 
 // Debug endpoint

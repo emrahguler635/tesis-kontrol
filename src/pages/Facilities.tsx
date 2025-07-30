@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { apiService, Facility } from '../services/api';
 import { Card } from '../components/Card';
-import { Building2, Plus, Trash2, Edit, Search } from 'lucide-react';
+import { Building2, Plus, Trash2, Edit, Search, Upload } from 'lucide-react';
+import { BulkUploadModal } from '../components/BulkUploadModal';
 
 const Facilities: React.FC = () => {
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [showBulkUpload, setShowBulkUpload] = useState(false);
 
   useEffect(() => {
     const fetchFacilities = async () => {
@@ -36,6 +38,20 @@ const Facilities: React.FC = () => {
     } catch (error) {
       console.error('Tesis silinirken hata oluştu:', error);
     }
+  };
+
+  const handleBulkUploadSuccess = () => {
+    // Tesisleri yeniden yükle
+    const fetchFacilities = async () => {
+      setLoading(true);
+      try {
+        const data = await apiService.getFacilities();
+        setFacilities(data);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFacilities();
   };
 
   // Filter facilities based on search term
@@ -82,6 +98,15 @@ const Facilities: React.FC = () => {
                 Ekle
               </button>
             </form>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowBulkUpload(true)}
+              className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 flex items-center gap-2"
+            >
+              <Upload className="h-4 w-4" />
+              Veri Yükle
+            </button>
           </div>
         </div>
       </Card>
@@ -190,6 +215,14 @@ const Facilities: React.FC = () => {
           </div>
         </Card>
       )}
+
+      {/* Bulk Upload Modal */}
+      <BulkUploadModal
+        isOpen={showBulkUpload}
+        onClose={() => setShowBulkUpload(false)}
+        type="facilities"
+        onSuccess={handleBulkUploadSuccess}
+      />
     </div>
   );
 };

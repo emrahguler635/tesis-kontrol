@@ -691,6 +691,209 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+// Taşıma işlemi endpoint'i
+app.post('/api/control-items/move', async (req, res) => {
+  try {
+    const { sourcePeriod, targetPeriod } = req.body;
+    
+    if (!sourcePeriod || !targetPeriod) {
+      return res.status(400).json({ 
+        error: 'Kaynak ve hedef periyot belirtilmelidir',
+        message: 'sourcePeriod ve targetPeriod parametreleri gerekli'
+      });
+    }
+
+    console.log(`Taşıma işlemi başlatıldı: ${sourcePeriod} -> ${targetPeriod}`);
+
+    const client = await pool.connect();
+
+    try {
+      // Kaynak periyottaki tamamlanmış işleri al
+      const sourceQuery = `
+        SELECT * FROM control_items 
+        WHERE period = $1 
+        AND (status = 'Tamamlandı' OR status = 'Tamamlandi' OR status = 'Yapılmadı')
+        ORDER BY date DESC
+      `;
+      
+      const sourceResult = await client.query(sourceQuery, [sourcePeriod]);
+      const sourceItems = sourceResult.rows;
+
+      console.log(`${sourcePeriod} periyotunda ${sourceItems.length} iş bulundu`);
+
+      if (sourceItems.length === 0) {
+        return res.json({
+          message: `${sourcePeriod} periyotunda taşınacak iş bulunamadı`,
+          movedCount: 0,
+          sourcePeriod,
+          targetPeriod
+        });
+      }
+
+      let movedCount = 0;
+      let errorCount = 0;
+      const errors = [];
+
+      // Her iş için taşıma işlemi
+      for (const item of sourceItems) {
+        try {
+          // Hedef periyotta aynı iş var mı kontrol et
+          const existingQuery = `
+            SELECT id FROM control_items 
+            WHERE period = $1 
+            AND title = $2 
+            AND facility_id = $3
+          `;
+          
+          const existingResult = await client.query(existingQuery, [
+            targetPeriod, 
+            item.title, 
+            item.facility_id
+          ]);
+
+          if (existingResult.rows.length > 0) {
+            console.log(`İş zaten ${targetPeriod} periyotunda mevcut: ${item.title}`);
+            continue;
+          }
+
+          // Yeni iş oluştur
+          const insertQuery = `
+            INSERT INTO control_items (
+              title, description, period, date, facility_id, 
+              work_done, user, status
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            RETURNING id
+          `;
+
+          const insertResult = await client.query(insertQuery, [
+            item.title,
+            item.description,
+            targetPeriod,
+            item.date,
+            item.facility_id,
+            item.work_done,
+            item.user,
+            'Beklemede' // Yeni periyotta beklemeye al
+          ]);
+
+          console.log(`İş başarıyla taşındı: ${item.title} -> ${targetPeriod}`);
+          movedCount++;
+
+        } catch (error) {
+          console.error(`İş taşıma hatası: ${item.title}`, error);
+          errors.push({
+            item: item.title,
+            error: error.message
+          });
+          errorCount++;
+        }
+      }
+
+      // Kaynak periyottaki işleri sil
+      if (movedCount > 0) {
+        const deleteQuery = `
+          DELETE FROM control_items 
+          WHERE period = $1 
+          AND (status = 'Tamamlandı' OR status = 'Tamamlandi' OR status = 'Yapılmadı')
+        `;
+        
+        const deleteResult = await client.query(deleteQuery, [sourcePeriod]);
+        console.log(`${sourcePeriod} periyotundan ${deleteResult.rowCount} iş silindi`);
+      }
+
+      client.release();
+
+      res.json({
+        message: `Taşıma işlemi tamamlandı`,
+        movedCount,
+        errorCount,
+        errors: errors.length > 0 ? errors : undefined,
+        sourcePeriod,
+        targetPeriod
+      });
+
+    } catch (error) {
+      client.release();
+      throw error;
+    }
+
+  } catch (error) {
+    console.error('Taşıma işlemi hatası:', error);
+    res.status(500).json({ 
+      error: 'Taşıma işlemi başarısız', 
+      message: error.message,
+      stack: error.stack
+    });
+  }
+});
+
+// Onay bekleyen işler endpoint'i
+app.get('/api/control-items/pending-approvals', async (req, res) => {
+  try {
+    const query = `
+      SELECT * FROM control_items 
+      WHERE status = 'pending' 
+      ORDER BY date DESC
+    `;
+    
+    const result = await pool.query(query);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Onay bekleyen işler alınamadı:', error);
+    res.status(500).json({ error: 'Onay bekleyen işler alınamadı', message: error.message });
+  }
+});
+
+// İş onaylama endpoint'i
+app.post('/api/control-items/:id/approve', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { approvedBy } = req.body;
+
+    const query = `
+      UPDATE control_items 
+      SET status = 'approved', approved_by = $1, approved_at = NOW() 
+      WHERE id = $2
+    `;
+    
+    const result = await pool.query(query, [approvedBy, id]);
+    
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'İş bulunamadı' });
+    }
+
+    res.json({ message: 'İş başarıyla onaylandı' });
+  } catch (error) {
+    console.error('İş onaylama hatası:', error);
+    res.status(500).json({ error: 'İş onaylanamadı', message: error.message });
+  }
+});
+
+// İş reddetme endpoint'i
+app.post('/api/control-items/:id/reject', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rejectedBy, reason } = req.body;
+
+    const query = `
+      UPDATE control_items 
+      SET status = 'rejected', rejected_by = $1, rejected_at = NOW(), rejection_reason = $2 
+      WHERE id = $3
+    `;
+    
+    const result = await pool.query(query, [rejectedBy, reason, id]);
+    
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'İş bulunamadı' });
+    }
+
+    res.json({ message: 'İş başarıyla reddedildi' });
+  } catch (error) {
+    console.error('İş reddetme hatası:', error);
+    res.status(500).json({ error: 'İş reddedilemedi', message: error.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`PostgreSQL sunucusu http://localhost:${PORT} adresinde çalışıyor`);
 });

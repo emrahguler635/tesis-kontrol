@@ -8,6 +8,20 @@ interface User {
   username: string;
   email: string;
   role: string;
+  permissions?: {
+    dashboard: boolean;
+    facilities: boolean;
+    dailyChecks: boolean;
+    weeklyChecks: boolean;
+    monthlyChecks: boolean;
+    yearlyChecks: boolean;
+    messages: boolean;
+    bagTV: boolean;
+    reports: boolean;
+    settings: boolean;
+    userManagement: boolean;
+    dataControl: boolean;
+  };
   created_at?: string;
 }
 
@@ -18,14 +32,30 @@ const UserManagement: React.FC = () => {
     username: '',
     email: '',
     password: '',
-    role: 'user'
+    role: 'user',
+    permissions: {
+      dashboard: true,
+      facilities: false,
+      dailyChecks: false,
+      weeklyChecks: false,
+      monthlyChecks: false,
+      yearlyChecks: false,
+      messages: false,
+      bagTV: false,
+      reports: false,
+      settings: false,
+      userManagement: false,
+      dataControl: false
+    }
   });
   const [modalOpen, setModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
 
   // Kullanıcıları yükle
   useEffect(() => {
     const fetchUsers = async () => {
-      setLoading(true);
+    setLoading(true);
       try {
         const usersData = await apiService.getUsers();
         setUsers(usersData);
@@ -50,7 +80,8 @@ const UserManagement: React.FC = () => {
         username: editItem.username,
         email: editItem.email,
         password: editItem.password,
-        role: editItem.role
+        role: editItem.role,
+        permissions: editItem.permissions
       });
       setUsers([newUser, ...users]);
       setModalOpen(false);
@@ -58,7 +89,21 @@ const UserManagement: React.FC = () => {
         username: '', 
         email: '', 
         password: '', 
-        role: 'user' 
+        role: 'user',
+        permissions: {
+          dashboard: true,
+          facilities: false,
+          dailyChecks: false,
+          weeklyChecks: false,
+          monthlyChecks: false,
+          yearlyChecks: false,
+          messages: false,
+          bagTV: false,
+          reports: false,
+          settings: false,
+          userManagement: false,
+          dataControl: false
+        }
       });
     } catch (error) {
       console.error('Kullanıcı kaydedilirken hata:', error);
@@ -72,6 +117,75 @@ const UserManagement: React.FC = () => {
       setUsers(users.filter(user => user.id !== id));
     } catch (error) {
       console.error('Kullanıcı silinirken hata:', error);
+    }
+  };
+
+  const handleEdit = (user: User) => {
+    setEditingUser(user);
+    setEditItem({
+      username: user.username,
+      email: user.email,
+      password: '',
+      role: user.role,
+              permissions: user.permissions || {
+          dashboard: true,
+          facilities: false,
+          dailyChecks: false,
+          weeklyChecks: false,
+          monthlyChecks: false,
+          yearlyChecks: false,
+          messages: false,
+          bagTV: false,
+          reports: false,
+          settings: false,
+          userManagement: false,
+          dataControl: false
+        }
+    });
+    setEditModalOpen(true);
+  };
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUser) return;
+    
+    try {
+      const updatedUser = await apiService.updateUser(editingUser.id, {
+        username: editItem.username,
+        email: editItem.email,
+        password: editItem.password || undefined,
+        role: editItem.role,
+        permissions: editItem.permissions
+      });
+      
+      setUsers(users.map(user => 
+        user.id === editingUser.id ? updatedUser : user
+      ));
+      setEditModalOpen(false);
+      setEditingUser(null);
+      setEditItem({ 
+        username: '', 
+        email: '', 
+        password: '', 
+        role: 'user',
+        permissions: {
+          dashboard: true,
+          facilities: false,
+          dailyChecks: false,
+          weeklyChecks: false,
+          monthlyChecks: false,
+          yearlyChecks: false,
+          messages: false,
+          bagTV: false,
+          reports: false,
+          settings: false,
+          userManagement: false,
+          dataControl: false
+        }
+      });
+    } catch (error) {
+      console.error('Kullanıcı güncellenirken hata:', error);
+      alert('Kullanıcı güncellenirken bir hata oluştu.');
     }
   };
 
@@ -149,7 +263,7 @@ const UserManagement: React.FC = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {users.map(user => (
+            {users.map(user => (
             <Card key={user.id} className="hover:shadow-lg transition-shadow duration-200">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3 flex-1">
@@ -172,15 +286,52 @@ const UserManagement: React.FC = () => {
                         {user.role}
                       </span>
                     </div>
+                    
+                    {/* Yetkiler */}
+                    {user.permissions && (
+                      <div className="mt-2">
+                        <p className="text-xs text-gray-500 mb-1">Yetkiler:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {Object.entries(user.permissions).map(([key, value]) => (
+                            value && (
+                              <span key={key} className="px-1 py-0.5 bg-green-100 text-green-700 text-xs rounded">
+                                {key === 'dashboard' && 'Ana Sayfa'}
+                                {key === 'facilities' && 'Tesisler'}
+                                {key === 'dailyChecks' && 'Günlük'}
+                                {key === 'weeklyChecks' && 'Haftalık'}
+                                {key === 'monthlyChecks' && 'Aylık'}
+                                {key === 'yearlyChecks' && 'Yıllık'}
+                                {key === 'messages' && 'Mesaj'}
+                                {key === 'bagTV' && 'BağTV'}
+                                {key === 'reports' && 'Rapor'}
+                                {key === 'settings' && 'Ayar'}
+                                {key === 'userManagement' && 'Kullanıcı'}
+                              </span>
+                            )
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
-                <button 
-                  className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                  onClick={() => handleDelete(user.id)}
-                  title="Sil"
-                >
-                  <UserX className="h-4 w-4" />
-                </button>
+                <div className="flex gap-1">
+                  <button 
+                    className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    onClick={() => handleEdit(user)}
+                    title="Düzenle"
+                  >
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+                  <button 
+                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    onClick={() => handleDelete(user.id)}
+                    title="Sil"
+                  >
+                    <UserX className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
               
               <div className="mt-4 pt-4 border-t border-gray-100">
@@ -280,6 +431,45 @@ const UserManagement: React.FC = () => {
                 </select>
               </div>
               
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Modül Yetkileri
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  {Object.entries(editItem.permissions).map(([key, value]) => (
+                    <label key={key} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={value}
+                        onChange={(e) => {
+                          setEditItem(prev => ({
+                            ...prev,
+                            permissions: {
+                              ...prev.permissions,
+                              [key]: e.target.checked
+                            }
+                          }));
+                        }}
+                        className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                      />
+                      <span className="text-sm text-gray-700">
+                        {key === 'dashboard' && 'Ana Sayfa'}
+                        {key === 'facilities' && 'Tesisler'}
+                        {key === 'dailyChecks' && 'Günlük İş Programı'}
+                        {key === 'weeklyChecks' && 'Haftalık İşler'}
+                        {key === 'monthlyChecks' && 'Aylık İşler'}
+                        {key === 'yearlyChecks' && 'Yıllık İşler'}
+                        {key === 'messages' && 'Mesaj Yönetimi'}
+                        {key === 'bagTV' && 'BağTV'}
+                        {key === 'reports' && 'Raporlar'}
+                        {key === 'settings' && 'Ayarlar'}
+                        {key === 'userManagement' && 'Kullanıcı Yönetimi'}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
@@ -293,6 +483,143 @@ const UserManagement: React.FC = () => {
                   className="flex-1 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600"
                 >
                   Kaydet
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {editModalOpen && editingUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold">Kullanıcı Düzenle</h2>
+              <button
+                onClick={() => {
+                  setEditModalOpen(false);
+                  setEditingUser(null);
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ×
+              </button>
+            </div>
+            
+            <form onSubmit={handleUpdate} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Kullanıcı Adı
+                </label>
+                <input
+                  type="text"
+                  name="username"
+                  value={editItem.username}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  E-posta
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={editItem.email}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Şifre (Boş bırakılırsa değişmez)
+                </label>
+                <input
+                  type="password"
+                  name="password"
+                  value={editItem.password}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="Yeni şifre girin..."
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Rol
+                </label>
+                <select
+                  name="role"
+                  value={editItem.role}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="user">Kullanıcı</option>
+                  <option value="admin">Admin</option>
+                  </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Modül Yetkileri
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  {Object.entries(editItem.permissions).map(([key, value]) => (
+                    <label key={key} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={value}
+                        onChange={(e) => {
+                          setEditItem(prev => ({
+                            ...prev,
+                            permissions: {
+                              ...prev.permissions,
+                              [key]: e.target.checked
+                            }
+                          }));
+                        }}
+                        className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                      />
+                      <span className="text-sm text-gray-700">
+                        {key === 'dashboard' && 'Ana Sayfa'}
+                        {key === 'facilities' && 'Tesisler'}
+                        {key === 'dailyChecks' && 'Günlük İş Programı'}
+                        {key === 'weeklyChecks' && 'Haftalık İşler'}
+                        {key === 'monthlyChecks' && 'Aylık İşler'}
+                        {key === 'yearlyChecks' && 'Yıllık İşler'}
+                        {key === 'messages' && 'Mesaj Yönetimi'}
+                        {key === 'bagTV' && 'BağTV'}
+                        {key === 'reports' && 'Raporlar'}
+                        {key === 'settings' && 'Ayarlar'}
+                        {key === 'userManagement' && 'Kullanıcı Yönetimi'}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditModalOpen(false);
+                    setEditingUser(null);
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                >
+                  İptal
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600"
+                >
+                  Güncelle
                 </button>
               </div>
             </form>

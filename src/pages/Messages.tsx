@@ -12,6 +12,7 @@ interface Message {
   pulledCount?: number;
   pulled_count?: number;
   account: string;
+  sender?: string;
   description: string;
   created_at?: string;
 }
@@ -33,12 +34,14 @@ function exportToCSV(data: any[], filename: string) {
 const Messages: React.FC = () => {
   const { user } = useAuthStore();
   const [messages, setMessages] = useState<Message[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [editItem, setEditItem] = useState({
     date: '',
     totalCount: '',
     pulledCount: '',
     account: '',
+    sender: '',
     description: ''
   });
   const [modalOpen, setModalOpen] = useState(false);
@@ -52,23 +55,27 @@ const Messages: React.FC = () => {
     'Bağcılar Belediyesi'
   ];
 
-  // Mesajları yükle
+  // Mesajları ve kullanıcıları yükle
   useEffect(() => {
-    const fetchMessages = async () => {
+    const fetchData = async () => {
       setLoading(true);
       try {
         console.log('Fetching messages...');
         const messagesData = await apiService.getMessages();
         console.log('Messages data received:', messagesData);
         setMessages(messagesData);
+        
+        // Kullanıcıları da yükle
+        const usersData = await apiService.getUsers();
+        setUsers(usersData);
       } catch (error) {
-        console.error('Mesajlar yüklenirken hata:', error);
+        console.error('Veriler yüklenirken hata:', error);
         setMessages([]);
       } finally {
         setLoading(false);
       }
     };
-    fetchMessages();
+    fetchData();
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -85,6 +92,7 @@ const Messages: React.FC = () => {
           totalCount: parseInt(editItem.totalCount),
           pulledCount: parseInt(editItem.pulledCount),
           account: editItem.account,
+          sender: editItem.sender,
           description: editItem.description
         });
         setMessages(messages.map(msg => msg.id === editingId ? updatedMessage : msg));
@@ -95,6 +103,7 @@ const Messages: React.FC = () => {
           totalCount: parseInt(editItem.totalCount),
           pulledCount: parseInt(editItem.pulledCount),
           account: editItem.account,
+          sender: editItem.sender,
           description: editItem.description
         });
         setMessages([newMessage, ...messages]);
@@ -106,6 +115,7 @@ const Messages: React.FC = () => {
         totalCount: '', 
         pulledCount: '', 
         account: '', 
+        sender: '',
         description: '' 
       });
     } catch (error) {
@@ -121,6 +131,7 @@ const Messages: React.FC = () => {
       totalCount: (message.totalCount || message.total_count || 0).toString(),
       pulledCount: (message.pulledCount || message.pulled_count || 0).toString(),
       account: message.account,
+      sender: message.sender || '',
       description: message.description
     });
     setModalOpen(true);
@@ -141,6 +152,7 @@ const Messages: React.FC = () => {
       totalCount: '', 
       pulledCount: '', 
       account: user?.username || '', 
+      sender: user?.username || '',
       description: '' 
     };
     console.log('Setting edit item:', editItemWithUser);
@@ -205,22 +217,22 @@ const Messages: React.FC = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Hesap
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Tarih
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Toplam
+                    Toplam Sayı
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Çekilen
+                    Çekilen Sayı
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Hesap
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Açıklama
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Oluşturulma
+                    Gönderen
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     İşlemler
@@ -230,22 +242,19 @@ const Messages: React.FC = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {messages.map(message => (
                   <tr key={message.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-8 w-8">
                           <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center">
-                            <MessageSquare className="h-4 w-4 text-white" />
+                            <Calendar className="h-4 w-4 text-white" />
                           </div>
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">
-                            {message.account}
+                            {message.date}
                           </div>
                         </div>
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {message.date}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
@@ -257,13 +266,38 @@ const Messages: React.FC = () => {
                         {message.pulledCount || message.pulled_count || 0}
                       </span>
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-8 w-8">
+                          <div className="h-8 w-8 rounded-full bg-gradient-to-r from-purple-500 to-purple-600 flex items-center justify-center">
+                            <User className="h-4 w-4 text-white" />
+                          </div>
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-900">
+                            {message.account}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
                     <td className="px-6 py-4 text-sm text-gray-900">
                       <div className="max-w-xs truncate" title={message.description}>
                         {message.description}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {message.created_at ? new Date(message.created_at).toLocaleDateString('tr-TR') : '-'}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-8 w-8">
+                          <div className="h-8 w-8 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center">
+                            <User className="h-4 w-4 text-white" />
+                          </div>
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-900">
+                            {message.sender || 'Belirtilmemiş'}
+                          </div>
+                        </div>
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end gap-2">
@@ -337,7 +371,7 @@ const Messages: React.FC = () => {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Toplam Çekilecek Mesaj Sayısı
+                  Toplam Sayı
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -357,7 +391,7 @@ const Messages: React.FC = () => {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Çekilen Mesaj Sayısı
+                  Çekilen Sayı
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -411,6 +445,31 @@ const Messages: React.FC = () => {
                   placeholder="Mesaj açıklaması..."
                   required
                 />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Gönderen
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <User className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <select
+                    name="sender"
+                    value={editItem.sender}
+                    onChange={handleChange}
+                    className="w-full pl-10 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  >
+                    <option value="">Gönderen seçin</option>
+                    {users.map(user => (
+                      <option key={user.id} value={user.username}>
+                        {user.username} ({user.role})
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
               
               <div className="flex gap-3 pt-4">

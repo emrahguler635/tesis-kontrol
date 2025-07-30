@@ -108,6 +108,24 @@ class ApiService {
     });
   }
 
+  async getPendingApprovals(): Promise<ControlItem[]> {
+    return this.request<ControlItem[]>('/control-items/pending-approvals');
+  }
+
+  async approveControlItem(id: number, approvedBy: string): Promise<any> {
+    return this.request<any>(`/control-items/${id}/approve`, {
+      method: 'POST',
+      body: JSON.stringify({ approvedBy }),
+    });
+  }
+
+  async rejectControlItem(id: number, rejectedBy: string, reason: string): Promise<any> {
+    return this.request<any>(`/control-items/${id}/reject`, {
+      method: 'POST',
+      body: JSON.stringify({ rejectedBy, reason }),
+    });
+  }
+
   // User endpoints
   async getUsers(): Promise<User[]> {
     return this.request<User[]>('/users');
@@ -214,7 +232,9 @@ class ApiService {
 
   // Gerçek HTTP isteklerini yapan request fonksiyonu
   private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
-    const url = `/api${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
+    // Yerel geliştirme için localhost:3001 kullan
+    const baseUrl = window.location.hostname === 'localhost' ? 'http://localhost:3001' : '';
+    const url = `${baseUrl}/api${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',

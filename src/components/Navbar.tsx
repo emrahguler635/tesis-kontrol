@@ -15,13 +15,13 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex-1 flex items-center justify-start">
-            <h1
-              className="text-xl md:text-2xl lg:text-3xl font-extrabold text-white tracking-wider drop-shadow-lg font-sans whitespace-pre-line text-left cursor-pointer select-none max-w-full break-words overflow-hidden"
-              style={{lineHeight: '1.2', maxWidth: '100%', wordBreak: 'break-word'}}
-              onClick={() => navigate('/')}
-            >
-              İş Takibi Programı
-            </h1>
+                          <h1
+                className="text-xl md:text-2xl lg:text-3xl font-extrabold text-white tracking-wider drop-shadow-lg font-sans whitespace-pre-line text-left cursor-pointer select-none max-w-full break-words overflow-hidden"
+                style={{lineHeight: '1.2', maxWidth: '100%', wordBreak: 'break-word'}}
+                onClick={() => navigate('/')}
+              >
+                WorkPulse – İş Nabzı
+              </h1>
           </div>
           <div className="flex items-center space-x-4">
             {/* Bildirim */}

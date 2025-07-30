@@ -7,8 +7,10 @@ import { tr } from 'date-fns/locale';
 import { Calendar, Copy } from 'lucide-react';
 
 interface Facility {
-  _id: string;
+  id: number;
   name: string;
+  description?: string;
+  status?: string;
 }
 
 export const MonthlyChecks: React.FC = () => {
@@ -69,7 +71,20 @@ export const MonthlyChecks: React.FC = () => {
       loadData(); // Listeyi yenile
     } catch (error) {
       console.error('Taşıma hatası:', error);
-      alert('Taşıma sırasında hata oluştu!');
+      console.error('Hata detayları:', {
+        message: error.message,
+        response: error.response,
+        data: error.data
+      });
+      
+      let errorMessage = 'Taşıma sırasında hata oluştu!';
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      alert(errorMessage);
     } finally {
       setCopyLoading(false);
     }
@@ -83,7 +98,7 @@ export const MonthlyChecks: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (window.confirm('Bu öğeyi silmek istediğinizden emin misiniz?')) {
       try {
-        await apiService.deleteControlItem(id);
+        await apiService.deleteControlItem(parseInt(id));
         loadData();
       } catch (error) {
         console.error('Silme hatası:', error);
@@ -100,7 +115,7 @@ export const MonthlyChecks: React.FC = () => {
   const handleModalSave = async (data: any) => {
     try {
       if (selectedItem) {
-        await apiService.updateControlItem(selectedItem._id, data);
+        await apiService.updateControlItem(selectedItem.id, data);
       } else {
         await apiService.createControlItem({ ...data, period: 'Aylık' });
       }
@@ -113,7 +128,7 @@ export const MonthlyChecks: React.FC = () => {
   };
 
   const getFacilityName = (facilityId: string) => {
-    const facility = facilities.find(f => f._id === facilityId);
+    const facility = facilities.find(f => f.id.toString() === facilityId);
     return facility ? facility.name : facilityId;
   };
 

@@ -1,38 +1,110 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Building, CalendarDays, Clock, CalendarCheck, FileText, MessageCircle, BarChart3, Settings, Monitor, Image as ImageIcon, Users, Database } from 'lucide-react';
+import { Home, Building, CalendarDays, Clock, CalendarCheck, FileText, MessageCircle, BarChart3, Settings, Monitor, Image as ImageIcon, Users, Database, CheckCircle } from 'lucide-react';
 import { useAuthStore } from '../store';
 
-interface User {
-  _id?: string;
-  id?: number;
-  username: string;
-  email: string;
-  role: string;
-}
+
 
 const Sidebar: React.FC = () => {
   const { user } = useAuthStore();
   const logo = typeof window !== 'undefined' ? localStorage.getItem('appLogo') : null;
   
-  const menuItems = [
-    { to: '/', label: 'Ana Sayfa', icon: <Home size={20} /> },
-    { to: '/tesisler', label: 'Tesisler', icon: <Building size={20} /> },
-    { to: '/gunluk', label: 'Günlük İş Programı', icon: <CalendarDays size={20} /> },
-    { to: '/haftalik', label: 'Haftalık Yapılan İşler', icon: <Clock size={20} /> },
-    { to: '/aylik', label: 'Aylık Yapılan İşler', icon: <CalendarCheck size={20} /> },
-    { to: '/yillik', label: 'Yıllık Yapılan İşler', icon: <CalendarCheck size={20} /> },
-    { to: '/raporlar', label: 'Raporlar', icon: <BarChart3 size={20} /> },
-    { to: '/mesaj-takip', label: 'Mesaj Yönetimi', icon: <MessageCircle size={20} /> },
-    { to: '/bagtv', label: 'BağTV', icon: <Monitor size={20} /> },
-    { to: '/data-viewer', label: 'Veri Kontrol', icon: <Database size={20} /> },
-    { to: '/ayarlar', label: 'Ayarlar', icon: <Settings size={20} /> },
-  ];
+  // LocalStorage'dan menü sıralamasını yükle
+  const getMenuItems = () => {
+    const savedOrder = localStorage.getItem('menuOrder');
+    if (savedOrder) {
+      try {
+        const parsedOrder = JSON.parse(savedOrder);
+        return parsedOrder.map((item: any) => ({
+          to: item.to,
+          label: item.label,
+          icon: getIconByName(item.label)
+        }));
+      } catch (error) {
+        console.error('Menü sıralaması yüklenirken hata:', error);
+      }
+    }
+    
+    // Varsayılan menü öğeleri
+    return [
+      { to: '/', label: 'Ana Sayfa', icon: <Home size={20} /> },
+      { to: '/tesisler', label: 'Tesisler', icon: <Building size={20} /> },
+      { to: '/gunluk', label: 'Günlük İş Programı', icon: <CalendarDays size={20} /> },
+      { to: '/haftalik', label: 'Haftalık Yapılan İşler', icon: <Clock size={20} /> },
+      { to: '/aylik', label: 'Aylık Yapılan İşler', icon: <CalendarCheck size={20} /> },
+      { to: '/yillik', label: 'Yıllık Yapılan İşler', icon: <CalendarCheck size={20} /> },
+      { to: '/mesaj-takip', label: 'Mesaj Yönetimi', icon: <MessageCircle size={20} /> },
+      { to: '/bagtv', label: 'BağTV', icon: <Monitor size={20} /> },
+      { to: '/raporlar', label: 'Raporlar', icon: <BarChart3 size={20} /> },
+      { to: '/data-viewer', label: 'Veri Kontrol', icon: <Database size={20} /> },
+      { to: '/ayarlar', label: 'Ayarlar', icon: <Settings size={20} /> },
+    ];
+  };
 
-  // Tüm kullanıcılar için kullanıcı yönetimi linkini ekle
+  // Label'a göre ikon döndür
+  const getIconByName = (label: string) => {
+    switch (label) {
+      case 'Ana Sayfa': return <Home size={20} />;
+      case 'Tesisler': return <Building size={20} />;
+      case 'Günlük İş Programı': return <CalendarDays size={20} />;
+      case 'Haftalık Yapılan İşler': return <Clock size={20} />;
+      case 'Aylık Yapılan İşler': return <CalendarCheck size={20} />;
+      case 'Yıllık Yapılan İşler': return <CalendarCheck size={20} />;
+      case 'Mesaj Yönetimi': return <MessageCircle size={20} />;
+      case 'BağTV': return <Monitor size={20} />;
+      case 'Raporlar': return <BarChart3 size={20} />;
+      case 'Veri Kontrol': return <Database size={20} />;
+      case 'Ayarlar': return <Settings size={20} />;
+      default: return <Home size={20} />;
+    }
+  };
+
+  const menuItems = getMenuItems();
+
+  // Kullanıcı yetkilerine göre menü öğelerini filtrele
+  const filteredMenuItems = menuItems.filter(item => {
+    if (!user?.permissions) return true; // Admin kullanıcısı için tüm öğeleri göster
+    
+    const permissionMap: { [key: string]: string } = {
+      '/': 'dashboard',
+      '/tesisler': 'facilities',
+      '/gunluk': 'dailyChecks',
+      '/haftalik': 'weeklyChecks',
+      '/aylik': 'monthlyChecks',
+      '/yillik': 'yearlyChecks',
+      '/mesaj-takip': 'messages',
+      '/bagtv': 'bagTV',
+      '/raporlar': 'reports',
+      '/ayarlar': 'settings',
+      '/data-viewer': 'dataControl'
+    };
+    
+    const requiredPermission = permissionMap[item.to];
+    return !requiredPermission || user.permissions[requiredPermission as keyof typeof user.permissions];
+  });
+
+  // Kullanıcı yönetimi sadece admin veya userManagement yetkisi olan kullanıcılar için
+  const showUserManagement = user?.role === 'admin' || user?.permissions?.userManagement;
+  
+  // Onay sayfası sadece admin için
+  const showApprovals = user?.role === 'admin';
+  
+  // Onay Bekleyen İşler'i Günlük İş Programı altına ekle
+  const insertApprovalsAfterGunluk = (items: typeof menuItems) => {
+    const result: typeof menuItems = [];
+    for (let i = 0; i < items.length; i++) {
+      result.push(items[i]);
+      // Günlük İş Programı'ndan sonra Onay Bekleyen İşler'i ekle
+      if (items[i].to === '/gunluk' && showApprovals) {
+        result.push({ to: '/approvals', label: 'Onay Bekleyen İşler', icon: <CheckCircle size={20} /> });
+      }
+    }
+    return result;
+  };
+
   const allMenuItems = [
-    ...menuItems,
-    { to: '/user-management', label: 'Kullanıcı Yönetimi', icon: <Users size={20} /> }
+    ...insertApprovalsAfterGunluk(filteredMenuItems),
+    ...(showUserManagement ? [{ to: '/user-management', label: 'Kullanıcı Yönetimi', icon: <Users size={20} /> }] : [])
   ];
 
   return (

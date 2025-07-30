@@ -33,7 +33,7 @@ async function connectToMongoDB() {
       maxIdleTimeMS: 30000,
       retryWrites: true,
       w: 'majority',
-      useNewUrlParser: true,
+  useNewUrlParser: true,
       useUnifiedTopology: true,
       family: 4, // IPv4 kullan
       heartbeatFrequencyMS: 10000,
@@ -1069,23 +1069,28 @@ app.post('/api/control-items/move', async (req, res) => {
 
     // İşlemleri başlat
     const movePromises = itemsToMove.map(async (item) => {
-      // Yeni iş oluştur
-      const newItem = await ControlItem.create({
-        title: item.title,
-        description: item.description,
-        period: targetPeriod,
-        date: new Date().toISOString().split('T')[0], // Bugünün tarihi
-        facilityId: item.facilityId,
-        workDone: item.workDone,
-        user: item.user,
-        status: item.status,
-        createdAt: new Date()
-      });
+      try {
+        // Yeni iş oluştur
+        const newItem = await ControlItem.create({
+          title: item.title,
+          description: item.description,
+          period: targetPeriod,
+          date: new Date().toISOString().split('T')[0], // Bugünün tarihi
+          facilityId: item.facilityId,
+          workDone: item.workDone,
+          user: item.user,
+          status: item.status,
+          createdAt: new Date()
+        });
 
-      // Eski işi sil
-      await ControlItem.findByIdAndDelete(item._id);
+        // Eski işi sil
+        await ControlItem.findByIdAndDelete(item._id);
 
-      return newItem;
+        return newItem;
+      } catch (error) {
+        console.error('Taşıma sırasında hata:', error);
+        throw error;
+      }
     });
 
     const movedItems = await Promise.all(movePromises);
@@ -1097,7 +1102,18 @@ app.post('/api/control-items/move', async (req, res) => {
 
   } catch (err) {
     console.error('Taşıma hatası:', err);
-    res.status(500).json({ error: 'İşler taşınırken hata oluştu.' });
+    console.error('Hata detayları:', {
+      message: err.message,
+      stack: err.stack,
+      sourcePeriod,
+      targetPeriod,
+      startDate,
+      endDate
+    });
+    res.status(500).json({ 
+      error: 'İşler taşınırken hata oluştu.',
+      details: err.message 
+    });
   }
 });
 
