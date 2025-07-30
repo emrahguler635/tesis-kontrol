@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Building, CalendarDays, Clock, CalendarCheck, FileText, MessageCircle, BarChart3, Settings, Monitor, Image as ImageIcon, Users, Database } from 'lucide-react';
+import { Home, Building, CalendarDays, Clock, CalendarCheck, FileText, MessageCircle, BarChart3, Settings, Monitor, Image as ImageIcon, Users, Database, CheckCircle } from 'lucide-react';
 import { useAuthStore } from '../store';
 
 interface User {
@@ -27,9 +27,15 @@ const Sidebar: React.FC = () => {
     { to: '/ayarlar', label: 'Ayarlar', icon: <Settings size={20} /> },
   ];
 
+  // Admin kullanıcısı için onay menüsü ekle
+  const adminMenuItems = user?.role === 'admin' ? [
+    { to: '/approvals', label: 'Onay Yönetimi', icon: <CheckCircle size={20} /> }
+  ] : [];
+
   // Tüm kullanıcılar için kullanıcı yönetimi linkini ekle
   const allMenuItems = [
     ...menuItems,
+    ...adminMenuItems,
     { to: '/user-management', label: 'Kullanıcı Yönetimi', icon: <Users size={20} /> }
   ];
 

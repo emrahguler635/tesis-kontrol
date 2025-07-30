@@ -64,7 +64,7 @@ export function ControlItemModal({ open, onClose, initialData, period }: Control
           ? 'Beklemede'
           : 'Yapılmadı'
       );
-      setDate(initialData.date || '');
+      setDate(initialData.date || new Date().toISOString().split('T')[0]);
     } else {
       setTitle('');
       setDescription('');
