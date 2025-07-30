@@ -37,7 +37,8 @@ const Sidebar: React.FC = () => {
     if (user?.role === 'admin') return true;
     
     // Normal kullanıcılar sadece yetkili oldukları menüleri görebilir
-    return userPermissions.includes(item.permission);
+    // userPermissions array olup olmadığını kontrol et
+    return Array.isArray(userPermissions) && userPermissions.includes(item.permission);
   });
 
   // Admin kullanıcısı için onay menüsü ekle
