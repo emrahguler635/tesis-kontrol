@@ -182,9 +182,7 @@ async function initializeDatabase() {
   try {
     const client = await pool.connect();
     
-    // Eski tabloları sil ve yeniden oluştur
-    await client.query('DROP TABLE IF EXISTS control_items CASCADE');
-    await client.query('DROP TABLE IF EXISTS messages CASCADE');
+    // Tabloları kontrol et ve yoksa oluştur
     
     // Users tablosu
     await client.query(`
