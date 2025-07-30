@@ -7,7 +7,7 @@ import { tr } from 'date-fns/locale';
 import { Calendar, Copy } from 'lucide-react';
 
 interface Facility {
-  _id: string;
+  id: number;
   name: string;
 }
 
@@ -21,6 +21,9 @@ export const WeeklyChecks: React.FC = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [copyLoading, setCopyLoading] = useState(false);
+  const [filterStartDate, setFilterStartDate] = useState('');
+  const [filterEndDate, setFilterEndDate] = useState('');
+  const [filteredItems, setFilteredItems] = useState<ControlItem[]>([]);
 
   useEffect(() => {
     loadData();
@@ -34,6 +37,7 @@ export const WeeklyChecks: React.FC = () => {
         apiService.getFacilities()
       ]);
       setItems(items);
+      setFilteredItems(items);
       setFacilities(facilities);
     } catch (error) {
       console.error('Veri yüklenirken hata:', error);
@@ -41,6 +45,31 @@ export const WeeklyChecks: React.FC = () => {
       setLoading(false);
     }
   };
+
+  // Tarih filtresi uygula
+  useEffect(() => {
+    if (!filterStartDate && !filterEndDate) {
+      setFilteredItems(items);
+      return;
+    }
+
+    const filtered = items.filter(item => {
+      const itemDate = new Date(item.date);
+      const start = filterStartDate ? new Date(filterStartDate) : null;
+      const end = filterEndDate ? new Date(filterEndDate) : null;
+
+      if (start && end) {
+        return itemDate >= start && itemDate <= end;
+      } else if (start) {
+        return itemDate >= start;
+      } else if (end) {
+        return itemDate <= end;
+      }
+      return true;
+    });
+
+    setFilteredItems(filtered);
+  }, [items, filterStartDate, filterEndDate]);
 
   const handleMoveDailyItems = async () => {
     if (!startDate || !endDate) {
@@ -145,12 +174,45 @@ export const WeeklyChecks: React.FC = () => {
           </div>
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              Haftalık Kontroller
+              Toplam Yapılan İşler
             </h1>
-            <p className="text-gray-600 mt-1">Haftalık iş takibi ve planlama sistemi</p>
+            <p className="text-gray-600 mt-1">Tüm yapılan işlerin takibi ve planlama sistemi</p>
           </div>
         </div>
       </div>
+
+      {/* Tarih Filtresi */}
+      <Card>
+        <div className="flex items-center gap-4 mb-4">
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700">Başlangıç:</label>
+            <input
+              type="date"
+              value={filterStartDate}
+              onChange={(e) => setFilterStartDate(e.target.value)}
+              className="border border-gray-300 rounded-md px-3 py-2 text-sm"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700">Bitiş:</label>
+            <input
+              type="date"
+              value={filterEndDate}
+              onChange={(e) => setFilterEndDate(e.target.value)}
+              className="border border-gray-300 rounded-md px-3 py-2 text-sm"
+            />
+          </div>
+          <button
+            onClick={() => {
+              setFilterStartDate('');
+              setFilterEndDate('');
+            }}
+            className="px-3 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+          >
+            Filtreyi Temizle
+          </button>
+        </div>
+      </Card>
 
       <Card>
         <div className="overflow-x-auto">
@@ -175,7 +237,7 @@ export const WeeklyChecks: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {items.map((item) => (
+              {filteredItems.map((item) => (
                 <tr key={item._id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{item.title}</div>

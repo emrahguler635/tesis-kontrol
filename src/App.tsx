@@ -4,8 +4,6 @@ import { Layout } from './components/Layout';
 import { Dashboard } from './pages/Dashboard';
 import DailyChecks from './pages/DailyChecks';
 import { WeeklyChecks } from './pages/WeeklyChecks';
-import MonthlyChecks from './pages/MonthlyChecks';
-import { YearlyChecks } from './pages/YearlyChecks';
 import { Reports } from './pages/Reports';
 import { Settings } from './pages/Settings';
 import Messages from './pages/Messages';
@@ -41,8 +39,6 @@ function App() {
                   <Route path="/tesisler" element={<Facilities />} />
                   <Route path="/gunluk" element={<DailyChecks />} />
                   <Route path="/haftalik" element={<WeeklyChecks />} />
-                  <Route path="/aylik" element={<MonthlyChecks />} />
-                  <Route path="/yillik" element={<YearlyChecks />} />
                   <Route path="/raporlar" element={<Reports />} />
                   <Route path="/mesaj-takip" element={<Messages />} />
                   <Route path="/ayarlar" element={<Settings />} />

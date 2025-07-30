@@ -102,6 +102,79 @@ app.get('/api/test', (req, res) => {
   });
 });
 
+// Test verisi ekleme endpoint'i
+app.post('/api/add-test-data', (req, res) => {
+  try {
+    // Test tesisleri ekle
+    const facilities = [
+      { name: 'Test Tesis 1', description: 'Test açıklama 1', status: 'Aktif' },
+      { name: 'Test Tesis 2', description: 'Test açıklama 2', status: 'Aktif' },
+      { name: 'Test Tesis 3', description: 'Test açıklama 3', status: 'Pasif' }
+    ];
+    
+    facilities.forEach(facility => {
+      db.run(
+        'INSERT OR IGNORE INTO facilities (name, description, status) VALUES (?, ?, ?)',
+        [facility.name, facility.description, facility.status]
+      );
+    });
+    
+    // Test kullanıcıları ekle
+    const users = [
+      { username: 'admin', email: 'admin@admin.com', password: 'admin123', role: 'admin' },
+      { username: 'user1', email: 'user1@test.com', password: 'password123', role: 'user' },
+      { username: 'user2', email: 'user2@test.com', password: 'password123', role: 'user' }
+    ];
+    
+    users.forEach(user => {
+      db.run(
+        'INSERT OR IGNORE INTO users (username, email, password, role) VALUES (?, ?, ?, ?)',
+        [user.username, user.email, user.password, user.role]
+      );
+    });
+    
+    // Test kontrol işleri ekle
+    const controlItems = [
+      { title: 'Günlük Test İş 1', description: 'Günlük test açıklama', period: 'Günlük', date: '2025-07-30', facilityId: '1', workDone: 'Test iş yapıldı', user: 'admin', status: 'Tamamlandı' },
+      { title: 'Haftalık Test İş 1', description: 'Haftalık test açıklama', period: 'Haftalık', date: '2025-07-30', facilityId: '2', workDone: 'Test iş yapıldı', user: 'user1', status: 'İşlemde' },
+      { title: 'Aylık Test İş 1', description: 'Aylık test açıklama', period: 'Aylık', date: '2025-07-30', facilityId: '1', workDone: 'Test iş yapıldı', user: 'user2', status: 'Beklemede' }
+    ];
+    
+    controlItems.forEach(item => {
+      db.run(
+        'INSERT OR IGNORE INTO control_items (title, description, period, date, facilityId, workDone, user, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [item.title, item.description, item.period, item.date, item.facilityId, item.workDone, item.user, item.status]
+      );
+    });
+    
+    // Test mesajları ekle
+    const messages = [
+      { date: '2025-07-30', totalCount: 100, pulledCount: 85, account: 'Yasin Yıldız', description: 'Test mesaj açıklama 1' },
+      { date: '2025-07-29', totalCount: 150, pulledCount: 120, account: 'Abdullah Özdemir', description: 'Test mesaj açıklama 2' },
+      { date: '2025-07-28', totalCount: 80, pulledCount: 75, account: 'Bağcılar Belediyesi', description: 'Test mesaj açıklama 3' }
+    ];
+    
+    messages.forEach(message => {
+      db.run(
+        'INSERT OR IGNORE INTO messages (date, totalCount, pulledCount, account, description) VALUES (?, ?, ?, ?, ?)',
+        [message.date, message.totalCount, message.pulledCount, message.account, message.description]
+      );
+    });
+    
+    res.json({
+      message: 'Test verileri başarıyla eklendi',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Test verisi ekleme hatası:', error);
+    res.status(500).json({
+      error: 'Test verisi eklenemedi',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Login endpoint
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
