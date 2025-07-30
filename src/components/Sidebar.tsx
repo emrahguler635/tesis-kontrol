@@ -9,34 +9,52 @@ interface User {
   username: string;
   email: string;
   role: string;
+  permissions?: string[];
 }
 
 const Sidebar: React.FC = () => {
   const { user } = useAuthStore();
   const logo = typeof window !== 'undefined' ? localStorage.getItem('appLogo') : null;
   
-  const menuItems = [
-    { to: '/', label: 'Ana Sayfa', icon: <Home size={20} /> },
-    { to: '/tesisler', label: 'Tesisler', icon: <Building size={20} /> },
-    { to: '/gunluk', label: 'Günlük İş Programı', icon: <CalendarDays size={20} /> },
-          { to: '/haftalik', label: 'Toplam Yapılan İşler', icon: <Clock size={20} /> },
-    { to: '/raporlar', label: 'Raporlar', icon: <BarChart3 size={20} /> },
-    { to: '/mesaj-takip', label: 'Mesaj Yönetimi', icon: <MessageCircle size={20} /> },
-    { to: '/bagtv', label: 'BağTV', icon: <Monitor size={20} /> },
-    { to: '/data-viewer', label: 'Veri Kontrol', icon: <Database size={20} /> },
-    { to: '/ayarlar', label: 'Ayarlar', icon: <Settings size={20} /> },
+  // Kullanıcının yetkilerini kontrol et
+  const userPermissions = user?.permissions || [];
+  
+  const allMenuItems = [
+    { to: '/', label: 'Ana Sayfa', icon: <Home size={20} />, permission: 'Ana Sayfa' },
+    { to: '/tesisler', label: 'Tesisler', icon: <Building size={20} />, permission: 'Tesisler' },
+    { to: '/gunluk', label: 'Günlük İş Programı', icon: <CalendarDays size={20} />, permission: 'Günlük İş Programı' },
+    { to: '/haftalik', label: 'Toplam Yapılan İşler', icon: <Clock size={20} />, permission: 'Haftalık İşler' },
+    { to: '/raporlar', label: 'Raporlar', icon: <BarChart3 size={20} />, permission: 'Raporlar' },
+    { to: '/mesaj-takip', label: 'Mesaj Yönetimi', icon: <MessageCircle size={20} />, permission: 'Mesaj Yönetimi' },
+    { to: '/bagtv', label: 'BağTV', icon: <Monitor size={20} />, permission: 'BağTV' },
+    { to: '/data-viewer', label: 'Veri Kontrol', icon: <Database size={20} />, permission: 'Veri Kontrol' },
+    { to: '/ayarlar', label: 'Ayarlar', icon: <Settings size={20} />, permission: 'Ayarlar' },
   ];
+
+  // Kullanıcının yetkilerine göre menü öğelerini filtrele
+  const filteredMenuItems = allMenuItems.filter(item => {
+    // Admin kullanıcısı tüm menüleri görebilir
+    if (user?.role === 'admin') return true;
+    
+    // Normal kullanıcılar sadece yetkili oldukları menüleri görebilir
+    return userPermissions.includes(item.permission);
+  });
 
   // Admin kullanıcısı için onay menüsü ekle
   const adminMenuItems = user?.role === 'admin' ? [
     { to: '/approvals', label: 'Onay Yönetimi', icon: <CheckCircle size={20} /> }
   ] : [];
 
-  // Tüm kullanıcılar için kullanıcı yönetimi linkini ekle
-  const allMenuItems = [
-    ...menuItems,
-    ...adminMenuItems,
+  // Kullanıcı yönetimi linkini ekle (sadece admin görebilir)
+  const userManagementItem = user?.role === 'admin' ? [
     { to: '/user-management', label: 'Kullanıcı Yönetimi', icon: <Users size={20} /> }
+  ] : [];
+
+  // Final menü öğelerini birleştir
+  const finalMenuItems = [
+    ...filteredMenuItems,
+    ...adminMenuItems,
+    ...userManagementItem
   ];
 
   return (
@@ -52,7 +70,7 @@ const Sidebar: React.FC = () => {
         <span className="text-white font-bold text-lg tracking-wide drop-shadow text-center select-none">Bağcılar Belediyesi</span>
       </div>
       <nav className="flex-1 px-4 space-y-1">
-        {allMenuItems.map(item => (
+        {finalMenuItems.map(item => (
           <NavLink
             key={item.to}
             to={item.to}
