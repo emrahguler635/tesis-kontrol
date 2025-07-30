@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useControlStore, Period } from '../store';
+import { apiService } from '../services/api';
 import axios from 'axios';
 
 interface ControlItemModalProps {
@@ -9,23 +10,52 @@ interface ControlItemModalProps {
   period: Period;
 }
 
+interface Facility {
+  id: number;
+  name: string;
+}
+
 export function ControlItemModal({ open, onClose, initialData, period }: ControlItemModalProps) {
-  const facilities = useControlStore(s => s.facilities);
+  const [facilities, setFacilities] = useState<Facility[]>([]);
+  const [users, setUsers] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
   const addControlItem = useControlStore(s => s.addControlItem);
   const updateControlItem = useControlStore(s => s.updateControlItem);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [facilityId, setFacilityId] = useState(facilities[0]?.id || '');
+  const [facilityId, setFacilityId] = useState<string>('');
   const [user, setUser] = useState('');
   const [status, setStatus] = useState('');
   const [date, setDate] = useState('');
 
   useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const [facilitiesData, usersData] = await Promise.all([
+          apiService.getFacilities(),
+          apiService.getUsers()
+        ]);
+        setFacilities(facilitiesData);
+        setUsers(usersData.map(u => u.username));
+      } catch (error) {
+        console.error('Veri yüklenirken hata:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (open) {
+      loadData();
+    }
+  }, [open]);
+
+  useEffect(() => {
     if (initialData) {
       setTitle(initialData.title || '');
       setDescription(initialData.description || '');
-      setFacilityId(initialData.facilityId || facilities[0]?.id || '');
+      setFacilityId(initialData.facilityId?.toString() || facilities[0]?.id?.toString() || '');
       setUser(initialData.user || '');
       setStatus(
         initialData.workDone && initialData.workDone.toLowerCase().includes('normal')
@@ -38,7 +68,7 @@ export function ControlItemModal({ open, onClose, initialData, period }: Control
     } else {
       setTitle('');
       setDescription('');
-      setFacilityId(facilities[0]?.id || '');
+      setFacilityId(facilities[0]?.id?.toString() || '');
       setUser('');
       setStatus('');
       setDate(new Date().toISOString().split('T')[0]);
@@ -102,6 +132,7 @@ export function ControlItemModal({ open, onClose, initialData, period }: Control
               onChange={e => setFacilityId(e.target.value)}
               required
             >
+              <option value="">Tesis Seçin</option>
               {facilities.map(f => (
                 <option key={f.id} value={f.id}>{f.name}</option>
               ))}
@@ -109,14 +140,17 @@ export function ControlItemModal({ open, onClose, initialData, period }: Control
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Kullanıcı</label>
-            <input
-              type="text"
+            <select
               className="input-field"
               value={user}
               onChange={e => setUser(e.target.value)}
               required
-              placeholder="Kullanıcı adı"
-            />
+            >
+              <option value="">Kullanıcı Seçin</option>
+              {users.map(u => (
+                <option key={u} value={u}>{u}</option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Durum</label>
