@@ -88,7 +88,7 @@ const UserManagement: React.FC = () => {
       email: user.email,
       password: '',
       role: user.role,
-              permissions: user.permissions || ['Ana Sayfa']
+      permissions: Array.isArray(user.permissions) ? user.permissions : ['Ana Sayfa']
     });
     setEditModalOpen(true);
   };
@@ -223,26 +223,14 @@ const UserManagement: React.FC = () => {
                     </div>
                     
                     {/* Yetkiler */}
-                    {user.permissions && (
+                    {user.permissions && Array.isArray(user.permissions) && (
                       <div className="mt-2">
                         <p className="text-xs text-gray-500 mb-1">Yetkiler:</p>
                         <div className="flex flex-wrap gap-1">
-                          {Object.entries(user.permissions).map(([key, value]) => (
-                            value && (
-                              <span key={key} className="px-1 py-0.5 bg-green-100 text-green-700 text-xs rounded">
-                                {key === 'dashboard' && 'Ana Sayfa'}
-                                {key === 'facilities' && 'Tesisler'}
-                                {key === 'dailyChecks' && 'Günlük'}
-                                {key === 'weeklyChecks' && 'Haftalık'}
-                                {key === 'monthlyChecks' && 'Aylık'}
-                                {key === 'yearlyChecks' && 'Yıllık'}
-                                {key === 'messages' && 'Mesaj'}
-                                {key === 'bagTV' && 'BağTV'}
-                                {key === 'reports' && 'Rapor'}
-                                {key === 'settings' && 'Ayar'}
-                                {key === 'userManagement' && 'Kullanıcı'}
-                              </span>
-                            )
+                          {user.permissions.map((permission, index) => (
+                            <span key={index} className="px-1 py-0.5 bg-green-100 text-green-700 text-xs rounded">
+                              {permission}
+                            </span>
                           ))}
                         </div>
                       </div>
@@ -388,17 +376,17 @@ const UserManagement: React.FC = () => {
                     <label key={key} className="flex items-center space-x-2">
                       <input
                         type="checkbox"
-                        checked={editItem.permissions.includes(value)}
+                        checked={Array.isArray(editItem.permissions) && editItem.permissions.includes(value)}
                         onChange={(e) => {
                           if (e.target.checked) {
                             setEditItem(prev => ({
                               ...prev,
-                              permissions: [...prev.permissions, value]
+                              permissions: [...(Array.isArray(prev.permissions) ? prev.permissions : []), value]
                             }));
                           } else {
                             setEditItem(prev => ({
                               ...prev,
-                              permissions: prev.permissions.filter(p => p !== value)
+                              permissions: (Array.isArray(prev.permissions) ? prev.permissions : []).filter(p => p !== value)
                             }));
                           }
                         }}
@@ -527,17 +515,17 @@ const UserManagement: React.FC = () => {
                     <label key={key} className="flex items-center space-x-2">
                       <input
                         type="checkbox"
-                        checked={editItem.permissions.includes(value)}
+                        checked={Array.isArray(editItem.permissions) && editItem.permissions.includes(value)}
                         onChange={(e) => {
                           if (e.target.checked) {
                             setEditItem(prev => ({
                               ...prev,
-                              permissions: [...prev.permissions, value]
+                              permissions: [...(Array.isArray(prev.permissions) ? prev.permissions : []), value]
                             }));
                           } else {
                             setEditItem(prev => ({
                               ...prev,
-                              permissions: prev.permissions.filter(p => p !== value)
+                              permissions: (Array.isArray(prev.permissions) ? prev.permissions : []).filter(p => p !== value)
                             }));
                           }
                         }}
