@@ -418,9 +418,12 @@ app.put('/api/control-items/:id', async (req, res) => {
       approvalStatus = 'rejected'; // Reddedildi
     }
 
+    const userName = user || 'Kullanıcı Belirtilmemiş';
+    console.log('Using user name:', userName);
+
     const result = await pool.query(
       'UPDATE control_items SET title = $1, description = $2, period = $3, date = $4, facility_id = $5, work_done = $6, user_name = $7, status = $8, approval_status = $9 WHERE id = $10 RETURNING *',
-      [title, description, period, date, facilityId, workDone, user, status, approvalStatus, id]
+      [title, description, period, date, facilityId, workDone, userName, status, approvalStatus, id]
     );
     console.log('Control item updated:', result.rows[0]);
     res.json(result.rows[0]);
