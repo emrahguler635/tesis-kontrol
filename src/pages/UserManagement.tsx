@@ -8,20 +8,7 @@ interface User {
   username: string;
   email: string;
   role: string;
-  permissions?: {
-    dashboard: boolean;
-    facilities: boolean;
-    dailyChecks: boolean;
-    weeklyChecks: boolean;
-    monthlyChecks: boolean;
-    yearlyChecks: boolean;
-    messages: boolean;
-    bagTV: boolean;
-    reports: boolean;
-    settings: boolean;
-    userManagement: boolean;
-    dataControl: boolean;
-  };
+  permissions?: string[];
   created_at?: string;
 }
 
@@ -33,20 +20,7 @@ const UserManagement: React.FC = () => {
     email: '',
     password: '',
     role: 'user',
-    permissions: {
-      dashboard: true,
-      facilities: false,
-      dailyChecks: false,
-      weeklyChecks: false,
-      monthlyChecks: false,
-      yearlyChecks: false,
-      messages: false,
-      bagTV: false,
-      reports: false,
-      settings: false,
-      userManagement: false,
-      dataControl: false
-    }
+    permissions: ['Ana Sayfa']
   });
   const [modalOpen, setModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -90,20 +64,7 @@ const UserManagement: React.FC = () => {
         email: '', 
         password: '', 
         role: 'user',
-        permissions: {
-          dashboard: true,
-          facilities: false,
-          dailyChecks: false,
-          weeklyChecks: false,
-          monthlyChecks: false,
-          yearlyChecks: false,
-          messages: false,
-          bagTV: false,
-          reports: false,
-          settings: false,
-          userManagement: false,
-          dataControl: false
-        }
+        permissions: ['Ana Sayfa']
       });
     } catch (error) {
       console.error('Kullanıcı kaydedilirken hata:', error);
@@ -127,20 +88,7 @@ const UserManagement: React.FC = () => {
       email: user.email,
       password: '',
       role: user.role,
-              permissions: user.permissions || {
-          dashboard: true,
-          facilities: false,
-          dailyChecks: false,
-          weeklyChecks: false,
-          monthlyChecks: false,
-          yearlyChecks: false,
-          messages: false,
-          bagTV: false,
-          reports: false,
-          settings: false,
-          userManagement: false,
-          dataControl: false
-        }
+              permissions: user.permissions || ['Ana Sayfa']
     });
     setEditModalOpen(true);
   };
@@ -168,20 +116,7 @@ const UserManagement: React.FC = () => {
         email: '', 
         password: '', 
         role: 'user',
-        permissions: {
-          dashboard: true,
-          facilities: false,
-          dailyChecks: false,
-          weeklyChecks: false,
-          monthlyChecks: false,
-          yearlyChecks: false,
-          messages: false,
-          bagTV: false,
-          reports: false,
-          settings: false,
-          userManagement: false,
-          dataControl: false
-        }
+        permissions: ['Ana Sayfa']
       });
     } catch (error) {
       console.error('Kullanıcı güncellenirken hata:', error);
@@ -436,35 +371,40 @@ const UserManagement: React.FC = () => {
                   Modül Yetkileri
                 </label>
                 <div className="grid grid-cols-2 gap-3">
-                  {Object.entries(editItem.permissions).map(([key, value]) => (
+                  {[
+                    { key: 'Ana Sayfa', value: 'Ana Sayfa' },
+                    { key: 'Tesisler', value: 'Tesisler' },
+                    { key: 'Günlük İş Programı', value: 'Günlük İş Programı' },
+                    { key: 'Haftalık İşler', value: 'Haftalık İşler' },
+                    { key: 'Aylık İşler', value: 'Aylık İşler' },
+                    { key: 'Yıllık İşler', value: 'Yıllık İşler' },
+                    { key: 'Mesaj Yönetimi', value: 'Mesaj Yönetimi' },
+                    { key: 'BağTV', value: 'BağTV' },
+                    { key: 'Raporlar', value: 'Raporlar' },
+                    { key: 'Ayarlar', value: 'Ayarlar' },
+                    { key: 'Kullanıcı Yönetimi', value: 'Kullanıcı Yönetimi' },
+                    { key: 'Veri Kontrol', value: 'Veri Kontrol' }
+                  ].map(({ key, value }) => (
                     <label key={key} className="flex items-center space-x-2">
                       <input
                         type="checkbox"
-                        checked={value}
+                        checked={editItem.permissions.includes(value)}
                         onChange={(e) => {
-                          setEditItem(prev => ({
-                            ...prev,
-                            permissions: {
-                              ...prev.permissions,
-                              [key]: e.target.checked
-                            }
-                          }));
+                          if (e.target.checked) {
+                            setEditItem(prev => ({
+                              ...prev,
+                              permissions: [...prev.permissions, value]
+                            }));
+                          } else {
+                            setEditItem(prev => ({
+                              ...prev,
+                              permissions: prev.permissions.filter(p => p !== value)
+                            }));
+                          }
                         }}
                         className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
                       />
-                      <span className="text-sm text-gray-700">
-                        {key === 'dashboard' && 'Ana Sayfa'}
-                        {key === 'facilities' && 'Tesisler'}
-                        {key === 'dailyChecks' && 'Günlük İş Programı'}
-                        {key === 'weeklyChecks' && 'Haftalık İşler'}
-                        {key === 'monthlyChecks' && 'Aylık İşler'}
-                        {key === 'yearlyChecks' && 'Yıllık İşler'}
-                        {key === 'messages' && 'Mesaj Yönetimi'}
-                        {key === 'bagTV' && 'BağTV'}
-                        {key === 'reports' && 'Raporlar'}
-                        {key === 'settings' && 'Ayarlar'}
-                        {key === 'userManagement' && 'Kullanıcı Yönetimi'}
-                      </span>
+                      <span className="text-sm text-gray-700">{key}</span>
                     </label>
                   ))}
                 </div>
@@ -570,35 +510,40 @@ const UserManagement: React.FC = () => {
                   Modül Yetkileri
                 </label>
                 <div className="grid grid-cols-2 gap-3">
-                  {Object.entries(editItem.permissions).map(([key, value]) => (
+                  {[
+                    { key: 'Ana Sayfa', value: 'Ana Sayfa' },
+                    { key: 'Tesisler', value: 'Tesisler' },
+                    { key: 'Günlük İş Programı', value: 'Günlük İş Programı' },
+                    { key: 'Haftalık İşler', value: 'Haftalık İşler' },
+                    { key: 'Aylık İşler', value: 'Aylık İşler' },
+                    { key: 'Yıllık İşler', value: 'Yıllık İşler' },
+                    { key: 'Mesaj Yönetimi', value: 'Mesaj Yönetimi' },
+                    { key: 'BağTV', value: 'BağTV' },
+                    { key: 'Raporlar', value: 'Raporlar' },
+                    { key: 'Ayarlar', value: 'Ayarlar' },
+                    { key: 'Kullanıcı Yönetimi', value: 'Kullanıcı Yönetimi' },
+                    { key: 'Veri Kontrol', value: 'Veri Kontrol' }
+                  ].map(({ key, value }) => (
                     <label key={key} className="flex items-center space-x-2">
                       <input
                         type="checkbox"
-                        checked={value}
+                        checked={editItem.permissions.includes(value)}
                         onChange={(e) => {
-                          setEditItem(prev => ({
-                            ...prev,
-                            permissions: {
-                              ...prev.permissions,
-                              [key]: e.target.checked
-                            }
-                          }));
+                          if (e.target.checked) {
+                            setEditItem(prev => ({
+                              ...prev,
+                              permissions: [...prev.permissions, value]
+                            }));
+                          } else {
+                            setEditItem(prev => ({
+                              ...prev,
+                              permissions: prev.permissions.filter(p => p !== value)
+                            }));
+                          }
                         }}
                         className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
                       />
-                      <span className="text-sm text-gray-700">
-                        {key === 'dashboard' && 'Ana Sayfa'}
-                        {key === 'facilities' && 'Tesisler'}
-                        {key === 'dailyChecks' && 'Günlük İş Programı'}
-                        {key === 'weeklyChecks' && 'Haftalık İşler'}
-                        {key === 'monthlyChecks' && 'Aylık İşler'}
-                        {key === 'yearlyChecks' && 'Yıllık İşler'}
-                        {key === 'messages' && 'Mesaj Yönetimi'}
-                        {key === 'bagTV' && 'BağTV'}
-                        {key === 'reports' && 'Raporlar'}
-                        {key === 'settings' && 'Ayarlar'}
-                        {key === 'userManagement' && 'Kullanıcı Yönetimi'}
-                      </span>
+                      <span className="text-sm text-gray-700">{key}</span>
                     </label>
                   ))}
                 </div>

@@ -29,6 +29,7 @@ export interface User {
   username: string;
   email: string;
   role: string;
+  permissions?: string[];
   created_at?: string;
 }
 
@@ -131,14 +132,14 @@ class ApiService {
     return this.request<User[]>('/users');
   }
 
-  async createUser(user: { username: string; email: string; password: string; role: string }): Promise<User> {
+  async createUser(user: { username: string; email: string; password: string; role: string; permissions?: string[] }): Promise<User> {
     return this.request<User>('/users', {
       method: 'POST',
       body: JSON.stringify(user),
     });
   }
 
-  async updateUser(id: number, user: { username: string; email: string; password?: string; role: string }): Promise<User> {
+  async updateUser(id: number, user: { username: string; email: string; password?: string; role: string; permissions?: string[] }): Promise<User> {
     return this.request<User>(`/users/${id}`, {
       method: 'PUT',
       body: JSON.stringify(user),
