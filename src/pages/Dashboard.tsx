@@ -190,10 +190,12 @@ export function Dashboard() {
     { 
       name: 'Günlük İş Programında İşlemde Olan Kayıtlar', 
       value: controlItems.filter(item => 
-        item.period === 'Günlük' || 
-        item.frequency === 'Günlük' ||
-        item.period === 'Günlük İş Programı' ||
-        item.frequency === 'Günlük İş Programı'
+        (item.period === 'Günlük' || 
+         item.frequency === 'Günlük' ||
+         item.period === 'Günlük İş Programı' ||
+         item.frequency === 'Günlük İş Programı') &&
+        item.status !== 'Tamamlandı' &&
+        item.status !== 'Yapılmadı'
       ).length, 
       icon: Activity,
       color: 'text-purple-600',
