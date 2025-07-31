@@ -188,7 +188,7 @@ export function Dashboard() {
       bgColor: 'bg-yellow-50'
     },
     { 
-      name: 'Günlük İş Programında İşlemde Olan Kayıtlar', 
+      name: 'İşlemde', 
       value: controlItems.filter(item => 
         (item.period === 'Günlük' || 
          item.frequency === 'Günlük' ||
