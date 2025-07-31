@@ -972,6 +972,12 @@ app.post('/api/control-items/:id/approve', async (req, res) => {
     const { id } = req.params;
     const { approvedBy } = req.body;
 
+    // Admin kontrolü
+    const userCheck = await pool.query('SELECT role FROM users WHERE username = $1', [approvedBy]);
+    if (userCheck.rows.length === 0 || userCheck.rows[0].role !== 'admin') {
+      return res.status(403).json({ error: 'Sadece admin kullanıcıları onay işlemi yapabilir' });
+    }
+
     const query = `
       UPDATE control_items 
       SET approval_status = 'approved', approved_by = $1, approved_at = NOW() 
@@ -996,6 +1002,12 @@ app.post('/api/control-items/:id/reject', async (req, res) => {
   try {
     const { id } = req.params;
     const { rejectedBy, reason } = req.body;
+
+    // Admin kontrolü
+    const userCheck = await pool.query('SELECT role FROM users WHERE username = $1', [rejectedBy]);
+    if (userCheck.rows.length === 0 || userCheck.rows[0].role !== 'admin') {
+      return res.status(403).json({ error: 'Sadece admin kullanıcıları reddetme işlemi yapabilir' });
+    }
 
     const query = `
       UPDATE control_items 

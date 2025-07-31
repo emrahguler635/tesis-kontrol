@@ -1195,6 +1195,95 @@ app.delete('/api/bagtv-controls/:id', async (req, res) => {
   }
 });
 
+// Onay bekleyen işler endpoint'i
+app.get('/api/control-items/pending-approvals', async (req, res) => {
+  try {
+    const { user } = req.query;
+    console.log('Pending approvals request for user:', user);
+    
+    let query = { approvalStatus: 'pending' };
+    
+    // Eğer kullanıcı belirtilmişse ve admin değilse, sadece o kullanıcının işlerini getir
+    if (user && user !== 'admin') {
+      query.user = user;
+    }
+    
+    const items = await ControlItem.find(query).sort({ date: -1 });
+    console.log('Found pending items:', items.length);
+    res.json(items);
+  } catch (error) {
+    console.error('Onay bekleyen işler alınamadı:', error);
+    res.status(500).json({ error: 'Onay bekleyen işler alınamadı', message: error.message });
+  }
+});
+
+// İş onaylama endpoint'i
+app.post('/api/control-items/:id/approve', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { approvedBy } = req.body;
+
+    // Admin kontrolü
+    const user = await User.findOne({ username: approvedBy });
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ error: 'Sadece admin kullanıcıları onay işlemi yapabilir' });
+    }
+
+    const updatedItem = await ControlItem.findByIdAndUpdate(
+      id,
+      { 
+        approvalStatus: 'approved', 
+        approvedBy: approvedBy, 
+        approvedAt: new Date() 
+      },
+      { new: true }
+    );
+    
+    if (!updatedItem) {
+      return res.status(404).json({ error: 'İş bulunamadı' });
+    }
+
+    res.json({ message: 'İş başarıyla onaylandı' });
+  } catch (error) {
+    console.error('İş onaylama hatası:', error);
+    res.status(500).json({ error: 'İş onaylanamadı', message: error.message });
+  }
+});
+
+// İş reddetme endpoint'i
+app.post('/api/control-items/:id/reject', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rejectedBy, reason } = req.body;
+
+    // Admin kontrolü
+    const user = await User.findOne({ username: rejectedBy });
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ error: 'Sadece admin kullanıcıları reddetme işlemi yapabilir' });
+    }
+
+    const updatedItem = await ControlItem.findByIdAndUpdate(
+      id,
+      { 
+        approvalStatus: 'rejected', 
+        approvedBy: rejectedBy, 
+        approvedAt: new Date(),
+        rejectionReason: reason 
+      },
+      { new: true }
+    );
+    
+    if (!updatedItem) {
+      return res.status(404).json({ error: 'İş bulunamadı' });
+    }
+
+    res.json({ message: 'İş başarıyla reddedildi' });
+  } catch (error) {
+    console.error('İş reddetme hatası:', error);
+    res.status(500).json({ error: 'İş reddedilemedi', message: error.message });
+  }
+});
+
 // Test endpoint for debugging
 app.get('/api/test-bagtv', async (req, res) => {
   try {

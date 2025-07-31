@@ -351,20 +351,31 @@ app.post('/api/control-items/:id/approve', (req, res) => {
   const { id } = req.params;
   const { approvedBy } = req.body;
   
-  db.run(`UPDATE control_items SET status = 'approved', approved_by = ?, approved_at = CURRENT_TIMESTAMP WHERE id = ?`,
-    [approvedBy, id],
-    function(err) {
-      if (err) {
-        return res.status(500).json({ error: 'İş onaylanamadı' });
-      }
-      
-      if (this.changes === 0) {
-        return res.status(404).json({ error: 'İş bulunamadı' });
-      }
-      
-      res.json({ message: 'İş başarıyla onaylandı' });
+  // Admin kontrolü
+  db.get("SELECT role FROM users WHERE username = ?", [approvedBy], (err, user) => {
+    if (err) {
+      return res.status(500).json({ error: 'Kullanıcı kontrolü yapılamadı' });
     }
-  );
+    
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ error: 'Sadece admin kullanıcıları onay işlemi yapabilir' });
+    }
+    
+    db.run(`UPDATE control_items SET status = 'approved', approved_by = ?, approved_at = CURRENT_TIMESTAMP WHERE id = ?`,
+      [approvedBy, id],
+      function(err) {
+        if (err) {
+          return res.status(500).json({ error: 'İş onaylanamadı' });
+        }
+        
+        if (this.changes === 0) {
+          return res.status(404).json({ error: 'İş bulunamadı' });
+        }
+        
+        res.json({ message: 'İş başarıyla onaylandı' });
+      }
+    );
+  });
 });
 
 // İşi reddet
@@ -372,20 +383,31 @@ app.post('/api/control-items/:id/reject', (req, res) => {
   const { id } = req.params;
   const { rejectedBy, reason } = req.body;
   
-  db.run(`UPDATE control_items SET status = 'rejected', approved_by = ?, approved_at = CURRENT_TIMESTAMP WHERE id = ?`,
-    [rejectedBy, id],
-    function(err) {
-      if (err) {
-        return res.status(500).json({ error: 'İş reddedilemedi' });
-      }
-      
-      if (this.changes === 0) {
-        return res.status(404).json({ error: 'İş bulunamadı' });
-      }
-      
-      res.json({ message: 'İş başarıyla reddedildi', reason });
+  // Admin kontrolü
+  db.get("SELECT role FROM users WHERE username = ?", [rejectedBy], (err, user) => {
+    if (err) {
+      return res.status(500).json({ error: 'Kullanıcı kontrolü yapılamadı' });
     }
-  );
+    
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ error: 'Sadece admin kullanıcıları reddetme işlemi yapabilir' });
+    }
+    
+    db.run(`UPDATE control_items SET status = 'rejected', approved_by = ?, approved_at = CURRENT_TIMESTAMP WHERE id = ?`,
+      [rejectedBy, id],
+      function(err) {
+        if (err) {
+          return res.status(500).json({ error: 'İş reddedilemedi' });
+        }
+        
+        if (this.changes === 0) {
+          return res.status(404).json({ error: 'İş bulunamadı' });
+        }
+        
+        res.json({ message: 'İş başarıyla reddedildi', reason });
+      }
+    );
+  });
 });
 
 // Messages endpoints
