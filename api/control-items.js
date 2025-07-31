@@ -61,18 +61,29 @@ module.exports = (req, res) => {
     mockControlItems.push(newItem);
     res.status(201).json(newItem);
   } else if (req.method === 'PUT') {
-    const itemId = parseInt(req.url.split('/').pop());
+    console.log('PUT request received:', req.url);
+    console.log('Request body:', req.body);
+    
+    // URL'den ID'yi çıkar
+    const urlParts = req.url.split('/');
+    const itemId = parseInt(urlParts[urlParts.length - 1]);
+    console.log('Extracted itemId:', itemId);
+    
     const itemIndex = mockControlItems.findIndex(item => item.id === itemId);
+    console.log('Found itemIndex:', itemIndex);
     
     if (itemIndex !== -1) {
       const updatedItem = {
-        id: itemId,
+        ...mockControlItems[itemIndex],
         ...req.body,
+        id: itemId,
         created_at: new Date()
       };
       mockControlItems[itemIndex] = updatedItem;
+      console.log('Updated item:', updatedItem);
       res.status(200).json(updatedItem);
     } else {
+      console.log('Item not found for id:', itemId);
       res.status(404).json({ error: 'Control item not found' });
     }
   } else if (req.method === 'DELETE') {
