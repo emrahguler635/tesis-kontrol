@@ -55,6 +55,14 @@ const Messages: React.FC = () => {
     'Bağcılar Belediyesi'
   ];
 
+  // Sabit gönderen listesi
+  const senderOptions = [
+    'Abdullah YILDIRAN',
+    'Abdurrahman ERDEM', 
+    'Muhammed Taha ELKONCA',
+    'Emrah GÜLER'
+  ];
+
   // Mesajları ve kullanıcıları yükle
   useEffect(() => {
     const fetchData = async () => {
@@ -148,7 +156,7 @@ const Messages: React.FC = () => {
       totalCount: '', 
       pulledCount: '', 
       account: user?.username || '', 
-      sender: user?.username || '',
+      sender: 'admin', // Otomatik olarak admin kullanıcısı
       description: '' 
     };
     setEditItem(editItemWithUser);
@@ -560,10 +568,8 @@ const Messages: React.FC = () => {
                     required
                   >
                     <option value="">Gönderen seçin</option>
-                    {users.map(user => (
-                      <option key={user.id} value={user.username}>
-                        {user.username} ({user.role})
-                      </option>
+                    {senderOptions.map(option => (
+                      <option key={option} value={option}>{option}</option>
                     ))}
                   </select>
                 </div>
