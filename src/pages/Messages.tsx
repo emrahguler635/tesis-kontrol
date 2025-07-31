@@ -240,7 +240,7 @@ const Messages: React.FC = () => {
           <div className="text-lg text-gray-600">Yükleniyor...</div>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -269,96 +269,100 @@ const Messages: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {messages.map(message => (
-                  <tr key={message.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-8 w-8">
-                          <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center">
-                            <Calendar className="h-4 w-4 text-white" />
+                {messages.length > 0 ? (
+                  messages.map(message => (
+                    <tr key={message.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-8 w-8">
+                            <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center">
+                              <Calendar className="h-4 w-4 text-white" />
+                            </div>
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">
+                              {formatDate(message.date)}
+                            </div>
                           </div>
                         </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
-                            {formatDate(message.date)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                          {message.totalCount || message.total_count || 0}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                          {message.pulledCount || message.pulled_count || 0}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-8 w-8">
+                            <div className="h-8 w-8 rounded-full bg-gradient-to-r from-purple-500 to-purple-600 flex items-center justify-center">
+                              <User className="h-4 w-4 text-white" />
+                            </div>
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">
+                              {message.account}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
-                        {message.totalCount || message.total_count || 0}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
-                        {message.pulledCount || message.pulled_count || 0}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-8 w-8">
-                          <div className="h-8 w-8 rounded-full bg-gradient-to-r from-purple-500 to-purple-600 flex items-center justify-center">
-                            <User className="h-4 w-4 text-white" />
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        <div className="max-w-xs truncate" title={message.description}>
+                          {message.description}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-8 w-8">
+                            <div className="h-8 w-8 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center">
+                              <User className="h-4 w-4 text-white" />
+                            </div>
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">
+                              {message.sender || 'Belirtilmemiş'}
+                            </div>
                           </div>
                         </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
-                            {message.account}
-                          </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center justify-end gap-2">
+                          <button 
+                            onClick={() => handleEdit(message)}
+                            className="text-blue-600 hover:text-blue-900 p-2 rounded-lg hover:bg-blue-50 transition-colors"
+                            title="Düzenle"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(message.id)}
+                            className="text-red-600 hover:text-red-900 p-2 rounded-lg hover:bg-red-50 transition-colors"
+                            title="Sil"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      <div className="max-w-xs truncate" title={message.description}>
-                        {message.description}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-8 w-8">
-                          <div className="h-8 w-8 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center">
-                            <User className="h-4 w-4 text-white" />
-                          </div>
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
-                            {message.sender || 'Belirtilmemiş'}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex items-center justify-end gap-2">
-                        <button 
-                          onClick={() => handleEdit(message)}
-                          className="text-blue-600 hover:text-blue-900 p-2 rounded-lg hover:bg-blue-50 transition-colors"
-                          title="Düzenle"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(message.id)}
-                          className="text-red-600 hover:text-red-900 p-2 rounded-lg hover:bg-red-50 transition-colors"
-                          title="Sil"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-8 text-center">
+                      <div className="text-center py-8">
+                        <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">Henüz mesaj yok</h3>
+                        <p className="text-gray-500">İlk mesajınızı eklemek için yukarıdaki butonu kullanın.</p>
                       </div>
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
-          
-          {messages.length === 0 && (
-            <div className="text-center py-8">
-              <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Henüz mesaj yok</h3>
-              <p className="text-gray-500">İlk mesajınızı eklemek için yukarıdaki butonu kullanın.</p>
-            </div>
-          )}
         </div>
       )}
 
