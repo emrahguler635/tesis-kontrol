@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Download, BarChart3, MessageSquare, TrendingUp, CheckCircle, Calendar, Hash, User, Edit, Trash2 } from 'lucide-react';
+import { Plus, Download, BarChart3, MessageSquare, TrendingUp, CheckCircle, Calendar, Hash, User, Edit, Trash2, Percent } from 'lucide-react';
 import { apiService } from '../services/api';
 import { Card } from '../components/Card';
 import { useAuthStore } from '../store';
@@ -200,6 +200,75 @@ const Messages: React.FC = () => {
             Dashboard Özet Raporu
           </h1>
           <p className="text-gray-600 text-sm">Mesaj yönetimi ve raporlama sistemi</p>
+        </div>
+      </div>
+
+      {/* Özet Rapor Kartları */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* Toplam Mesaj Sayısı */}
+        <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+          <div className="flex items-center justify-between h-40 p-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl">
+            <div className="flex-1">
+              <p className="text-base font-medium text-blue-100 mb-3">Toplam Mesaj</p>
+              <p className="text-4xl font-bold text-white mb-2">{messages.length}</p>
+              <p className="text-sm text-blue-200">Kayıt</p>
+            </div>
+            <div className="p-5 bg-white/20 rounded-xl backdrop-blur-sm">
+              <MessageSquare className="h-12 w-12 text-white" />
+            </div>
+          </div>
+        </div>
+
+        {/* Toplam Sayı */}
+        <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+          <div className="flex items-center justify-between h-40 p-6 bg-gradient-to-br from-green-500 to-green-600 rounded-xl">
+            <div className="flex-1">
+              <p className="text-base font-medium text-green-100 mb-3">Toplam Sayı</p>
+              <p className="text-4xl font-bold text-white mb-2">
+                {messages.reduce((sum, msg) => sum + (msg.totalCount || msg.total_count || 0), 0)}
+              </p>
+              <p className="text-sm text-green-200">Mesaj</p>
+            </div>
+            <div className="p-5 bg-white/20 rounded-xl backdrop-blur-sm">
+              <Hash className="h-12 w-12 text-white" />
+            </div>
+          </div>
+        </div>
+
+        {/* Çekilen Sayı */}
+        <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+          <div className="flex items-center justify-between h-40 p-6 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl">
+            <div className="flex-1">
+              <p className="text-base font-medium text-purple-100 mb-3">Çekilen Sayı</p>
+              <p className="text-4xl font-bold text-white mb-2">
+                {messages.reduce((sum, msg) => sum + (msg.pulledCount || msg.pulled_count || 0), 0)}
+              </p>
+              <p className="text-sm text-purple-200">Mesaj</p>
+            </div>
+            <div className="p-5 bg-white/20 rounded-xl backdrop-blur-sm">
+              <CheckCircle className="h-12 w-12 text-white" />
+            </div>
+          </div>
+        </div>
+
+        {/* Başarı Oranı */}
+        <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+          <div className="flex items-center justify-between h-40 p-6 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl">
+            <div className="flex-1">
+              <p className="text-base font-medium text-orange-100 mb-3">Başarı Oranı</p>
+              <p className="text-4xl font-bold text-white mb-2">
+                {(() => {
+                  const total = messages.reduce((sum, msg) => sum + (msg.totalCount || msg.total_count || 0), 0);
+                  const pulled = messages.reduce((sum, msg) => sum + (msg.pulledCount || msg.pulled_count || 0), 0);
+                  return total > 0 ? Math.round((pulled / total) * 100) : 0;
+                })()}%
+              </p>
+              <p className="text-sm text-orange-200">Oran</p>
+            </div>
+            <div className="p-5 bg-white/20 rounded-xl backdrop-blur-sm">
+              <Percent className="h-12 w-12 text-white" />
+            </div>
+          </div>
         </div>
       </div>
 
