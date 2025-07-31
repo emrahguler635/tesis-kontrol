@@ -188,9 +188,14 @@ export function Dashboard() {
       bgColor: 'bg-yellow-50'
     },
     { 
-      name: 'Aktif Kullanıcı', 
-      value: uniqueUsers.length, 
-      icon: Users,
+      name: 'Günlük İş Programında İşlemde Olan Kayıtlar', 
+      value: controlItems.filter(item => 
+        item.period === 'Günlük' || 
+        item.frequency === 'Günlük' ||
+        item.period === 'Günlük İş Programı' ||
+        item.frequency === 'Günlük İş Programı'
+      ).length, 
+      icon: Activity,
       color: 'text-purple-600',
       bgColor: 'bg-purple-50'
     },
@@ -214,7 +219,17 @@ export function Dashboard() {
 
       {/* Mesaj Yönetimi Özeti */}
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Mesaj Yönetimi Özeti</h2>
+        <div className="flex items-center mb-6">
+          <div className="p-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg mr-4">
+            <MessageSquare className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+              Mesaj Yönetimi Özeti
+            </h2>
+            <p className="text-gray-600 text-sm">Mesaj işlemleri ve istatistikler</p>
+          </div>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
             <div className="flex items-center justify-between h-40 p-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl">
@@ -272,7 +287,17 @@ export function Dashboard() {
 
       {/* BağTV Özeti */}
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">BağTV Özeti</h2>
+        <div className="flex items-center mb-6">
+          <div className="p-3 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg mr-4">
+            <Monitor className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-indigo-800 bg-clip-text text-transparent">
+              BağTV Özeti
+            </h2>
+            <p className="text-gray-600 text-sm">Televizyon ve tesis yönetimi</p>
+          </div>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
             <div className="flex items-center justify-between h-40 p-6 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl">
@@ -330,7 +355,17 @@ export function Dashboard() {
 
       {/* Stats */}
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">İş Programı Özet Raporu</h2>
+        <div className="flex items-center mb-6">
+          <div className="p-3 bg-gradient-to-r from-green-500 to-green-600 rounded-lg mr-4">
+            <BarChart3 className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent">
+              İş Programı Özet Raporu
+            </h2>
+            <p className="text-gray-600 text-sm">Günlük iş programı istatistikleri</p>
+          </div>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map((stat, index) => {
             const colors = [
