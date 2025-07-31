@@ -560,10 +560,8 @@ const Messages: React.FC = () => {
                     required
                   >
                     <option value="">Gönderen seçin</option>
-                    {users.map(user => (
-                      <option key={user.id} value={user.username}>
-                        {user.username} ({user.role})
-                      </option>
+                    {accountOptions.map(option => (
+                      <option key={option} value={option}>{option}</option>
                     ))}
                   </select>
                 </div>

@@ -14,70 +14,20 @@ module.exports = (req, res) => {
   const mockMessages = [
     {
       _id: '1',
-      date: '2024-01-15',
-      totalCount: 100,
-      pulledCount: 85,
-      description: 'Günlük mesaj raporu',
-      account: 'admin',
+      date: '2025-07-31',
+      totalCount: 12,
+      pulledCount: 11,
+      description: 'Test mesajı',
+      account: 'Yasin Yıldız',
       sender: 'Yasin Yıldız',
       createdAt: new Date()
     },
     {
       _id: '2',
-      date: '2024-01-20',
-      totalCount: 150,
-      pulledCount: 120,
-      description: 'Haftalık mesaj raporu',
-      account: 'admin',
-      sender: 'Bağcılar Belediyesi',
-      createdAt: new Date()
-    },
-    {
-      _id: '3',
-      date: '2025-07-31',
-      totalCount: 12,
-      pulledCount: 11,
-      description: 'a',
-      account: 'Yasin Yıldız',
-      sender: 'Yasin Yıldız',
-      createdAt: new Date()
-    },
-    {
-      _id: '4',
       date: '2025-07-31',
       totalCount: 123,
       pulledCount: 110,
-      description: '52',
-      account: 'Yasin Yıldız',
-      sender: 'Abdullah Özdemir',
-      createdAt: new Date()
-    },
-    {
-      _id: '5',
-      date: '2025-07-31',
-      totalCount: 12,
-      pulledCount: 11,
-      description: '1111',
-      account: 'Abdullah Özdemir',
-      sender: 'Bağcılar Belediyesi',
-      createdAt: new Date()
-    },
-    {
-      _id: '6',
-      date: '2025-07-31',
-      totalCount: 145,
-      pulledCount: 123,
-      description: 'qqqqqq',
-      account: 'Bağcılar Belediyesi',
-      sender: 'Yasin Yıldız',
-      createdAt: new Date()
-    },
-    {
-      _id: '7',
-      date: '2025-07-31',
-      totalCount: 12,
-      pulledCount: 11,
-      description: 'aaa',
+      description: 'Test mesajı 2',
       account: 'Abdullah Özdemir',
       sender: 'Abdullah Özdemir',
       createdAt: new Date()
