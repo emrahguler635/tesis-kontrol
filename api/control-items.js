@@ -1,3 +1,43 @@
+// In-memory storage for control items
+let mockControlItems = [
+  {
+    id: 1,
+    title: 'Günlük Test İş 1',
+    description: 'Günlük test açıklama',
+    period: 'Günlük',
+    date: '2025-07-31',
+    facilityId: '1',
+    workDone: 'Test iş yapıldı',
+    user: 'admin',
+    status: 'Tamamlandı',
+    created_at: new Date()
+  },
+  {
+    id: 2,
+    title: 'Haftalık Test İş 1',
+    description: 'Haftalık test açıklama',
+    period: 'Haftalık',
+    date: '2025-07-31',
+    facilityId: '2',
+    workDone: 'Test iş yapıldı',
+    user: 'user1',
+    status: 'İşlemde',
+    created_at: new Date()
+  },
+  {
+    id: 3,
+    title: '1112222',
+    description: 'aaaaaa',
+    period: 'Günlük',
+    date: '2025-07-31',
+    facilityId: '2',
+    workDone: '',
+    user: 'emrah',
+    status: 'İşlemde',
+    created_at: new Date()
+  }
+];
+
 module.exports = (req, res) => {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -10,43 +50,41 @@ module.exports = (req, res) => {
     return;
   }
 
-  // Mock data for control items
-  const mockControlItems = [
-    {
-      _id: '1',
-      title: 'Günlük Kontrol',
-      description: 'Günlük sistem kontrolü',
-      period: 'Günlük',
-      date: '2024-01-15',
-      facilityId: '1',
-      workDone: 'Tamamlandı',
-      user: 'admin',
-      status: 'Tamamlandı',
-      createdAt: new Date()
-    },
-    {
-      _id: '2',
-      title: 'Haftalık Kontrol',
-      description: 'Haftalık sistem kontrolü',
-      period: 'Haftalık',
-      date: '2024-01-20',
-      facilityId: '2',
-      workDone: 'Devam ediyor',
-      user: 'admin',
-      status: 'Devam ediyor',
-      createdAt: new Date()
-    }
-  ];
-
   if (req.method === 'GET') {
     res.status(200).json(mockControlItems);
   } else if (req.method === 'POST') {
     const newItem = {
-      _id: Date.now().toString(),
+      id: Date.now(),
       ...req.body,
-      createdAt: new Date()
+      created_at: new Date()
     };
+    mockControlItems.push(newItem);
     res.status(201).json(newItem);
+  } else if (req.method === 'PUT') {
+    const itemId = parseInt(req.url.split('/').pop());
+    const itemIndex = mockControlItems.findIndex(item => item.id === itemId);
+    
+    if (itemIndex !== -1) {
+      const updatedItem = {
+        id: itemId,
+        ...req.body,
+        created_at: new Date()
+      };
+      mockControlItems[itemIndex] = updatedItem;
+      res.status(200).json(updatedItem);
+    } else {
+      res.status(404).json({ error: 'Control item not found' });
+    }
+  } else if (req.method === 'DELETE') {
+    const itemId = parseInt(req.url.split('/').pop());
+    const itemIndex = mockControlItems.findIndex(item => item.id === itemId);
+    
+    if (itemIndex !== -1) {
+      mockControlItems.splice(itemIndex, 1);
+      res.status(200).json({ message: 'Control item deleted successfully' });
+    } else {
+      res.status(404).json({ error: 'Control item not found' });
+    }
   } else {
     res.status(405).json({ error: 'Method not allowed' });
   }
