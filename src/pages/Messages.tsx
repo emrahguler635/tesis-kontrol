@@ -85,6 +85,9 @@ const Messages: React.FC = () => {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      console.log('Saving message with sender:', editItem.sender);
+      console.log('Full editItem:', editItem);
+      
       if (editingId) {
         // Güncelleme
         const updatedMessage = await apiService.updateMessage(editingId, {
@@ -95,6 +98,7 @@ const Messages: React.FC = () => {
           sender: editItem.sender,
           description: editItem.description
         });
+        console.log('Updated message response:', updatedMessage);
         setMessages(messages.map(msg => msg.id === editingId ? updatedMessage : msg));
       } else {
         // Yeni ekleme
@@ -106,6 +110,7 @@ const Messages: React.FC = () => {
           sender: editItem.sender,
           description: editItem.description
         });
+        console.log('New message response:', newMessage);
         setMessages([...messages, newMessage]);
       }
       setModalOpen(false);

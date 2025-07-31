@@ -35,23 +35,34 @@ module.exports = (req, res) => {
   ];
 
   if (req.method === 'GET') {
+    console.log('GET /messages - Returning messages:', mockMessages);
     res.status(200).json(mockMessages);
   } else if (req.method === 'POST') {
+    console.log('POST /messages - Request body:', req.body);
+    console.log('POST /messages - Sender from request:', req.body.sender);
+    
     const newMessage = {
       _id: Date.now().toString(),
       ...req.body,
       sender: req.body.sender || 'Belirtilmemiş',
       createdAt: new Date()
     };
+    
+    console.log('POST /messages - Created message:', newMessage);
     res.status(201).json(newMessage);
   } else if (req.method === 'PUT') {
     const messageId = req.url.split('/').pop();
+    console.log('PUT /messages - Request body:', req.body);
+    console.log('PUT /messages - Sender from request:', req.body.sender);
+    
     const updatedMessage = {
       _id: messageId,
       ...req.body,
       sender: req.body.sender || 'Belirtilmemiş',
       createdAt: new Date()
     };
+    
+    console.log('PUT /messages - Updated message:', updatedMessage);
     res.status(200).json(updatedMessage);
   } else if (req.method === 'DELETE') {
     res.status(200).json({ message: 'Message deleted successfully' });
