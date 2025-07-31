@@ -234,9 +234,29 @@ class ApiService {
 
   // Gerçek HTTP isteklerini yapan request fonksiyonu
   private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
-    // Yerel geliştirme için localhost:3001 kullan
+    // Mock API kullan (Vercel'de)
     const baseUrl = window.location.hostname === 'localhost' ? 'http://localhost:3001' : '';
     const url = `${baseUrl}/api${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
+    
+    // Eğer localhost'ta değilsek, mock API kullan
+    if (!baseUrl) {
+      const response = await fetch(url, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...options?.headers,
+        },
+        ...options,
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: 'Network error' }));
+        throw new Error(error.error || `HTTP error! status: ${response.status}`);
+      }
+
+      return response.json();
+    }
+    
+    // Localhost'ta gerçek API kullan
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
