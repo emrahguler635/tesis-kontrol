@@ -217,53 +217,53 @@ export function Dashboard() {
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Mesaj Yönetimi Özeti</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
-            <div className="flex items-center justify-between h-40 p-6">
+            <div className="flex items-center justify-between h-40 p-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl">
               <div className="flex-1">
-                <p className="text-base font-medium text-gray-600 mb-3">Toplam Mesaj</p>
-                <p className="text-4xl font-bold text-blue-600 mb-2">{messageStats.totalMessages}</p>
-                <p className="text-sm text-gray-500">Tüm mesajlar</p>
+                <p className="text-base font-medium text-blue-100 mb-3">Toplam Mesaj</p>
+                <p className="text-4xl font-bold text-white mb-2">{messageStats.totalMessages}</p>
+                <p className="text-sm text-blue-200">Tüm mesajlar</p>
               </div>
-              <div className="p-5 bg-blue-50 rounded-xl">
-                <MessageSquare className="h-12 w-12 text-blue-600" />
+              <div className="p-5 bg-white/20 rounded-xl backdrop-blur-sm">
+                <MessageSquare className="h-12 w-12 text-white" />
               </div>
             </div>
           </Card>
 
           <Card>
-            <div className="flex items-center justify-between h-40 p-6">
+            <div className="flex items-center justify-between h-40 p-6 bg-gradient-to-br from-green-500 to-green-600 rounded-xl">
               <div className="flex-1">
-                <p className="text-base font-medium text-gray-600 mb-3">Çekilen Mesaj</p>
-                <p className="text-4xl font-bold text-green-600 mb-2">{messageStats.pulledMessages}</p>
-                <p className="text-sm text-gray-500">Başarılı işlemler</p>
+                <p className="text-base font-medium text-green-100 mb-3">Çekilen Mesaj</p>
+                <p className="text-4xl font-bold text-white mb-2">{messageStats.pulledMessages}</p>
+                <p className="text-sm text-green-200">Başarılı işlemler</p>
               </div>
-              <div className="p-5 bg-green-50 rounded-xl">
-                <CheckCircle className="h-12 w-12 text-green-600" />
+              <div className="p-5 bg-white/20 rounded-xl backdrop-blur-sm">
+                <CheckCircle className="h-12 w-12 text-white" />
               </div>
             </div>
           </Card>
 
           <Card>
-            <div className="flex items-center justify-between h-40 p-6">
+            <div className="flex items-center justify-between h-40 p-6 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl">
               <div className="flex-1">
-                <p className="text-base font-medium text-gray-600 mb-3">Başarı Oranı</p>
-                <p className="text-4xl font-bold text-purple-600 mb-2">{messageStats.successRate}%</p>
-                <p className="text-sm text-gray-500">Performans göstergesi</p>
+                <p className="text-base font-medium text-purple-100 mb-3">Başarı Oranı</p>
+                <p className="text-4xl font-bold text-white mb-2">{messageStats.successRate}%</p>
+                <p className="text-sm text-purple-200">Performans göstergesi</p>
               </div>
-              <div className="p-5 bg-purple-50 rounded-xl">
-                <TrendingUp className="h-12 w-12 text-purple-600" />
+              <div className="p-5 bg-white/20 rounded-xl backdrop-blur-sm">
+                <TrendingUp className="h-12 w-12 text-white" />
               </div>
             </div>
           </Card>
 
           <Card>
-            <div className="flex items-center justify-between h-40 p-6">
+            <div className="flex items-center justify-between h-40 p-6 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl">
               <div className="flex-1">
-                <p className="text-base font-medium text-gray-600 mb-3">Mesaj Kaydı</p>
-                <p className="text-4xl font-bold text-orange-600 mb-2">{messageStats.messageLog}</p>
-                <p className="text-sm text-gray-500">Günlük kayıtlar</p>
+                <p className="text-base font-medium text-orange-100 mb-3">Mesaj Kaydı</p>
+                <p className="text-4xl font-bold text-white mb-2">{messageStats.messageLog}</p>
+                <p className="text-sm text-orange-200">Günlük kayıtlar</p>
               </div>
-              <div className="p-5 bg-orange-50 rounded-xl">
-                <BarChart3 className="h-12 w-12 text-orange-600" />
+              <div className="p-5 bg-white/20 rounded-xl backdrop-blur-sm">
+                <BarChart3 className="h-12 w-12 text-white" />
               </div>
             </div>
           </Card>
@@ -275,53 +275,53 @@ export function Dashboard() {
         <h2 className="text-xl font-semibold text-gray-900 mb-4">BağTV Özeti</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
-            <div className="flex items-center justify-between h-40 p-6">
+            <div className="flex items-center justify-between h-40 p-6 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl">
               <div className="flex-1">
-                <p className="text-base font-medium text-gray-600 mb-3">Toplam TV</p>
-                <p className="text-4xl font-bold text-purple-600 mb-2">{bagtvStats.totalTV}</p>
-                <p className="text-sm text-gray-500">Tüm TV'ler</p>
+                <p className="text-base font-medium text-indigo-100 mb-3">Toplam TV</p>
+                <p className="text-4xl font-bold text-white mb-2">{bagtvStats.totalTV}</p>
+                <p className="text-sm text-indigo-200">Tüm TV'ler</p>
               </div>
-              <div className="p-5 bg-purple-50 rounded-xl">
-                <Monitor className="h-12 w-12 text-purple-600" />
+              <div className="p-5 bg-white/20 rounded-xl backdrop-blur-sm">
+                <Monitor className="h-12 w-12 text-white" />
               </div>
             </div>
           </Card>
 
           <Card>
-            <div className="flex items-center justify-between h-40 p-6">
+            <div className="flex items-center justify-between h-40 p-6 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl">
               <div className="flex-1">
-                <p className="text-base font-medium text-gray-600 mb-3">Aktif Tesis</p>
-                <p className="text-4xl font-bold text-green-600 mb-2">{bagtvStats.activeFacilities}</p>
-                <p className="text-sm text-gray-500">Çalışan tesisler</p>
+                <p className="text-base font-medium text-emerald-100 mb-3">Aktif Tesis</p>
+                <p className="text-4xl font-bold text-white mb-2">{bagtvStats.activeFacilities}</p>
+                <p className="text-sm text-emerald-200">Çalışan tesisler</p>
               </div>
-              <div className="p-5 bg-green-50 rounded-xl">
-                <CheckCircle className="h-12 w-12 text-green-600" />
+              <div className="p-5 bg-white/20 rounded-xl backdrop-blur-sm">
+                <CheckCircle className="h-12 w-12 text-white" />
               </div>
             </div>
           </Card>
 
           <Card>
-            <div className="flex items-center justify-between h-40 p-6">
+            <div className="flex items-center justify-between h-40 p-6 bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-xl">
               <div className="flex-1">
-                <p className="text-base font-medium text-gray-600 mb-3">Toplam Tesis</p>
-                <p className="text-4xl font-bold text-cyan-600 mb-2">{bagtvStats.totalFacilities}</p>
-                <p className="text-sm text-gray-500">Tüm tesisler</p>
+                <p className="text-base font-medium text-cyan-100 mb-3">Toplam Tesis</p>
+                <p className="text-4xl font-bold text-white mb-2">{bagtvStats.totalFacilities}</p>
+                <p className="text-sm text-cyan-200">Tüm tesisler</p>
               </div>
-              <div className="p-5 bg-cyan-50 rounded-xl">
-                <Building className="h-12 w-12 text-cyan-600" />
+              <div className="p-5 bg-white/20 rounded-xl backdrop-blur-sm">
+                <Building className="h-12 w-12 text-white" />
               </div>
             </div>
           </Card>
 
           <Card>
-            <div className="flex items-center justify-between h-40 p-6">
+            <div className="flex items-center justify-between h-40 p-6 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl">
               <div className="flex-1">
-                <p className="text-base font-medium text-gray-600 mb-3">Ortalama TV</p>
-                <p className="text-4xl font-bold text-purple-600 mb-2">{bagtvStats.averageTV}</p>
-                <p className="text-sm text-gray-500">Tesis başına</p>
+                <p className="text-base font-medium text-pink-100 mb-3">Ortalama TV</p>
+                <p className="text-4xl font-bold text-white mb-2">{bagtvStats.averageTV}</p>
+                <p className="text-sm text-pink-200">Tesis başına</p>
               </div>
-              <div className="p-5 bg-purple-50 rounded-xl">
-                <Percent className="h-12 w-12 text-purple-600" />
+              <div className="p-5 bg-white/20 rounded-xl backdrop-blur-sm">
+                <Percent className="h-12 w-12 text-white" />
               </div>
             </div>
           </Card>
