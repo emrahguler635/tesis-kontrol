@@ -60,9 +60,7 @@ const Messages: React.FC = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        console.log('Fetching messages...');
         const messagesData = await apiService.getMessages();
-        console.log('Messages data received:', messagesData);
         setMessages(messagesData);
         
         // Kullanıcıları da yükle
@@ -85,9 +83,6 @@ const Messages: React.FC = () => {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      console.log('Saving message with sender:', editItem.sender);
-      console.log('Full editItem:', editItem);
-      
       if (editingId) {
         // Güncelleme
         const updatedMessage = await apiService.updateMessage(editingId, {
@@ -98,7 +93,6 @@ const Messages: React.FC = () => {
           sender: editItem.sender,
           description: editItem.description
         });
-        console.log('Updated message response:', updatedMessage);
         setMessages(messages.map(msg => msg.id === editingId ? updatedMessage : msg));
       } else {
         // Yeni ekleme
@@ -110,7 +104,6 @@ const Messages: React.FC = () => {
           sender: editItem.sender,
           description: editItem.description
         });
-        console.log('New message response:', newMessage);
         setMessages([...messages, newMessage]);
       }
       setModalOpen(false);
@@ -150,8 +143,6 @@ const Messages: React.FC = () => {
     setEditingId(null);
     // Bugünün tarihini ve kullanıcı bilgilerini otomatik olarak ekle
     const today = new Date().toISOString().split('T')[0];
-    console.log('Current user in Messages:', user);
-    console.log('User username in Messages:', user?.username);
     const editItemWithUser = { 
       date: today, 
       totalCount: '', 
@@ -160,7 +151,6 @@ const Messages: React.FC = () => {
       sender: user?.username || '',
       description: '' 
     };
-    console.log('Setting edit item:', editItemWithUser);
     setEditItem(editItemWithUser);
     setModalOpen(true);
   };

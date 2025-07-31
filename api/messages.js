@@ -31,38 +31,77 @@ module.exports = (req, res) => {
       account: 'admin',
       sender: 'Bağcılar Belediyesi',
       createdAt: new Date()
+    },
+    {
+      _id: '3',
+      date: '2025-07-31',
+      totalCount: 12,
+      pulledCount: 11,
+      description: 'a',
+      account: 'Yasin Yıldız',
+      sender: 'Yasin Yıldız',
+      createdAt: new Date()
+    },
+    {
+      _id: '4',
+      date: '2025-07-31',
+      totalCount: 123,
+      pulledCount: 110,
+      description: '52',
+      account: 'Yasin Yıldız',
+      sender: 'Abdullah Özdemir',
+      createdAt: new Date()
+    },
+    {
+      _id: '5',
+      date: '2025-07-31',
+      totalCount: 12,
+      pulledCount: 11,
+      description: '1111',
+      account: 'Abdullah Özdemir',
+      sender: 'Bağcılar Belediyesi',
+      createdAt: new Date()
+    },
+    {
+      _id: '6',
+      date: '2025-07-31',
+      totalCount: 145,
+      pulledCount: 123,
+      description: 'qqqqqq',
+      account: 'Bağcılar Belediyesi',
+      sender: 'Yasin Yıldız',
+      createdAt: new Date()
+    },
+    {
+      _id: '7',
+      date: '2025-07-31',
+      totalCount: 12,
+      pulledCount: 11,
+      description: 'aaa',
+      account: 'Abdullah Özdemir',
+      sender: 'Abdullah Özdemir',
+      createdAt: new Date()
     }
   ];
 
   if (req.method === 'GET') {
-    console.log('GET /messages - Returning messages:', mockMessages);
     res.status(200).json(mockMessages);
   } else if (req.method === 'POST') {
-    console.log('POST /messages - Request body:', req.body);
-    console.log('POST /messages - Sender from request:', req.body.sender);
-    
     const newMessage = {
       _id: Date.now().toString(),
       ...req.body,
       sender: req.body.sender || 'Belirtilmemiş',
       createdAt: new Date()
     };
-    
-    console.log('POST /messages - Created message:', newMessage);
     res.status(201).json(newMessage);
   } else if (req.method === 'PUT') {
     const messageId = req.url.split('/').pop();
-    console.log('PUT /messages - Request body:', req.body);
-    console.log('PUT /messages - Sender from request:', req.body.sender);
-    
     const updatedMessage = {
       _id: messageId,
       ...req.body,
       sender: req.body.sender || 'Belirtilmemiş',
       createdAt: new Date()
     };
-    
-    console.log('PUT /messages - Updated message:', updatedMessage);
     res.status(200).json(updatedMessage);
   } else if (req.method === 'DELETE') {
     res.status(200).json({ message: 'Message deleted successfully' });
