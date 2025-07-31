@@ -330,19 +330,30 @@ export function Dashboard() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat) => (
-          <Card key={stat.name}>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">{stat.name}</p>
-                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+        {stats.map((stat, index) => {
+          const colors = [
+            { bg: 'bg-gradient-to-br from-blue-500 to-blue-600', text: 'text-blue-100', textLight: 'text-blue-200', iconBg: 'bg-white/20' },
+            { bg: 'bg-gradient-to-br from-green-500 to-green-600', text: 'text-green-100', textLight: 'text-green-200', iconBg: 'bg-white/20' },
+            { bg: 'bg-gradient-to-br from-yellow-500 to-yellow-600', text: 'text-yellow-100', textLight: 'text-yellow-200', iconBg: 'bg-white/20' },
+            { bg: 'bg-gradient-to-br from-purple-500 to-purple-600', text: 'text-purple-100', textLight: 'text-purple-200', iconBg: 'bg-white/20' }
+          ];
+          const color = colors[index];
+          
+          return (
+            <Card key={stat.name}>
+              <div className={`flex items-center justify-between h-40 p-6 ${color.bg} rounded-xl`}>
+                <div className="flex-1">
+                  <p className={`text-base font-medium ${color.text} mb-3`}>{stat.name}</p>
+                  <p className="text-4xl font-bold text-white mb-2">{stat.value}</p>
+                  <p className={`text-sm ${color.textLight}`}>İstatistik</p>
+                </div>
+                <div className={`p-5 ${color.iconBg} rounded-xl backdrop-blur-sm`}>
+                  <stat.icon className="h-12 w-12 text-white" />
+                </div>
               </div>
-              <div className={`p-3 rounded-lg ${stat.bgColor}`}>
-                <stat.icon className={`h-6 w-6 ${stat.color}`} />
-              </div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          );
+        })}
       </div>
 
       {/* Control Types */}
