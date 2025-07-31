@@ -1,24 +1,24 @@
 // In-memory storage for messages
 let mockMessages = [
   {
-    _id: '1',
+    id: 1,
     date: '2025-07-31',
     totalCount: 12,
     pulledCount: 11,
     description: 'Test mesajı',
     account: 'Yasin Yıldız',
     sender: 'Yasin Yıldız',
-    createdAt: new Date()
+    created_at: new Date()
   },
   {
-    _id: '2',
+    id: 2,
     date: '2025-07-31',
     totalCount: 123,
     pulledCount: 110,
     description: 'Test mesajı 2',
     account: 'Abdullah Özdemir',
     sender: 'Abdullah Özdemir',
-    createdAt: new Date()
+    created_at: new Date()
   }
 ];
 
@@ -38,23 +38,23 @@ module.exports = (req, res) => {
     res.status(200).json(mockMessages);
   } else if (req.method === 'POST') {
     const newMessage = {
-      _id: Date.now().toString(),
+      id: Date.now(),
       ...req.body,
-      sender: req.body.sender || 'Belirtilmemiş',
-      createdAt: new Date()
+      sender: req.body.sender || 'admin',
+      created_at: new Date()
     };
     mockMessages.push(newMessage);
     res.status(201).json(newMessage);
   } else if (req.method === 'PUT') {
-    const messageId = req.url.split('/').pop();
-    const messageIndex = mockMessages.findIndex(msg => msg._id === messageId);
+    const messageId = parseInt(req.url.split('/').pop());
+    const messageIndex = mockMessages.findIndex(msg => msg.id === messageId);
     
     if (messageIndex !== -1) {
       const updatedMessage = {
-        _id: messageId,
+        id: messageId,
         ...req.body,
-        sender: req.body.sender || 'Belirtilmemiş',
-        createdAt: new Date()
+        sender: req.body.sender || 'admin',
+        created_at: new Date()
       };
       mockMessages[messageIndex] = updatedMessage;
       res.status(200).json(updatedMessage);
@@ -62,8 +62,8 @@ module.exports = (req, res) => {
       res.status(404).json({ error: 'Message not found' });
     }
   } else if (req.method === 'DELETE') {
-    const messageId = req.url.split('/').pop();
-    const messageIndex = mockMessages.findIndex(msg => msg._id === messageId);
+    const messageId = parseInt(req.url.split('/').pop());
+    const messageIndex = mockMessages.findIndex(msg => msg.id === messageId);
     
     if (messageIndex !== -1) {
       mockMessages.splice(messageIndex, 1);
