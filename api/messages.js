@@ -19,6 +19,7 @@ module.exports = (req, res) => {
       pulledCount: 85,
       description: 'Günlük mesaj raporu',
       account: 'admin',
+      sender: 'Yasin Yıldız',
       createdAt: new Date()
     },
     {
@@ -28,6 +29,7 @@ module.exports = (req, res) => {
       pulledCount: 120,
       description: 'Haftalık mesaj raporu',
       account: 'admin',
+      sender: 'Bağcılar Belediyesi',
       createdAt: new Date()
     }
   ];
@@ -38,9 +40,21 @@ module.exports = (req, res) => {
     const newMessage = {
       _id: Date.now().toString(),
       ...req.body,
+      sender: req.body.sender || 'Belirtilmemiş',
       createdAt: new Date()
     };
     res.status(201).json(newMessage);
+  } else if (req.method === 'PUT') {
+    const messageId = req.url.split('/').pop();
+    const updatedMessage = {
+      _id: messageId,
+      ...req.body,
+      sender: req.body.sender || 'Belirtilmemiş',
+      createdAt: new Date()
+    };
+    res.status(200).json(updatedMessage);
+  } else if (req.method === 'DELETE') {
+    res.status(200).json({ message: 'Message deleted successfully' });
   } else {
     res.status(405).json({ error: 'Method not allowed' });
   }
