@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../services/api';
 import * as XLSX from 'xlsx';
-import { Search, Building2, Tv, Calendar, Filter, Upload } from 'lucide-react';
-import { BulkUploadModal } from '../components/BulkUploadModal';
+import { Search, Building2, Tv, Calendar, Filter } from 'lucide-react';
 
 interface BagTVFacility {
   id: number;
@@ -43,7 +42,6 @@ const BagTV: React.FC = () => {
   const [allFilterEnd, setAllFilterEnd] = useState('');
   const [facilitySearchTerm, setFacilitySearchTerm] = useState('');
   const [controlSearchTerm, setControlSearchTerm] = useState('');
-  const [showBulkUpload, setShowBulkUpload] = useState(false);
 
   const fetchFacilities = async () => {
     try {
@@ -62,11 +60,6 @@ const BagTV: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleBulkUploadSuccess = () => {
-    // Tesisleri yeniden yükle
-    fetchFacilities();
   };
 
   useEffect(() => {
@@ -295,38 +288,52 @@ const BagTV: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* İstatistikler */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="flex items-center">
-            <div className="p-3 bg-blue-100 rounded-lg">
-              <Building2 className="h-6 w-6 text-blue-600" />
+      {/* İstatistikler - Büyütülmüş */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-8 rounded-2xl shadow-xl text-white transform hover:scale-105 transition-all duration-300">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-lg font-semibold opacity-90">Toplam TV</p>
+              <p className="text-4xl font-bold mt-2">{totalTV}</p>
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Toplam Tesis</p>
-              <p className="text-2xl font-bold text-gray-900">{facilities.length}</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="flex items-center">
-            <div className="p-3 bg-green-100 rounded-lg">
-              <Tv className="h-6 w-6 text-green-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Toplam TV</p>
-              <p className="text-2xl font-bold text-gray-900">{totalTV}</p>
+            <div className="p-4 bg-white bg-opacity-20 rounded-xl">
+              <Tv className="h-8 w-8 text-white" />
             </div>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="flex items-center">
-            <div className="p-3 bg-purple-100 rounded-lg">
-              <Calendar className="h-6 w-6 text-purple-600" />
+        
+        <div className="bg-gradient-to-br from-green-500 to-green-600 p-8 rounded-2xl shadow-xl text-white transform hover:scale-105 transition-all duration-300">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-lg font-semibold opacity-90">Aktif Tesis</p>
+              <p className="text-4xl font-bold mt-2">{facilities.filter(f => f.status === 'Aktif').length}</p>
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Kontrol Sayısı</p>
-              <p className="text-2xl font-bold text-gray-900">{controlCount}</p>
+            <div className="p-4 bg-white bg-opacity-20 rounded-xl">
+              <Building2 className="h-8 w-8 text-white" />
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-gradient-to-br from-teal-500 to-teal-600 p-8 rounded-2xl shadow-xl text-white transform hover:scale-105 transition-all duration-300">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-lg font-semibold opacity-90">Toplam Tesis</p>
+              <p className="text-4xl font-bold mt-2">{facilities.length}</p>
+            </div>
+            <div className="p-4 bg-white bg-opacity-20 rounded-xl">
+              <Calendar className="h-8 w-8 text-white" />
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-8 rounded-2xl shadow-xl text-white transform hover:scale-105 transition-all duration-300">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-lg font-semibold opacity-90">Ortalama TV</p>
+              <p className="text-4xl font-bold mt-2">{facilities.length > 0 ? (totalTV / facilities.length).toFixed(1) : '0.0'}</p>
+            </div>
+            <div className="p-4 bg-white bg-opacity-20 rounded-xl">
+              <Tv className="h-8 w-8 text-white" />
             </div>
           </div>
         </div>
@@ -346,21 +353,12 @@ const BagTV: React.FC = () => {
               <p className="text-gray-600 mt-1">Tesis ve kontrol yönetim sistemi</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowBulkUpload(true)}
-              className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2"
-            >
-              <Upload className="h-4 w-4" />
-              Veri Yükle
-            </button>
-            <button
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              onClick={() => handleOpenModal()}
-            >
-              + Tesis Ekle
-            </button>
-          </div>
+          <button
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            onClick={() => handleOpenModal()}
+          >
+            + Tesis Ekle
+          </button>
         </div>
         {/* Tesis Arama */}
         <div className="mb-4 p-4 bg-gray-50 rounded-lg">
@@ -606,14 +604,6 @@ const BagTV: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* Bulk Upload Modal */}
-      <BulkUploadModal
-        isOpen={showBulkUpload}
-        onClose={() => setShowBulkUpload(false)}
-        type="bagtv-facilities"
-        onSuccess={handleBulkUploadSuccess}
-      />
     </div>
   );
 };
