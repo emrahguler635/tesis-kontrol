@@ -249,9 +249,17 @@ async function initializeDatabase() {
         pulled_count INTEGER NOT NULL,
         account VARCHAR(100) NOT NULL,
         description TEXT NOT NULL,
+        sender VARCHAR(100) DEFAULT 'admin',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+    
+    // Eğer messages tablosu varsa ve sender kolonu yoksa ekle
+    try {
+      await client.query('ALTER TABLE messages ADD COLUMN IF NOT EXISTS sender VARCHAR(100) DEFAULT \'admin\'');
+    } catch (error) {
+      console.log('Sender kolonu zaten mevcut veya eklenemedi:', error.message);
+    }
     
     // Admin kullanıcısını kontrol et ve ekle
     const userResult = await client.query('SELECT COUNT(*) FROM users WHERE username = $1', ['admin']);
@@ -473,12 +481,12 @@ app.get('/api/messages', async (req, res) => {
 
 app.post('/api/messages', async (req, res) => {
   try {
-    const { date, totalCount, pulledCount, account, description } = req.body;
+    const { date, totalCount, pulledCount, account, description, sender } = req.body;
     console.log('Message request body:', req.body);
     
     const result = await pool.query(
-      'INSERT INTO messages (date, total_count, pulled_count, account, description) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [date, totalCount, pulledCount, account, description]
+      'INSERT INTO messages (date, total_count, pulled_count, account, description, sender) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+      [date, totalCount, pulledCount, account, description, sender || 'admin']
     );
     console.log('Message created:', result.rows[0]);
     res.status(201).json(result.rows[0]);
@@ -491,12 +499,12 @@ app.post('/api/messages', async (req, res) => {
 app.put('/api/messages/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { date, totalCount, pulledCount, account, description } = req.body;
+    const { date, totalCount, pulledCount, account, description, sender } = req.body;
     console.log('Message update request body:', req.body);
     
     const result = await pool.query(
-      'UPDATE messages SET date = $1, total_count = $2, pulled_count = $3, account = $4, description = $5 WHERE id = $6 RETURNING *',
-      [date, totalCount, pulledCount, account, description, id]
+      'UPDATE messages SET date = $1, total_count = $2, pulled_count = $3, account = $4, description = $5, sender = $6 WHERE id = $7 RETURNING *',
+      [date, totalCount, pulledCount, account, description, sender || 'admin', id]
     );
     console.log('Message updated:', result.rows[0]);
     res.json(result.rows[0]);

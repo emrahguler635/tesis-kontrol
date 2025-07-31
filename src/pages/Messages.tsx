@@ -148,18 +148,14 @@ const Messages: React.FC = () => {
   };
 
   const handleAddClick = () => {
-    setEditingId(null);
-    // Bugünün tarihini ve kullanıcı bilgilerini otomatik olarak ekle
-    const today = new Date().toISOString().split('T')[0];
-    const editItemWithUser = { 
-      date: today, 
-      totalCount: '', 
-      pulledCount: '', 
-      account: user?.username || '', 
+    setEditItem({
+      date: new Date().toISOString().split('T')[0],
+      totalCount: '',
+      pulledCount: '',
+      description: '',
+      account: '',
       sender: 'admin', // Otomatik olarak admin kullanıcısı
-      description: '' 
-    };
-    setEditItem(editItemWithUser);
+    });
     setModalOpen(true);
   };
 
