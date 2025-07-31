@@ -106,7 +106,7 @@ const Messages: React.FC = () => {
           sender: editItem.sender,
           description: editItem.description
         });
-        setMessages([newMessage, ...messages]);
+        setMessages([...messages, newMessage]);
       }
       setModalOpen(false);
       setEditingId(null);
@@ -170,38 +170,67 @@ const Messages: React.FC = () => {
     }
   };
 
+  // Tarih formatını düzenle
+  const formatDate = (dateString: string) => {
+    if (!dateString) return 'Belirtilmemiş';
+    
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Geçersiz Tarih';
+      
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      
+      return `${day}/${month}/${year}`;
+    } catch (error) {
+      return 'Geçersiz Tarih';
+    }
+  };
+
   return (
     <div className="space-y-6">
-      {/* Başlık ve İstatistikler */}
-      <div className="bg-white p-6 rounded-lg shadow">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl shadow-lg">
-              <MessageSquare className="h-8 w-8 text-white" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                Mesaj Yönetimi
-              </h1>
-              <p className="text-gray-600 mt-1">Mesaj takip ve raporlama sistemi</p>
-            </div>
+      {/* Dashboard Özet Raporu Başlığı */}
+      <div className="flex items-center mb-6">
+        <div className="p-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg mr-4">
+          <BarChart3 className="h-6 w-6 text-white" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+            Dashboard Özet Raporu
+          </h1>
+          <p className="text-gray-600 text-sm">Mesaj yönetimi ve raporlama sistemi</p>
+        </div>
+      </div>
+
+      {/* Mesaj Yönetimi Başlığı */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center">
+          <div className="p-3 bg-gradient-to-r from-green-500 to-green-600 rounded-lg mr-4">
+            <MessageSquare className="h-6 w-6 text-white" />
           </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleExport}
-              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
-            >
-              <Download className="h-4 w-4" />
-              Dışa Aktar
-            </button>
-            <button
-              onClick={handleAddClick}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Yeni Mesaj
-            </button>
+          <div>
+            <h2 className="text-xl font-bold bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent">
+              Mesaj Yönetimi
+            </h2>
+            <p className="text-gray-600 text-sm">Mesaj takip ve raporlama sistemi</p>
           </div>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={handleExport}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          >
+            <Download className="h-4 w-4" />
+            Dışa Aktar
+          </button>
+          <button
+            onClick={handleAddClick}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          >
+            <Plus className="h-4 w-4" />
+            Yeni Mesaj
+          </button>
         </div>
       </div>
 
@@ -251,7 +280,7 @@ const Messages: React.FC = () => {
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">
-                            {message.date}
+                            {formatDate(message.date)}
                           </div>
                         </div>
                       </div>
