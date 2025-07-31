@@ -288,52 +288,52 @@ const BagTV: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* İstatistikler - Büyütülmüş */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-8 rounded-2xl shadow-xl text-white transform hover:scale-105 transition-all duration-300">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-lg font-semibold opacity-90">Toplam TV</p>
-              <p className="text-4xl font-bold mt-2">{totalTV}</p>
+      {/* İstatistikler - Küçük ve Şık */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100 hover:shadow-lg transition-all duration-300">
+          <div className="flex items-center">
+            <div className="p-3 bg-blue-100 rounded-lg">
+              <Tv className="h-6 w-6 text-blue-600" />
             </div>
-            <div className="p-4 bg-white bg-opacity-20 rounded-xl">
-              <Tv className="h-8 w-8 text-white" />
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-gradient-to-br from-green-500 to-green-600 p-8 rounded-2xl shadow-xl text-white transform hover:scale-105 transition-all duration-300">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-lg font-semibold opacity-90">Aktif Tesis</p>
-              <p className="text-4xl font-bold mt-2">{facilities.filter(f => f.status === 'Aktif').length}</p>
-            </div>
-            <div className="p-4 bg-white bg-opacity-20 rounded-xl">
-              <Building2 className="h-8 w-8 text-white" />
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Toplam TV</p>
+              <p className="text-2xl font-bold text-gray-900">{totalTV}</p>
             </div>
           </div>
         </div>
         
-        <div className="bg-gradient-to-br from-teal-500 to-teal-600 p-8 rounded-2xl shadow-xl text-white transform hover:scale-105 transition-all duration-300">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-lg font-semibold opacity-90">Toplam Tesis</p>
-              <p className="text-4xl font-bold mt-2">{facilities.length}</p>
+        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100 hover:shadow-lg transition-all duration-300">
+          <div className="flex items-center">
+            <div className="p-3 bg-green-100 rounded-lg">
+              <Building2 className="h-6 w-6 text-green-600" />
             </div>
-            <div className="p-4 bg-white bg-opacity-20 rounded-xl">
-              <Calendar className="h-8 w-8 text-white" />
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Aktif Tesis</p>
+              <p className="text-2xl font-bold text-gray-900">{facilities.filter(f => f.status === 'Aktif').length}</p>
             </div>
           </div>
         </div>
         
-        <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-8 rounded-2xl shadow-xl text-white transform hover:scale-105 transition-all duration-300">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-lg font-semibold opacity-90">Ortalama TV</p>
-              <p className="text-4xl font-bold mt-2">{facilities.length > 0 ? (totalTV / facilities.length).toFixed(1) : '0.0'}</p>
+        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100 hover:shadow-lg transition-all duration-300">
+          <div className="flex items-center">
+            <div className="p-3 bg-teal-100 rounded-lg">
+              <Calendar className="h-6 w-6 text-teal-600" />
             </div>
-            <div className="p-4 bg-white bg-opacity-20 rounded-xl">
-              <Tv className="h-8 w-8 text-white" />
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Toplam Tesis</p>
+              <p className="text-2xl font-bold text-gray-900">{facilities.length}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100 hover:shadow-lg transition-all duration-300">
+          <div className="flex items-center">
+            <div className="p-3 bg-purple-100 rounded-lg">
+              <Tv className="h-6 w-6 text-purple-600" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Ortalama TV</p>
+              <p className="text-2xl font-bold text-gray-900">{facilities.length > 0 ? (totalTV / facilities.length).toFixed(1) : '0.0'}</p>
             </div>
           </div>
         </div>
