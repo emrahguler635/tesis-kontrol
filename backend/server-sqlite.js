@@ -289,6 +289,53 @@ app.post('/api/control-items', (req, res) => {
   );
 });
 
+// Control item güncelle
+app.put('/api/control-items/:id', (req, res) => {
+  const { id } = req.params;
+  const { title, description, period, date, facilityId, workDone, user, status } = req.body;
+  
+  console.log('Control item update request body:', req.body);
+  
+  // Status değişikliğinde onay durumunu güncelle
+  let approvalStatus = 'pending';
+  if (status === 'Tamamlandı') {
+    approvalStatus = 'pending'; // Onay bekliyor
+  } else if (status === 'Beklemede') {
+    approvalStatus = 'pending'; // Onay bekliyor
+  } else if (status === 'İptal') {
+    approvalStatus = 'rejected'; // Reddedildi
+  }
+
+  const userName = user || 'Kullanıcı Belirtilmemiş';
+  console.log('Using user name:', userName);
+
+  // facilityId'yi facilityId olarak kullan (SQLite'da aynı isim)
+  const facility_id = facilityId || 1;
+
+  db.run(`UPDATE control_items SET title = ?, description = ?, period = ?, date = ?, facilityId = ?, workDone = ?, user = ?, status = ? WHERE id = ?`,
+    [title, description, period, date, facility_id, workDone, userName, status, id],
+    function(err) {
+      if (err) {
+        console.error('Control item update error:', err);
+        return res.status(500).json({ error: 'Control item güncellenemedi', message: err.message });
+      }
+      
+      if (this.changes === 0) {
+        return res.status(404).json({ error: 'Control item bulunamadı' });
+      }
+      
+      // Güncellenmiş kaydı getir
+      db.get("SELECT * FROM control_items WHERE id = ?", [id], (err, row) => {
+        if (err) {
+          return res.status(500).json({ error: 'Güncellenmiş kayıt alınamadı' });
+        }
+        console.log('Control item updated:', row);
+        res.json(row);
+      });
+    }
+  );
+});
+
 // Onay bekleyen işleri getir
 app.get('/api/control-items/pending-approvals', (req, res) => {
   db.all("SELECT * FROM control_items WHERE status = 'pending' ORDER BY createdAt DESC", (err, rows) => {
@@ -532,116 +579,6 @@ app.get('/api/table/:tableName', (req, res) => {
     });
   });
 });
-
-// Örnek veri ekleme fonksiyonu
-function createSampleData() {
-  console.log('Örnek veriler oluşturuluyor...');
-  
-  // Örnek mesajlar ekle
-  db.get("SELECT COUNT(*) as count FROM messages", (err, row) => {
-    if (err) {
-      console.error('Mesaj sayısı kontrol edilemedi:', err);
-      return;
-    }
-    
-    if (row.count === 0) {
-      console.log('Örnek mesajlar ekleniyor...');
-      const today = new Date().toISOString().split('T')[0];
-      
-      db.run(`INSERT INTO messages (date, totalCount, pulledCount, description, account) VALUES (?, ?, ?, ?, ?)`,
-        [today, 150, 120, 'Günlük mesaj raporu', 'admin'],
-        (err) => {
-          if (err) {
-            console.error('Örnek mesaj eklenemedi:', err);
-          } else {
-            console.log('Örnek mesaj eklendi');
-          }
-        }
-      );
-      
-      db.run(`INSERT INTO messages (date, totalCount, pulledCount, description, account) VALUES (?, ?, ?, ?, ?)`,
-        [today, 200, 180, 'Haftalık mesaj raporu', 'admin'],
-        (err) => {
-          if (err) {
-            console.error('Örnek mesaj eklenemedi:', err);
-          } else {
-            console.log('Örnek mesaj eklendi');
-          }
-        }
-      );
-    }
-  });
-  
-  // Örnek BagTV tesisleri ekle
-  db.get("SELECT COUNT(*) as count FROM bagtv_facilities", (err, row) => {
-    if (err) {
-      console.error('BagTV tesis sayısı kontrol edilemedi:', err);
-      return;
-    }
-    
-    if (row.count === 0) {
-      console.log('Örnek BagTV tesisleri ekleniyor...');
-      
-      db.run(`INSERT INTO bagtv_facilities (name, tvCount, description, status) VALUES (?, ?, ?, ?)`,
-        ['Konferans Salonu', 3, 'Ana konferans salonu', 'Aktif'],
-        (err) => {
-          if (err) {
-            console.error('Örnek BagTV tesisi eklenemedi:', err);
-          } else {
-            console.log('Örnek BagTV tesisi eklendi');
-          }
-        }
-      );
-      
-      db.run(`INSERT INTO bagtv_facilities (name, tvCount, description, status) VALUES (?, ?, ?, ?)`,
-        ['Toplantı Odası', 1, 'Küçük toplantı odası', 'Aktif'],
-        (err) => {
-          if (err) {
-            console.error('Örnek BagTV tesisi eklenemedi:', err);
-          } else {
-            console.log('Örnek BagTV tesisi eklendi');
-          }
-        }
-      );
-      
-      db.run(`INSERT INTO bagtv_facilities (name, tvCount, description, status) VALUES (?, ?, ?, ?)`,
-        ['Lobi', 2, 'Ana lobi alanı', 'Aktif'],
-        (err) => {
-          if (err) {
-            console.error('Örnek BagTV tesisi eklenemedi:', err);
-          } else {
-            console.log('Örnek BagTV tesisi eklendi');
-          }
-        }
-      );
-      
-      db.run(`INSERT INTO bagtv_facilities (name, tvCount, description, status) VALUES (?, ?, ?, ?)`,
-        ['Kafeterya', 4, 'Kafeterya alanı', 'Aktif'],
-        (err) => {
-          if (err) {
-            console.error('Örnek BagTV tesisi eklenemedi:', err);
-          } else {
-            console.log('Örnek BagTV tesisi eklendi');
-          }
-        }
-      );
-      
-      db.run(`INSERT INTO bagtv_facilities (name, tvCount, description, status) VALUES (?, ?, ?, ?)`,
-        ['Ofis', 10, 'Ofis alanları', 'Aktif'],
-        (err) => {
-          if (err) {
-            console.error('Örnek BagTV tesisi eklenemedi:', err);
-          } else {
-            console.log('Örnek BagTV tesisi eklendi');
-          }
-        }
-      );
-    }
-  });
-}
-
-// Sunucu başlarken örnek veriler oluştur
-createSampleData();
 
 app.listen(PORT, () => {
   console.log(`SQLite sunucusu http://localhost:${PORT} adresinde çalışıyor`);

@@ -19,6 +19,8 @@ export interface ControlItem {
   facility_id?: number;
   work_done?: string;
   user?: string;
+  user_name?: string; // Backend'den gelen user_name alanı
+  item_name?: string; // Backend'den gelen item_name alanı
   status?: string;
   created_at?: string;
 }
@@ -110,8 +112,9 @@ class ApiService {
     });
   }
 
-  async getPendingApprovals(): Promise<ControlItem[]> {
-    return this.request<ControlItem[]>('/control-items/pending-approvals');
+  async getPendingApprovals(user?: string): Promise<ControlItem[]> {
+    const queryParams = user ? `?user=${user}` : '';
+    return this.request<ControlItem[]>(`/control-items/pending-approvals${queryParams}`);
   }
 
   async approveControlItem(id: number, approvedBy: string): Promise<any> {

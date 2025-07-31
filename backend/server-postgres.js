@@ -419,7 +419,7 @@ app.put('/api/control-items/:id', async (req, res) => {
     // Status değişikliğinde onay durumunu güncelle
     let approvalStatus = 'pending';
     if (status === 'Tamamlandı') {
-      approvalStatus = 'pending'; // Onay bekliyor
+      approvalStatus = 'approved'; // Otomatik onaylandı
     } else if (status === 'Beklemede') {
       approvalStatus = 'pending'; // Onay bekliyor
     } else if (status === 'İptal') {
@@ -429,9 +429,12 @@ app.put('/api/control-items/:id', async (req, res) => {
     const userName = user || 'Kullanıcı Belirtilmemiş';
     console.log('Using user name:', userName);
 
+    // facilityId'yi facility_id'ye dönüştür
+    const facility_id = facilityId || 1;
+
     const result = await pool.query(
       'UPDATE control_items SET title = $1, description = $2, period = $3, date = $4, facility_id = $5, work_done = $6, user_name = $7, status = $8, approval_status = $9 WHERE id = $10 RETURNING *',
-      [title, description, period, date, facilityId, workDone, userName, status, approvalStatus, id]
+      [title, description, period, date, facility_id, workDone, userName, status, approvalStatus, id]
     );
     console.log('Control item updated:', result.rows[0]);
     res.json(result.rows[0]);
@@ -935,14 +938,28 @@ app.post('/api/control-items/move', async (req, res) => {
 // Onay bekleyen işler endpoint'i
 app.get('/api/control-items/pending-approvals', async (req, res) => {
   try {
-    const query = `
+    const { user } = req.query;
+    console.log('Pending approvals request for user:', user);
+    
+    let query = `
       SELECT * FROM control_items 
-      WHERE status = 'pending' 
-      ORDER BY date DESC
+      WHERE approval_status = 'pending' 
     `;
     
-    const result = await pool.query(query);
-    res.json(result.rows);
+    // Eğer kullanıcı belirtilmişse, sadece o kullanıcının işlerini getir
+    if (user && user !== 'admin') {
+      query += ` AND user_name = $1`;
+      query += ` ORDER BY date DESC`;
+      const result = await pool.query(query, [user]);
+      console.log('Found pending items for user:', result.rows.length);
+      res.json(result.rows);
+    } else {
+      // Admin için tüm pending işleri getir
+      query += ` ORDER BY date DESC`;
+      const result = await pool.query(query);
+      console.log('Found all pending items:', result.rows.length);
+      res.json(result.rows);
+    }
   } catch (error) {
     console.error('Onay bekleyen işler alınamadı:', error);
     res.status(500).json({ error: 'Onay bekleyen işler alınamadı', message: error.message });
@@ -957,7 +974,7 @@ app.post('/api/control-items/:id/approve', async (req, res) => {
 
     const query = `
       UPDATE control_items 
-      SET status = 'approved', approved_by = $1, approved_at = NOW() 
+      SET approval_status = 'approved', approved_by = $1, approved_at = NOW() 
       WHERE id = $2
     `;
     
@@ -982,7 +999,7 @@ app.post('/api/control-items/:id/reject', async (req, res) => {
 
     const query = `
       UPDATE control_items 
-      SET status = 'rejected', rejected_by = $1, rejected_at = NOW(), rejection_reason = $2 
+      SET approval_status = 'rejected', approved_by = $1, approved_at = NOW(), rejection_reason = $2 
       WHERE id = $3
     `;
     

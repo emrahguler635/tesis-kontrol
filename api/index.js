@@ -335,17 +335,48 @@ app.put('/api/control-items/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { title, description, period, date, facilityId, workDone, user, status } = req.body;
+    console.log('Control item update request body:', req.body);
+    
+    // Status değişikliğinde onay durumunu güncelle
+    let approvalStatus = 'pending';
+    if (status === 'Tamamlandı') {
+      approvalStatus = 'pending'; // Onay bekliyor
+    } else if (status === 'Beklemede') {
+      approvalStatus = 'pending'; // Onay bekliyor
+    } else if (status === 'İptal') {
+      approvalStatus = 'rejected'; // Reddedildi
+    }
+
+    const userName = user || 'Kullanıcı Belirtilmemiş';
+    console.log('Using user name:', userName);
+
+    // facilityId'yi facility_id'ye dönüştür
+    const facility_id = facilityId || 1;
+
     const updatedItem = await ControlItem.findByIdAndUpdate(
       id, 
-      { title, description, period, date, facilityId, workDone, user, status }, 
+      { 
+        title, 
+        description, 
+        period, 
+        date, 
+        facilityId: facility_id, 
+        workDone, 
+        user: userName, 
+        status,
+        approvalStatus,
+        updatedAt: new Date()
+      }, 
       { new: true }
     );
     if (!updatedItem) {
       return res.status(404).json({ error: 'Control item bulunamadı.' });
     }
+    console.log('Control item updated:', updatedItem);
     res.json(updatedItem);
   } catch (error) {
-    res.status(500).json({ error: 'Control item güncellenemedi' });
+    console.error('Control item update error:', error);
+    res.status(500).json({ error: 'Control item güncellenemedi', message: error.message });
   }
 });
 

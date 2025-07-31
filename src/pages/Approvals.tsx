@@ -31,10 +31,14 @@ const Approvals: React.FC = () => {
   const loadPendingApprovals = async () => {
     try {
       setLoading(true);
-      const items = await apiService.getPendingApprovals();
+      console.log('Onay bekleyen isler yukleniyor...');
+      console.log('Current user:', user);
+      const items = await apiService.getPendingApprovals(user?.username);
+      console.log('API\'den gelen veriler:', items);
+      console.log('Veri sayisi:', items.length);
       setPendingItems(items);
     } catch (error) {
-      console.error('Onay bekleyen işler yüklenirken hata:', error);
+      console.error('Onay bekleyen isler yuklenirken hata:', error);
     } finally {
       setLoading(false);
     }
