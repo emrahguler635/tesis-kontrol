@@ -361,15 +361,31 @@ app.delete('/api/bagtv-facilities/:id', async (req, res) => {
 
 app.get('/api/control-items', async (req, res) => {
   try {
-    const { period } = req.query;
-    console.log('Control items request - period:', period);
+    const { period, user } = req.query;
+    console.log('Control items request - period:', period, 'user:', user);
     
     let query = 'SELECT * FROM control_items';
     let params = [];
+    let paramIndex = 1;
+    
+    // WHERE koşullarını oluştur
+    const conditions = [];
     
     if (period) {
-      query += ' WHERE period = $1';
+      conditions.push(`period = $${paramIndex}`);
       params.push(period);
+      paramIndex++;
+    }
+    
+    // Kullanıcı bazlı filtreleme - admin değilse sadece kendi işlerini göster
+    if (user && user !== 'admin') {
+      conditions.push(`user_name = $${paramIndex}`);
+      params.push(user);
+      paramIndex++;
+    }
+    
+    if (conditions.length > 0) {
+      query += ' WHERE ' + conditions.join(' AND ');
     }
     
     query += ' ORDER BY date DESC';
@@ -378,15 +394,7 @@ app.get('/api/control-items', async (req, res) => {
     const result = await pool.query(query, params);
     console.log('Control items result:', result.rows);
     
-    // Eğer veri yoksa, tüm verileri getir
-    if (result.rows.length === 0 && period) {
-      console.log('No data found for period, fetching all data...');
-      const allResult = await pool.query('SELECT * FROM control_items ORDER BY created_at DESC');
-      console.log('All control items result:', allResult.rows);
-      res.json(allResult.rows);
-    } else {
-      res.json(result.rows);
-    }
+    res.json(result.rows);
   } catch (error) {
     console.error('Control items error:', error);
     res.status(500).json({ error: 'Control items alınamadı', message: error.message });

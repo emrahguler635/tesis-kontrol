@@ -5,6 +5,7 @@ import { apiService, ControlItem } from '../services/api';
 import { format, parseISO, isWithinInterval, startOfWeek, endOfWeek } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import { Calendar, Copy } from 'lucide-react';
+import { useAuthStore } from '../store';
 
 interface Facility {
   id: number;
@@ -12,6 +13,7 @@ interface Facility {
 }
 
 export const WeeklyChecks: React.FC = () => {
+  const { user } = useAuthStore();
   const [items, setItems] = useState<ControlItem[]>([]);
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -27,13 +29,18 @@ export const WeeklyChecks: React.FC = () => {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [user]);
 
   const loadData = async () => {
     try {
       setLoading(true);
+      // Admin ise tüm işleri, değilse sadece kendi işlerini getir
+      const isAdmin = user?.role === 'admin';
       const [items, facilities] = await Promise.all([
-        apiService.getControlItems({ period: 'Haftalık' }),
+        apiService.getControlItems({ 
+          period: 'Haftalık',
+          user: isAdmin ? undefined : user?.username
+        }),
         apiService.getFacilities()
       ]);
       setItems(items);

@@ -8,41 +8,33 @@ const DailyChecks: React.FC = () => {
   const { user } = useAuthStore();
   const [items, setItems] = useState<ControlItem[]>([]);
   const [facilities, setFacilities] = useState<Facility[]>([]);
-  const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     workDone: '',
-    plannedDate: new Date().toISOString().split('T')[0],
-    completedDate: new Date().toISOString().split('T')[0],
+    plannedDate: '',
+    completedDate: '',
     description: '',
     user: '',
     facilityId: '',
     status: ''
   });
   const [editIndex, setEditIndex] = useState<number | null>(null);
-  const [completeModalOpen, setCompleteModalOpen] = useState(false);
-  const [selectedItemForComplete, setSelectedItemForComplete] = useState<ControlItem | null>(null);
-  const [completeWorkDescription, setCompleteWorkDescription] = useState('');
-  const [showCompletedWorks, setShowCompletedWorks] = useState(false);
 
   useEffect(() => {
     const fetchItems = async () => {
       setLoading(true);
       try {
+        // Admin ise tüm işleri, değilse sadece kendi işlerini getir
+        const isAdmin = user?.role === 'admin';
         const data = await apiService.getControlItems({ 
           period: 'Günlük',
-          userId: user?.id ? parseInt(user.id.toString()) : undefined,
-          userRole: user?.role
+          user: isAdmin ? undefined : user?.username
         });
         setItems(data);
         const facilitiesData = await apiService.getFacilities();
         setFacilities(facilitiesData);
-        
-        // Kullanıcıları da yükle
-        const usersData = await apiService.getUsers();
-        setUsers(usersData);
       } finally {
         setLoading(false);
       }
@@ -52,29 +44,15 @@ const DailyChecks: React.FC = () => {
 
   const handleEdit = (index: number) => {
     const item = items[index];
-    console.log('Editing item:', item);
-    
-    // Tarih formatını düzelt
-    const formatDateForInput = (dateString: string) => {
-      if (!dateString) return '';
-      try {
-        const date = new Date(dateString);
-        return date.toISOString().split('T')[0]; // YYYY-MM-DD formatı
-      } catch (error) {
-        console.error('Tarih formatı hatası:', error);
-        return '';
-      }
-    };
-
     setFormData({
-      title: item.item_name || item.title || '',
+      title: item.title,
       workDone: item.work_done || '',
-      plannedDate: formatDateForInput(item.date || ''),
-      completedDate: formatDateForInput(item.date || ''),
+      plannedDate: '',
+      completedDate: item.date,
       description: item.description || '',
-      user: item.user_name || item.user || '',
+      user: item.user || '',
       facilityId: item.facility_id?.toString() || '',
-      status: item.status || 'Aktif'
+      status: item.status || ''
     });
     setEditIndex(index);
     setModalOpen(true);
@@ -131,66 +109,10 @@ const DailyChecks: React.FC = () => {
     setModalOpen(false);
   };
 
-  // İş tamamlandığında modal aç
-  const handleCompleteWorkClick = (item: ControlItem) => {
-    setSelectedItemForComplete(item);
-    setCompleteWorkDescription('');
-    setCompleteModalOpen(true);
-  };
-
-  // İş tamamlandığında onay bekler durumuna geç
-  const handleCompleteWork = async () => {
-    if (!selectedItemForComplete || !completeWorkDescription.trim()) {
-      alert('Lütfen yapılan iş açıklamasını girin.');
-      return;
-    }
-
-    try {
-      console.log('Completing work for item:', selectedItemForComplete);
-      console.log('Work description:', completeWorkDescription);
-      console.log('Item name from backend:', selectedItemForComplete.item_name);
-      console.log('Title from frontend:', selectedItemForComplete.title);
-      console.log('User name from backend:', selectedItemForComplete.user_name);
-      console.log('User from frontend:', selectedItemForComplete.user);
-      
-                      const updateData = {
-                  title: (selectedItemForComplete.item_name || selectedItemForComplete.title || 'İş Adı Belirtilmemiş') as string,
-                  description: selectedItemForComplete.description || '',
-                  period: 'Günlük',
-                  date: selectedItemForComplete.date || '',
-                  facilityId: String(selectedItemForComplete.facility_id || 1), // Default facility ID
-                  workDone: completeWorkDescription,
-                  user: (selectedItemForComplete.user_name || selectedItemForComplete.user || 'Kullanıcı Belirtilmemiş') as string,
-                  status: 'Tamamlandı'
-                };
-      
-      console.log('Update data being sent:', updateData);
-      console.log('Title being sent:', updateData.title);
-      console.log('User being sent:', updateData.user);
-      
-      const updated = await apiService.updateControlItem(selectedItemForComplete.id, updateData);
-      
-      console.log('Update response:', updated);
-      
-      // Listeyi güncelle
-      setItems(items.map(item => item.id === selectedItemForComplete.id ? updated : item));
-      setCompleteModalOpen(false);
-      setSelectedItemForComplete(null);
-      setCompleteWorkDescription('');
-      alert('İş başarıyla tamamlandı! Admin onayı bekleniyor.');
-    } catch (error) {
-      console.error('İş tamamlama hatası:', error);
-      console.error('Error details:', error.response?.data);
-      alert('İş tamamlanırken hata oluştu. Lütfen tekrar deneyin.');
-    }
-  };
-
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'Tamamlandı':
         return <CheckCircle className="w-4 h-4 text-green-500" />;
-      case 'İşlemde':
-        return <Clock className="w-4 h-4 text-blue-500" />;
       case 'Beklemede':
         return <Clock className="w-4 h-4 text-yellow-500" />;
       case 'Yapılmadı':
@@ -204,8 +126,6 @@ const DailyChecks: React.FC = () => {
     switch (status) {
       case 'Tamamlandı':
         return 'bg-green-100 text-green-800';
-      case 'İşlemde':
-        return 'bg-blue-100 text-blue-800';
       case 'Beklemede':
         return 'bg-yellow-100 text-yellow-800';
       case 'Yapılmadı':
@@ -217,53 +137,40 @@ const DailyChecks: React.FC = () => {
 
   return (
     <div>
-              <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold text-gray-900">Günlük İş Programı</h1>
-            <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
-              {items.length} İş
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowCompletedWorks(!showCompletedWorks)}
-              className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
-                showCompletedWorks 
-                  ? 'bg-green-600 hover:bg-green-700 text-white' 
-                  : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-              }`}
-            >
-              <CheckCircle className="w-4 h-4" />
-              {showCompletedWorks ? 'Aktif İşler' : 'Yapılan İşler'}
-            </button>
-            <button
-              onClick={() => {
-                setEditIndex(null);
-                // Bugünün tarihini ve kullanıcı bilgilerini otomatik olarak ekle
-                const today = new Date().toISOString().split('T')[0];
-                console.log('Current user:', user);
-                console.log('User username:', user?.username);
-                const formDataWithUser = {
-                  title: '',
-                  workDone: '',
-                  plannedDate: today,
-                  completedDate: today,
-                  description: '',
-                  user: user?.username || '',
-                  facilityId: '',
-                  status: ''
-                };
-                console.log('Setting form data:', formDataWithUser);
-                setFormData(formDataWithUser);
-                setModalOpen(true);
-              }}
-              className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Yeni İş Ekle
-            </button>
-          </div>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-4">
+          <h1 className="text-2xl font-bold text-gray-900">Günlük İş Programı</h1>
+          <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
+            {items.length} İş
+          </span>
         </div>
+        <button
+          onClick={() => {
+            setEditIndex(null);
+            // Bugünün tarihini ve kullanıcı bilgilerini otomatik olarak ekle
+            const today = new Date().toISOString().split('T')[0];
+            console.log('Current user:', user);
+            console.log('User username:', user?.username);
+            const formDataWithUser = {
+              title: '',
+              workDone: '',
+              plannedDate: today,
+              completedDate: today,
+              description: '',
+              user: user?.username || '',
+              facilityId: '',
+              status: ''
+            };
+            console.log('Setting form data:', formDataWithUser);
+            setFormData(formDataWithUser);
+            setModalOpen(true);
+          }}
+          className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+          Yeni İş Ekle
+        </button>
+      </div>
 
       <Card>
         {loading ? (
@@ -285,19 +192,7 @@ const DailyChecks: React.FC = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <div className="flex items-center gap-1">
-                      <CheckCircle className="w-4 h-4" />
-                      Yapılacak İş
-                    </div>
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Açıklama
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <div className="flex items-center gap-1">
-                      <CheckCircle className="w-4 h-4" />
-                      Yapılan İş
-                    </div>
+                    İş Detayı
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     <div className="flex items-center gap-1">
@@ -329,21 +224,15 @@ const DailyChecks: React.FC = () => {
                 {items.map((item, idx) => (
                   <tr key={item.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {item.item_name || item.title || 'İş adı belirtilmemiş'}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-600">
-                        {item.description || '-'}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-blue-600">
-                        {item.work_done ? (
-                          <span className="font-medium">{item.work_done}</span>
-                        ) : (
-                          <span className="text-gray-400">Henüz yapılmadı</span>
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">{item.title}</div>
+                        {item.description && (
+                          <div className="text-sm text-gray-500 mt-1">{item.description}</div>
+                        )}
+                        {item.work_done && (
+                          <div className="text-sm text-blue-600 mt-1">
+                            <span className="font-medium">Yapılan:</span> {item.work_done}
+                          </div>
                         )}
                       </div>
                     </td>
@@ -351,7 +240,7 @@ const DailyChecks: React.FC = () => {
                       {new Date(item.date).toLocaleDateString('tr-TR')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {item.user_name || item.user || 'Kullanıcı belirtilmemiş'}
+                      {item.user || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {facilities.find(f => f.id === item.facility_id)?.name || '-'}
@@ -366,15 +255,6 @@ const DailyChecks: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end gap-2">
-                                        {item.status !== 'Tamamlandı' && (
-                  <button
-                    onClick={() => handleCompleteWorkClick(item)}
-                    className="text-green-600 hover:text-green-900 p-1 rounded hover:bg-green-50 transition-colors"
-                    title="Tamamla"
-                  >
-                    <CheckCircle className="w-4 h-4" />
-                  </button>
-                )}
                         <button
                           onClick={() => handleEdit(idx)}
                           className="text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-50 transition-colors"
@@ -398,68 +278,6 @@ const DailyChecks: React.FC = () => {
           </div>
         )}
       </Card>
-
-      {/* Tamamlama Modal */}
-      {completeModalOpen && selectedItemForComplete && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900">İşi Tamamla</h2>
-              <button
-                onClick={() => {
-                  setCompleteModalOpen(false);
-                  setSelectedItemForComplete(null);
-                  setCompleteWorkDescription('');
-                }}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            
-            <div className="mb-4">
-              <p className="text-sm text-gray-600 mb-2">
-                <strong>{selectedItemForComplete.title}</strong> işini tamamlamak istediğinize emin misiniz?
-              </p>
-            </div>
-
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Yapılan İş Açıklaması *
-              </label>
-              <textarea
-                value={completeWorkDescription}
-                onChange={e => setCompleteWorkDescription(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
-                placeholder="Yapılan işi detaylı olarak açıklayın..."
-                rows={4}
-                required
-              />
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => {
-                  setCompleteModalOpen(false);
-                  setSelectedItemForComplete(null);
-                  setCompleteWorkDescription('');
-                }}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                İptal
-              </button>
-              <button
-                onClick={handleCompleteWork}
-                className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-              >
-                Tamamla
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Modal */}
       {modalOpen && (
@@ -542,19 +360,13 @@ const DailyChecks: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Kullanıcı
                 </label>
-                <select
+                <input
+                  type="text"
                   value={formData.user}
                   onChange={e => setFormData({...formData, user: e.target.value})}
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  required
-                >
-                  <option value="">Kullanıcı Seçin</option>
-                  {users.map(user => (
-                    <option key={user.id} value={user.username}>
-                      {user.username} ({user.role})
-                    </option>
-                  ))}
-                </select>
+                  placeholder="Kullanıcı adını girin"
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Tesis *</label>
@@ -580,7 +392,6 @@ const DailyChecks: React.FC = () => {
                 >
                   <option value="">Durum Seçin</option>
                   <option value="Tamamlandı">Tamamlandı</option>
-                  <option value="İşlemde">İşlemde</option>
                   <option value="Beklemede">Beklemede</option>
                   <option value="Yapılmadı">Yapılmadı</option>
                 </select>

@@ -32,7 +32,11 @@ export function Login() {
       console.log('Sending request to /api/login...');
       const res = await axios.post('/api/login', { username, password });
       console.log('Login response:', res.data);
-      login(res.data.user);
+      if (res.data.success && res.data.user) {
+        login(res.data.user);
+      } else {
+        throw new Error('Login failed');
+      }
     } catch (err) {
       console.error('Login error:', err);
       setError('Kullanıcı adı veya şifre hatalı!');

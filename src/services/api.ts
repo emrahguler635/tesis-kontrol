@@ -74,9 +74,14 @@ class ApiService {
   }
 
   // ControlItem endpoints
-  async getControlItems(params?: { period?: string }): Promise<ControlItem[]> {
-    const queryParams = params?.period ? `?period=${params.period}` : '';
-    return this.request<ControlItem[]>(`/control-items${queryParams}`);
+  async getControlItems(params?: { period?: string; user?: string }): Promise<ControlItem[]> {
+    const queryParams = new URLSearchParams();
+    if (params?.period) queryParams.append('period', params.period);
+    if (params?.user) queryParams.append('user', params.user);
+    
+    const queryString = queryParams.toString();
+    const url = `/control-items${queryString ? `?${queryString}` : ''}`;
+    return this.request<ControlItem[]>(url);
   }
 
   async createControlItem(item: { title: string; description?: string; period: string; date: string; facilityId?: string; workDone?: string; user?: string; status?: string }): Promise<ControlItem> {
