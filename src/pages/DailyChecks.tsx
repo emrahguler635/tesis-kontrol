@@ -275,76 +275,102 @@ const DailyChecks: React.FC = () => {
         </Card>
       ) : (
         <Card>
-          <div className="space-y-4">
-            {items.map((item, idx) => (
-              <div key={item.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
-                <div className="flex items-start justify-between">
-                  {/* Sol Taraf - İş Bilgileri */}
-                  <div className="flex-1 space-y-3">
-                    <div className="flex items-center gap-3">
-                      <h3 className="text-lg font-semibold text-gray-900">{item.title}</h3>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    İş Adı
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-4 h-4" />
+                      Tarih
+                    </div>
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <div className="flex items-center gap-1">
+                      <User className="w-4 h-4" />
+                      Kullanıcı
+                    </div>
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <div className="flex items-center gap-1">
+                      <Building className="w-4 h-4" />
+                      Tesis
+                    </div>
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Durum
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    İşlemler
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {items.map((item, idx) => (
+                  <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3">
+                      <div className="max-w-xs">
+                        <div className="text-sm font-medium text-gray-900 truncate" title={item.title}>
+                          {item.title}
+                        </div>
+                        {item.description && (
+                          <div className="text-xs text-gray-500 mt-1 truncate" title={item.description}>
+                            {item.description}
+                          </div>
+                        )}
+                        {item.work_done && (
+                          <div className="text-xs text-blue-600 mt-1 truncate" title={item.work_done}>
+                            <span className="font-medium">Yapılan:</span> {item.work_done}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {new Date(item.date).toLocaleDateString('tr-TR')}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      <span className="truncate block max-w-24" title={item.user || 'Belirtilmemiş'}>
+                        {item.user || 'Belirtilmemiş'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      <span className="truncate block max-w-24" title={facilities.find(f => f.id === item.facility_id)?.name || 'Belirtilmemiş'}>
+                        {facilities.find(f => f.id === item.facility_id)?.name || 'Belirtilmemiş'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         {getStatusIcon(item.status || '')}
-                        <span className={`px-3 py-1 text-xs font-medium rounded-full border ${getStatusColor(item.status || '')}`}>
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(item.status || '')}`}>
                           {getStatusText(item.status || '')}
                         </span>
                       </div>
-                    </div>
-                    
-                    {item.description && (
-                      <p className="text-sm text-gray-600">{item.description}</p>
-                    )}
-                    
-                    {item.work_done && (
-                      <div className="bg-blue-50 p-3 rounded-lg">
-                        <p className="text-sm text-blue-800">
-                          <span className="font-medium">Yapılan:</span> {item.work_done}
-                        </p>
+                    </td>
+                    <td className="px-4 py-3 text-right text-sm font-medium">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => handleEdit(idx)}
+                          className="text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-50 transition-colors"
+                          title="Düzenle"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(idx)}
+                          className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50 transition-colors"
+                          title="Sil"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
-                    )}
-                    
-                    {/* Detay Bilgileri */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-gray-100">
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Calendar className="w-4 h-4 text-gray-400" />
-                        <span className="font-medium">Tarih:</span>
-                        <span>{new Date(item.date).toLocaleDateString('tr-TR')}</span>
-                      </div>
-                      
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <User className="w-4 h-4 text-gray-400" />
-                        <span className="font-medium">Kullanıcı:</span>
-                        <span>{item.user || 'Belirtilmemiş'}</span>
-                      </div>
-                      
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Building className="w-4 h-4 text-gray-400" />
-                        <span className="font-medium">Tesis:</span>
-                        <span>{facilities.find(f => f.id === item.facility_id)?.name || 'Belirtilmemiş'}</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Sağ Taraf - Aksiyonlar */}
-                  <div className="flex items-center gap-2 ml-4">
-                    <button
-                      onClick={() => handleEdit(idx)}
-                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                      title="Düzenle"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(idx)}
-                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      title="Sil"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </Card>
       )}
