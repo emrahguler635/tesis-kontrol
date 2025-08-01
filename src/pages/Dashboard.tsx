@@ -28,11 +28,13 @@ export function Dashboard() {
 
   useEffect(() => {
     const fetchData = async () => {
+      console.log('Dashboard - fetchData başladı');
       try {
         const items = await apiService.getControlItems();
         setControlItems(items);
         
         // Mesaj istatistiklerini çek
+        console.log('Dashboard - Mesaj istatistikleri başlıyor');
         try {
           const messages = await apiService.getMessages();
           console.log('Dashboard - Mesajlar yüklendi:', messages);
