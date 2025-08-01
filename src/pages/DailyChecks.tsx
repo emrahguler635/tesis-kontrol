@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Card } from '../components/Card';
-import { Plus, Edit, Trash2, Calendar, User, Building, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { Plus, Edit, Trash2, Calendar, User, Building, CheckCircle, Clock, AlertCircle, CheckSquare, Square } from 'lucide-react';
 import { apiService, ControlItem, Facility } from '../services/api';
 import { useAuthStore } from '../store';
 
@@ -112,45 +112,54 @@ const DailyChecks: React.FC = () => {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'Tamamlandı':
-        return <CheckCircle className="w-4 h-4 text-green-500" />;
+        return <CheckCircle className="w-5 h-5 text-green-500" />;
       case 'Beklemede':
-        return <Clock className="w-4 h-4 text-yellow-500" />;
+        return <Clock className="w-5 h-5 text-yellow-500" />;
       case 'Yapılmadı':
-        return <AlertCircle className="w-4 h-4 text-red-500" />;
+        return <AlertCircle className="w-5 h-5 text-red-500" />;
       default:
-        return <Clock className="w-4 h-4 text-gray-500" />;
+        return <Clock className="w-5 h-5 text-gray-500" />;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Tamamlandı':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 text-green-800 border-green-200';
       case 'Beklemede':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'Yapılmadı':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100 text-red-800 border-red-200';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'Tamamlandı':
+        return 'Tamamlandı';
+      case 'Beklemede':
+        return 'Beklemede';
+      case 'Yapılmadı':
+        return 'Yapılmadı';
+      default:
+        return 'Belirsiz';
     }
   };
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-bold text-gray-900">Günlük İş Programı</h1>
-          <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
-            {items.length} İş
-          </span>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Günlük İş Programı</h1>
+          <p className="text-gray-600 mt-1">Günlük işlerinizi yönetin ve takip edin</p>
         </div>
         <button
           onClick={() => {
             setEditIndex(null);
-            // Bugünün tarihini ve kullanıcı bilgilerini otomatik olarak ekle
             const today = new Date().toISOString().split('T')[0];
-            console.log('Current user:', user);
-            console.log('User username:', user?.username);
             const formDataWithUser = {
               title: '',
               workDone: '',
@@ -161,128 +170,185 @@ const DailyChecks: React.FC = () => {
               facilityId: '',
               status: ''
             };
-            console.log('Setting form data:', formDataWithUser);
             setFormData(formDataWithUser);
             setModalOpen(true);
           }}
-          className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+          className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors shadow-lg"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-5 h-5" />
           Yeni İş Ekle
         </button>
       </div>
 
-      <Card>
-        {loading ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-            <span className="ml-2 text-gray-600">Yükleniyor...</span>
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Toplam İş</p>
+              <p className="text-2xl font-bold text-gray-900">{items.length}</p>
+            </div>
+            <div className="p-3 bg-blue-100 rounded-full">
+              <Calendar className="w-6 h-6 text-blue-600" />
+            </div>
           </div>
-        ) : items.length === 0 ? (
-          <div className="text-center py-8">
+        </Card>
+        <Card>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Tamamlanan</p>
+              <p className="text-2xl font-bold text-green-600">
+                {items.filter(item => item.status === 'Tamamlandı').length}
+              </p>
+            </div>
+            <div className="p-3 bg-green-100 rounded-full">
+              <CheckCircle className="w-6 h-6 text-green-600" />
+            </div>
+          </div>
+        </Card>
+        <Card>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Bekleyen</p>
+              <p className="text-2xl font-bold text-yellow-600">
+                {items.filter(item => item.status === 'Beklemede').length}
+              </p>
+            </div>
+            <div className="p-3 bg-yellow-100 rounded-full">
+              <Clock className="w-6 h-6 text-yellow-600" />
+            </div>
+          </div>
+        </Card>
+        <Card>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Yapılmayan</p>
+              <p className="text-2xl font-bold text-red-600">
+                {items.filter(item => item.status === 'Yapılmadı').length}
+              </p>
+            </div>
+            <div className="p-3 bg-red-100 rounded-full">
+              <AlertCircle className="w-6 h-6 text-red-600" />
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* İş Listesi */}
+      {loading ? (
+        <Card>
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            <span className="ml-3 text-gray-600">Yükleniyor...</span>
+          </div>
+        </Card>
+      ) : items.length === 0 ? (
+        <Card>
+          <div className="text-center py-12">
             <div className="text-gray-400 mb-4">
               <Calendar className="w-16 h-16 mx-auto" />
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">Henüz iş eklenmemiş</h3>
-            <p className="text-gray-500">İlk işinizi eklemek için "Yeni İş Ekle" butonuna tıklayın.</p>
+            <p className="text-gray-500 mb-6">İlk işinizi eklemek için "Yeni İş Ekle" butonuna tıklayın.</p>
+            <button
+              onClick={() => {
+                setEditIndex(null);
+                const today = new Date().toISOString().split('T')[0];
+                const formDataWithUser = {
+                  title: '',
+                  workDone: '',
+                  plannedDate: today,
+                  completedDate: today,
+                  description: '',
+                  user: user?.username || '',
+                  facilityId: '',
+                  status: ''
+                };
+                setFormData(formDataWithUser);
+                setModalOpen(true);
+              }}
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              İlk İşi Ekle
+            </button>
           </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    İş Detayı
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <div className="flex items-center gap-1">
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {items.map((item, idx) => (
+            <Card key={item.id} className="hover:shadow-lg transition-shadow">
+              <div className="space-y-4">
+                {/* Header */}
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">{item.title}</h3>
+                    <div className="flex items-center gap-2">
+                      {getStatusIcon(item.status || '')}
+                      <span className={`px-3 py-1 text-xs font-medium rounded-full border ${getStatusColor(item.status || '')}`}>
+                        {getStatusText(item.status || '')}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => handleEdit(idx)}
+                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      title="Düzenle"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(idx)}
+                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Sil"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* İçerik */}
+                <div className="space-y-3">
+                  {item.description && (
+                    <p className="text-sm text-gray-600">{item.description}</p>
+                  )}
+                  
+                  {item.work_done && (
+                    <div className="bg-blue-50 p-3 rounded-lg">
+                      <p className="text-sm text-blue-800">
+                        <span className="font-medium">Yapılan:</span> {item.work_done}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Bilgiler */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
                       <Calendar className="w-4 h-4" />
-                      Tarih
+                      <span>{new Date(item.date).toLocaleDateString('tr-TR')}</span>
                     </div>
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <div className="flex items-center gap-1">
+                    
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
                       <User className="w-4 h-4" />
-                      Kullanıcı
+                      <span>{item.user || 'Kullanıcı belirtilmemiş'}</span>
                     </div>
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <div className="flex items-center gap-1">
+                    
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
                       <Building className="w-4 h-4" />
-                      Tesis
+                      <span>{facilities.find(f => f.id === item.facility_id)?.name || 'Tesis belirtilmemiş'}</span>
                     </div>
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Durum
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    İşlemler
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {items.map((item, idx) => (
-                  <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">{item.title}</div>
-                        {item.description && (
-                          <div className="text-sm text-gray-500 mt-1">{item.description}</div>
-                        )}
-                        {item.work_done && (
-                          <div className="text-sm text-blue-600 mt-1">
-                            <span className="font-medium">Yapılan:</span> {item.work_done}
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {new Date(item.date).toLocaleDateString('tr-TR')}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {item.user || '-'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {facilities.find(f => f.id === item.facility_id)?.name || '-'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(item.status || '')}
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(item.status || '')}`}>
-                          {item.status || 'Belirsiz'}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => handleEdit(idx)}
-                          className="text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-50 transition-colors"
-                          title="Düzenle"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(idx)}
-                          className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50 transition-colors"
-                          title="Sil"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Card>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900">
                 {editIndex !== null ? 'İş Düzenle' : 'Yeni İş Ekle'}
@@ -399,7 +465,7 @@ const DailyChecks: React.FC = () => {
               <div className="flex gap-3 pt-6">
                 <button
                   type="submit"
-                  className="flex-1 bg-blue-500 text-white py-3 px-4 rounded-lg hover:bg-blue-600 transition-colors font-medium"
+                  className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
                 >
                   {editIndex !== null ? 'Güncelle' : 'Kaydet'}
                 </button>
