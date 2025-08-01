@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useControlStore, Period } from '../store';
 import { apiService } from '../services/api';
+import { useAuthStore } from '../store';
 import axios from 'axios';
 
 interface ControlItemModalProps {
@@ -16,6 +17,7 @@ interface Facility {
 }
 
 export function ControlItemModal({ open, onClose, initialData, period }: ControlItemModalProps) {
+  const { user: currentUser } = useAuthStore();
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [users, setUsers] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -69,11 +71,12 @@ export function ControlItemModal({ open, onClose, initialData, period }: Control
       setTitle('');
       setDescription('');
       setFacilityId(facilities[0]?.id?.toString() || '');
-      setUser('');
+      // Yeni iş eklerken mevcut kullanıcının adını otomatik olarak ayarla
+      setUser(currentUser?.username || '');
       setStatus('');
       setDate(new Date().toISOString().split('T')[0]);
     }
-  }, [initialData, facilities]);
+  }, [initialData, facilities, currentUser]);
 
   if (!open) return null;
 
