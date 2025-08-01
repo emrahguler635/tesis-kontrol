@@ -39,8 +39,10 @@ export interface User {
 export interface Message {
   id: number;
   date: string;
-  totalCount: number;
-  pulledCount: number;
+  totalCount?: number;
+  total_count?: number;
+  pulledCount?: number;
+  pulled_count?: number;
   account: string;
   sender?: string;
   description: string;

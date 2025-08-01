@@ -34,12 +34,19 @@ export function Dashboard() {
         
         // Mesaj istatistiklerini çek
         try {
-          const stats = await apiService.getMessageStats();
+          const messages = await apiService.getMessages();
+          
+          // Mesaj verilerinden istatistikleri hesapla
+          const totalMessages = messages.length;
+          const totalCount = messages.reduce((sum, msg) => sum + (msg.totalCount || msg.total_count || 0), 0);
+          const pulledCount = messages.reduce((sum, msg) => sum + (msg.pulledCount || msg.pulled_count || 0), 0);
+          const successRate = totalCount > 0 ? parseFloat(((pulledCount / totalCount) * 100).toFixed(1)) : 0;
+          
           setMessageStats({
-            totalMessages: stats.totalMessages,
-            pulledMessages: stats.pulledCount,
-            successRate: stats.successRate,
-            messageLog: stats.messageLog
+            totalMessages,
+            pulledMessages: pulledCount,
+            successRate,
+            messageLog: totalMessages
           });
         } catch (error) {
           console.error('Mesaj istatistikleri alınamadı:', error);
