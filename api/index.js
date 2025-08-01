@@ -545,9 +545,16 @@ app.post('/api/control-items/:id/approve', async (req, res) => {
     const { id } = req.params;
     const { approvedBy } = req.body;
 
+    console.log('Onay isteği:', { id, approvedBy });
+
     // Admin kontrolü - mock API'de basit kontrol
     if (approvedBy !== 'admin') {
       return res.status(403).json({ error: 'Sadece admin kullanıcıları onay işlemi yapabilir' });
+    }
+
+    // ID'nin geçerli ObjectId olup olmadığını kontrol et
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Geçersiz ID formatı' });
     }
 
     const updatedItem = await ControlItem.findByIdAndUpdate(
@@ -564,6 +571,7 @@ app.post('/api/control-items/:id/approve', async (req, res) => {
       return res.status(404).json({ error: 'İş bulunamadı' });
     }
 
+    console.log('İş başarıyla onaylandı:', updatedItem._id);
     res.json({ message: 'İş başarıyla onaylandı' });
   } catch (error) {
     console.error('İş onaylama hatası:', error);
@@ -577,9 +585,16 @@ app.post('/api/control-items/:id/reject', async (req, res) => {
     const { id } = req.params;
     const { rejectedBy, reason } = req.body;
 
+    console.log('Red isteği:', { id, rejectedBy, reason });
+
     // Admin kontrolü - mock API'de basit kontrol
     if (rejectedBy !== 'admin') {
       return res.status(403).json({ error: 'Sadece admin kullanıcıları reddetme işlemi yapabilir' });
+    }
+
+    // ID'nin geçerli ObjectId olup olmadığını kontrol et
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Geçersiz ID formatı' });
     }
 
     const updatedItem = await ControlItem.findByIdAndUpdate(
@@ -597,6 +612,7 @@ app.post('/api/control-items/:id/reject', async (req, res) => {
       return res.status(404).json({ error: 'İş bulunamadı' });
     }
 
+    console.log('İş başarıyla reddedildi:', updatedItem._id);
     res.json({ message: 'İş başarıyla reddedildi' });
   } catch (error) {
     console.error('İş reddetme hatası:', error);
