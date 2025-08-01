@@ -236,6 +236,7 @@ async function initializeDatabase() {
         approval_status VARCHAR(20) DEFAULT 'pending',
         approved_by VARCHAR(100),
         approved_at TIMESTAMP,
+        rejection_reason TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
@@ -259,6 +260,13 @@ async function initializeDatabase() {
       await client.query('ALTER TABLE messages ADD COLUMN IF NOT EXISTS sender VARCHAR(100) DEFAULT \'admin\'');
     } catch (error) {
       console.log('Sender kolonu zaten mevcut veya eklenemedi:', error.message);
+    }
+    
+    // Eğer control_items tablosu varsa ve rejection_reason kolonu yoksa ekle
+    try {
+      await client.query('ALTER TABLE control_items ADD COLUMN IF NOT EXISTS rejection_reason TEXT');
+    } catch (error) {
+      console.log('Rejection_reason kolonu zaten mevcut veya eklenemedi:', error.message);
     }
     
     // Admin kullanıcısını kontrol et ve ekle

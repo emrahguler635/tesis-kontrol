@@ -91,6 +91,36 @@ db.serialize(() => {
       );
     }
   });
+
+  // Add test messages if none exist
+  db.get("SELECT COUNT(*) as count FROM messages", (err, row) => {
+    if (err) {
+      console.error('Error checking messages:', err);
+      return;
+    }
+    
+    if (row.count === 0) {
+      const testMessages = [
+        ['2025-07-31', 13333, 13333, 'Günlük mesaj raporu', 'Yasin Yıldız'],
+        ['2025-07-31', 12, 12, 'Haftalık özet', 'Bağcılar Belediyesi'],
+        ['2025-07-31', 2, 2, 'Aylık rapor', 'Abdullah Özdemir'],
+        ['2025-07-31', 1, 1, 'Test mesajı', 'Emrah GÜLER'],
+        ['2025-07-31', 12, 11, 'Eksik mesaj', 'Abdurrahman ERDEM']
+      ];
+      
+      testMessages.forEach(([date, totalCount, pulledCount, description, account]) => {
+        db.run(`INSERT INTO messages (date, totalCount, pulledCount, description, account) VALUES (?, ?, ?, ?, ?)`,
+          [date, totalCount, pulledCount, description, account],
+          (err) => {
+            if (err) {
+              console.error('Error creating test message:', err);
+            }
+          }
+        );
+      });
+      console.log('Test messages created');
+    }
+  });
 });
 
 // Test endpoint
@@ -435,6 +465,28 @@ app.post('/api/messages', (req, res) => {
       });
     }
   );
+});
+
+// Mesaj istatistikleri endpoint'i
+app.get('/api/messages/stats', (req, res) => {
+  db.all("SELECT * FROM messages", (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: 'Mesaj istatistikleri alınamadı' });
+    }
+    
+    const totalMessages = rows.length;
+    const totalCount = rows.reduce((sum, row) => sum + (row.totalCount || 0), 0);
+    const pulledCount = rows.reduce((sum, row) => sum + (row.pulledCount || 0), 0);
+    const successRate = totalCount > 0 ? ((pulledCount / totalCount) * 100).toFixed(1) : 0;
+    
+    res.json({
+      totalMessages,
+      totalCount,
+      pulledCount,
+      successRate: parseFloat(successRate),
+      messageLog: totalMessages
+    });
+  });
 });
 
 // ControlItem taşıma (bir periyottan diğerine)

@@ -32,14 +32,24 @@ export function Dashboard() {
         const items = await apiService.getControlItems();
         setControlItems(items);
         
-        // Mesaj istatistiklerini çek (gerçek API'den gelecek)
-        // Şimdilik mock data kullanıyoruz
-        setMessageStats({
-          totalMessages: 0,
-          pulledMessages: 0,
-          successRate: 0.0,
-          messageLog: 0
-        });
+        // Mesaj istatistiklerini çek
+        try {
+          const stats = await apiService.getMessageStats();
+          setMessageStats({
+            totalMessages: stats.totalMessages,
+            pulledMessages: stats.pulledCount,
+            successRate: stats.successRate,
+            messageLog: stats.messageLog
+          });
+        } catch (error) {
+          console.error('Mesaj istatistikleri alınamadı:', error);
+          setMessageStats({
+            totalMessages: 0,
+            pulledMessages: 0,
+            successRate: 0.0,
+            messageLog: 0
+          });
+        }
         
         // BağTV istatistiklerini çek (gerçek API'den gelecek)
         setBagtvStats({

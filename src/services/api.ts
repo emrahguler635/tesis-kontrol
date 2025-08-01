@@ -186,6 +186,23 @@ class ApiService {
     });
   }
 
+  // Mesaj istatistikleri
+  async getMessageStats(): Promise<{
+    totalMessages: number;
+    totalCount: number;
+    pulledCount: number;
+    successRate: number;
+    messageLog: number;
+  }> {
+    return this.request<{
+      totalMessages: number;
+      totalCount: number;
+      pulledCount: number;
+      successRate: number;
+      messageLog: number;
+    }>('/messages/stats');
+  }
+
   // BağTV Facility endpoints
   async getBagTVFacilities(): Promise<any[]> {
     return this.request<any[]>('/bagtv-facilities');
