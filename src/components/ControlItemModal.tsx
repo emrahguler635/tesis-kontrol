@@ -71,7 +71,7 @@ export function ControlItemModal({ open, onClose, initialData, period }: Control
       setTitle('');
       setDescription('');
       setFacilityId(facilities[0]?.id?.toString() || '');
-      // Yeni iş eklerken mevcut kullanıcının adını otomatik olarak ayarla
+      // Yeni iş eklerken mevcut kullanıcının adını otomatik olarak seç
       setUser(currentUser?.username || '');
       setStatus('');
       setDate(new Date().toISOString().split('T')[0]);
