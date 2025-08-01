@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const mongoose = require('mongoose');
+const { Pool } = require('pg');
 
 const app = express();
 
@@ -8,88 +8,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// MongoDB bağlantısı
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/tesis-kontrol';
-
-mongoose.connect(MONGODB_URI, {
-  serverSelectionTimeoutMS: 10000,
-  socketTimeoutMS: 45000,
-  connectTimeoutMS: 10000,
-  bufferCommands: false,
-  bufferMaxEntries: 0,
-  maxPoolSize: 1,
-  minPoolSize: 0,
-  maxIdleTimeMS: 30000,
-  retryWrites: true,
-  w: 'majority'
+// PostgreSQL bağlantısı - Neon
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
-
-// Schemas
-const bagTVFacilitySchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  tvCount: { type: Number, default: 0 },
-  description: String,
-  status: { type: String, default: 'Aktif' },
-  createdAt: { type: Date, default: Date.now }
-});
-
-const bagTVControlSchema = new mongoose.Schema({
-  facilityId: { type: String, required: true },
-  date: { type: String, required: true },
-  action: { type: String, required: true },
-  description: String,
-  checkedBy: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now }
-});
-
-const facilitySchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  description: String,
-  status: { type: String, default: 'active' },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
-});
-
-const controlItemSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  description: String,
-  period: { type: String, required: true },
-  date: { type: String, required: true },
-  facilityId: String,
-  workDone: String,
-  user: String,
-  status: String,
-  approvalStatus: { type: String, default: 'pending', enum: ['pending', 'approved', 'rejected'] },
-  approvedBy: String,
-  approvedAt: Date,
-  rejectionReason: String,
-  createdAt: { type: Date, default: Date.now }
-});
-
-const messageSchema = new mongoose.Schema({
-  date: { type: String, required: true },
-  totalCount: { type: Number, required: true },
-  pulledCount: { type: Number, required: true },
-  description: { type: String, required: true },
-  account: String,
-  createdAt: { type: Date, default: Date.now }
-});
-
-const userSchema = new mongoose.Schema({
-  username: { type: String, required: true, unique: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  role: { type: String, default: 'user', enum: ['user', 'admin'] },
-  createdAt: { type: Date, default: Date.now }
-});
-
-// Models
-const BagTVFacility = mongoose.model('BagTVFacility', bagTVFacilitySchema);
-const BagTVControl = mongoose.model('BagTVControl', bagTVControlSchema);
-const Facility = mongoose.model('Facility', facilitySchema);
-const ControlItem = mongoose.model('ControlItem', controlItemSchema);
-const Message = mongoose.model('Message', messageSchema);
-const User = mongoose.model('User', userSchema);
 
 // Test endpoint
 app.get('/api/test', (req, res) => {
@@ -129,131 +54,13 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// BagTV Facilities endpoints
-app.get('/api/bagtv-facilities', async (req, res) => {
-  try {
-    console.log('Getting BagTV facilities...');
-    const facilities = await BagTVFacility.find();
-    console.log('Found facilities:', facilities.length);
-    res.json(facilities);
-  } catch (error) {
-    console.error('Error getting BagTV facilities:', error);
-    res.status(500).json({ error: 'BagTV facilities alınamadı' });
-  }
-});
-
-app.post('/api/bagtv-facilities', async (req, res) => {
-  try {
-    console.log('Creating BagTV facility:', req.body);
-    const { name, tvCount, description, status } = req.body;
-    
-    if (!name) {
-      return res.status(400).json({ error: 'Tesis adı gerekli' });
-    }
-    
-    const newFacility = await BagTVFacility.create({
-      name,
-      tvCount: Number(tvCount) || 0,
-      description: description || '',
-      status: status || 'Aktif',
-      createdAt: new Date()
-    });
-    
-    console.log('Created facility:', newFacility);
-    res.status(201).json(newFacility);
-  } catch (error) {
-    console.error('Error creating BagTV facility:', error);
-    res.status(500).json({ error: 'BagTV facility oluşturulamadı: ' + error.message });
-  }
-});
-
-app.put('/api/bagtv-facilities/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { name, tvCount, description, status } = req.body;
-    
-    const updatedFacility = await BagTVFacility.findByIdAndUpdate(
-      id, 
-      { name, tvCount: Number(tvCount), description, status }, 
-      { new: true }
-    );
-    
-    if (!updatedFacility) {
-      return res.status(404).json({ error: 'BagTV facility bulunamadı.' });
-    }
-    
-    res.json(updatedFacility);
-  } catch (error) {
-    res.status(500).json({ error: 'BagTV facility güncellenemedi' });
-  }
-});
-
-app.delete('/api/bagtv-facilities/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const deletedFacility = await BagTVFacility.findByIdAndDelete(id);
-    
-    if (!deletedFacility) {
-      return res.status(404).json({ error: 'BagTV facility bulunamadı.' });
-    }
-    
-    res.json({ message: 'BagTV facility silindi', id });
-  } catch (error) {
-    res.status(500).json({ error: 'BagTV facility silinemedi' });
-  }
-});
-
-// BagTV Controls endpoints
-app.get('/api/bagtv-controls', async (req, res) => {
-  try {
-    const { facilityId } = req.query;
-    let query = {};
-    if (facilityId) {
-      query = { facilityId };
-    }
-    const controls = await BagTVControl.find(query);
-    res.json(controls);
-  } catch (error) {
-    res.status(500).json({ error: 'BagTV controls alınamadı' });
-  }
-});
-
-app.post('/api/bagtv-controls', async (req, res) => {
-  try {
-    const { facilityId, date, action, description, checkedBy } = req.body;
-    const newControl = await BagTVControl.create({
-      facilityId,
-      date,
-      action,
-      description,
-      checkedBy,
-      createdAt: new Date()
-    });
-    res.status(201).json(newControl);
-  } catch (error) {
-    res.status(500).json({ error: 'BagTV control oluşturulamadı' });
-  }
-});
-
-app.delete('/api/bagtv-controls/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const deletedControl = await BagTVControl.findByIdAndDelete(id);
-    if (!deletedControl) {
-      return res.status(404).json({ error: 'BagTV control bulunamadı.' });
-    }
-    res.json({ message: 'BagTV control silindi', id });
-  } catch (error) {
-    res.status(500).json({ error: 'BagTV control silinemedi' });
-  }
-});
-
 // Facilities endpoints
 app.get('/api/facilities', async (req, res) => {
   try {
-    const facilities = await Facility.find();
-    res.json(facilities);
+    const result = await pool.query('SELECT * FROM facilities ORDER BY created_at DESC');
+    res.json(result.rows);
   } catch (error) {
+    console.error('Facilities error:', error);
     res.status(500).json({ error: 'Facilities alınamadı' });
   }
 });
@@ -261,15 +68,13 @@ app.get('/api/facilities', async (req, res) => {
 app.post('/api/facilities', async (req, res) => {
   try {
     const { name, description, status } = req.body;
-    const newFacility = await Facility.create({
-      name,
-      description,
-      status: status || 'active',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    });
-    res.status(201).json(newFacility);
+    const result = await pool.query(
+      'INSERT INTO facilities (name, description, status, created_at, updated_at) VALUES ($1, $2, $3, NOW(), NOW()) RETURNING *',
+      [name, description, status || 'active']
+    );
+    res.status(201).json(result.rows[0]);
   } catch (error) {
+    console.error('Facility create error:', error);
     res.status(500).json({ error: 'Facility oluşturulamadı' });
   }
 });
@@ -278,16 +83,16 @@ app.put('/api/facilities/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { name, description, status } = req.body;
-    const updatedFacility = await Facility.findByIdAndUpdate(
-      id, 
-      { name, description, status, updatedAt: new Date() }, 
-      { new: true }
+    const result = await pool.query(
+      'UPDATE facilities SET name = $1, description = $2, status = $3, updated_at = NOW() WHERE id = $4 RETURNING *',
+      [name, description, status, id]
     );
-    if (!updatedFacility) {
+    if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Facility bulunamadı.' });
     }
-    res.json(updatedFacility);
+    res.json(result.rows[0]);
   } catch (error) {
+    console.error('Facility update error:', error);
     res.status(500).json({ error: 'Facility güncellenemedi' });
   }
 });
@@ -295,12 +100,13 @@ app.put('/api/facilities/:id', async (req, res) => {
 app.delete('/api/facilities/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const deletedFacility = await Facility.findByIdAndDelete(id);
-    if (!deletedFacility) {
+    const result = await pool.query('DELETE FROM facilities WHERE id = $1 RETURNING id', [id]);
+    if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Facility bulunamadı.' });
     }
     res.json({ message: 'Facility silindi', id });
   } catch (error) {
+    console.error('Facility delete error:', error);
     res.status(500).json({ error: 'Facility silinemedi' });
   }
 });
@@ -308,9 +114,30 @@ app.delete('/api/facilities/:id', async (req, res) => {
 // Control Items endpoints
 app.get('/api/control-items', async (req, res) => {
   try {
-    const items = await ControlItem.find();
-    res.json(items);
+    const { period, user } = req.query;
+    let query = 'SELECT * FROM control_items';
+    let params = [];
+    let conditions = [];
+
+    if (period) {
+      conditions.push(`period = $${params.length + 1}`);
+      params.push(period);
+    }
+
+    if (user && user !== 'admin') {
+      conditions.push(`user_name = $${params.length + 1}`);
+      params.push(user);
+    }
+
+    if (conditions.length > 0) {
+      query += ' WHERE ' + conditions.join(' AND ');
+    }
+
+    query += ' ORDER BY date DESC';
+    const result = await pool.query(query, params);
+    res.json(result.rows);
   } catch (error) {
+    console.error('Control items error:', error);
     res.status(500).json({ error: 'Control items alınamadı' });
   }
 });
@@ -318,19 +145,14 @@ app.get('/api/control-items', async (req, res) => {
 app.post('/api/control-items', async (req, res) => {
   try {
     const { title, description, period, date, facilityId, workDone, user, status } = req.body;
-    const newItem = await ControlItem.create({
-      title,
-      description,
-      period,
-      date,
-      facilityId,
-      workDone,
-      user,
-      status,
-      createdAt: new Date()
-    });
-    res.status(201).json(newItem);
+    const result = await pool.query(
+      `INSERT INTO control_items (title, description, period, date, facility_id, work_done, user_name, status, approval_status, created_at) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'pending', NOW()) RETURNING *`,
+      [title, description, period, date, facilityId, workDone, user, status]
+    );
+    res.status(201).json(result.rows[0]);
   } catch (error) {
+    console.error('Control item create error:', error);
     res.status(500).json({ error: 'Control item oluşturulamadı' });
   }
 });
@@ -354,30 +176,20 @@ app.put('/api/control-items/:id', async (req, res) => {
     const userName = user || 'Kullanıcı Belirtilmemiş';
     console.log('Using user name:', userName);
 
-    // facilityId'yi facility_id'ye dönüştür
-    const facility_id = facilityId || 1;
-
-    const updatedItem = await ControlItem.findByIdAndUpdate(
-      id, 
-      { 
-        title, 
-        description, 
-        period, 
-        date, 
-        facilityId: facility_id, 
-        workDone, 
-        user: userName, 
-        status,
-        approvalStatus,
-        updatedAt: new Date()
-      }, 
-      { new: true }
+    const result = await pool.query(
+      `UPDATE control_items SET 
+       title = $1, description = $2, period = $3, date = $4, facility_id = $5, 
+       work_done = $6, user_name = $7, status = $8, approval_status = $9, updated_at = NOW() 
+       WHERE id = $10 RETURNING *`,
+      [title, description, period, date, facilityId, workDone, userName, status, approvalStatus, id]
     );
-    if (!updatedItem) {
+    
+    if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Control item bulunamadı.' });
     }
-    console.log('Control item updated:', updatedItem);
-    res.json(updatedItem);
+    
+    console.log('Control item updated:', result.rows[0]);
+    res.json(result.rows[0]);
   } catch (error) {
     console.error('Control item update error:', error);
     res.status(500).json({ error: 'Control item güncellenemedi', message: error.message });
@@ -387,32 +199,24 @@ app.put('/api/control-items/:id', async (req, res) => {
 app.delete('/api/control-items/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const deletedItem = await ControlItem.findByIdAndDelete(id);
-    if (!deletedItem) {
+    const result = await pool.query('DELETE FROM control_items WHERE id = $1 RETURNING id', [id]);
+    if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Control item bulunamadı.' });
     }
     res.json({ message: 'Control item silindi', id });
   } catch (error) {
+    console.error('Control item delete error:', error);
     res.status(500).json({ error: 'Control item silinemedi' });
-  }
-});
-
-// Messages endpoints
-app.get('/api/messages', async (req, res) => {
-  try {
-    const messages = await Message.find();
-    res.json(messages);
-  } catch (error) {
-    res.status(500).json({ error: 'Messages alınamadı' });
   }
 });
 
 // Users endpoints
 app.get('/api/users', async (req, res) => {
   try {
-    const users = await User.find().select('-password'); // Şifreleri hariç tut
-    res.json(users);
+    const result = await pool.query('SELECT id, username, email, role, created_at FROM users ORDER BY created_at DESC');
+    res.json(result.rows);
   } catch (error) {
+    console.error('Users error:', error);
     res.status(500).json({ error: 'Users alınamadı' });
   }
 });
@@ -420,15 +224,13 @@ app.get('/api/users', async (req, res) => {
 app.post('/api/users', async (req, res) => {
   try {
     const { username, email, password, role } = req.body;
-    const newUser = await User.create({
-      username,
-      email,
-      password, // Gerçek uygulamada şifre hash'lenmeli
-      role: role || 'user',
-      createdAt: new Date()
-    });
-    res.status(201).json(newUser);
+    const result = await pool.query(
+      'INSERT INTO users (username, email, password, role, created_at) VALUES ($1, $2, $3, $4, NOW()) RETURNING id, username, email, role, created_at',
+      [username, email, password, role || 'user']
+    );
+    res.status(201).json(result.rows[0]);
   } catch (error) {
+    console.error('User create error:', error);
     res.status(500).json({ error: 'User oluşturulamadı' });
   }
 });
@@ -437,21 +239,24 @@ app.put('/api/users/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { username, email, password, role } = req.body;
-    const updateData = { username, email, role };
+    let query = 'UPDATE users SET username = $1, email = $2, role = $3';
+    let params = [username, email, role];
+    
     if (password) {
-      updateData.password = password; // Gerçek uygulamada şifre hash'lenmeli
+      query += ', password = $4';
+      params.push(password);
     }
     
-    const updatedUser = await User.findByIdAndUpdate(
-      id, 
-      updateData, 
-      { new: true }
-    );
-    if (!updatedUser) {
+    query += ', updated_at = NOW() WHERE id = $' + (params.length + 1) + ' RETURNING id, username, email, role, created_at';
+    params.push(id);
+    
+    const result = await pool.query(query, params);
+    if (result.rows.length === 0) {
       return res.status(404).json({ error: 'User bulunamadı.' });
     }
-    res.json(updatedUser);
+    res.json(result.rows[0]);
   } catch (error) {
+    console.error('User update error:', error);
     res.status(500).json({ error: 'User güncellenemedi' });
   }
 });
@@ -459,29 +264,38 @@ app.put('/api/users/:id', async (req, res) => {
 app.delete('/api/users/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const deletedUser = await User.findByIdAndDelete(id);
-    if (!deletedUser) {
+    const result = await pool.query('DELETE FROM users WHERE id = $1 RETURNING id', [id]);
+    if (result.rows.length === 0) {
       return res.status(404).json({ error: 'User bulunamadı.' });
     }
     res.json({ message: 'User silindi', id });
   } catch (error) {
+    console.error('User delete error:', error);
     res.status(500).json({ error: 'User silinemedi' });
+  }
+});
+
+// Messages endpoints
+app.get('/api/messages', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM messages ORDER BY created_at DESC');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Messages error:', error);
+    res.status(500).json({ error: 'Messages alınamadı' });
   }
 });
 
 app.post('/api/messages', async (req, res) => {
   try {
     const { date, totalCount, pulledCount, description, account } = req.body;
-    const newMessage = await Message.create({
-      date,
-      totalCount,
-      pulledCount,
-      description,
-      account,
-      createdAt: new Date()
-    });
-    res.status(201).json(newMessage);
+    const result = await pool.query(
+      'INSERT INTO messages (date, total_count, pulled_count, description, account, created_at) VALUES ($1, $2, $3, $4, $5, NOW()) RETURNING *',
+      [date, totalCount, pulledCount, description, account]
+    );
+    res.status(201).json(result.rows[0]);
   } catch (error) {
+    console.error('Message create error:', error);
     res.status(500).json({ error: 'Message oluşturulamadı' });
   }
 });
@@ -490,16 +304,16 @@ app.put('/api/messages/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { date, totalCount, pulledCount, description, account } = req.body;
-    const updatedMessage = await Message.findByIdAndUpdate(
-      id, 
-      { date, totalCount, pulledCount, description, account }, 
-      { new: true }
+    const result = await pool.query(
+      'UPDATE messages SET date = $1, total_count = $2, pulled_count = $3, description = $4, account = $5, updated_at = NOW() WHERE id = $6 RETURNING *',
+      [date, totalCount, pulledCount, description, account, id]
     );
-    if (!updatedMessage) {
+    if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Message bulunamadı.' });
     }
-    res.json(updatedMessage);
+    res.json(result.rows[0]);
   } catch (error) {
+    console.error('Message update error:', error);
     res.status(500).json({ error: 'Message güncellenemedi' });
   }
 });
@@ -507,12 +321,13 @@ app.put('/api/messages/:id', async (req, res) => {
 app.delete('/api/messages/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const deletedMessage = await Message.findByIdAndDelete(id);
-    if (!deletedMessage) {
+    const result = await pool.query('DELETE FROM messages WHERE id = $1 RETURNING id', [id]);
+    if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Message bulunamadı.' });
     }
     res.json({ message: 'Message silindi', id });
   } catch (error) {
+    console.error('Message delete error:', error);
     res.status(500).json({ error: 'Message silinemedi' });
   }
 });
@@ -523,16 +338,19 @@ app.get('/api/control-items/pending-approvals', async (req, res) => {
     const { user } = req.query;
     console.log('Pending approvals request for user:', user);
     
-    let query = { approvalStatus: 'pending' };
+    let query = 'SELECT * FROM control_items WHERE approval_status = $1';
+    let params = ['pending'];
     
     // Eğer kullanıcı belirtilmişse ve admin değilse, sadece o kullanıcının işlerini getir
     if (user && user !== 'admin') {
-      query.user = user;
+      query += ' AND user_name = $2';
+      params.push(user);
     }
     
-    const items = await ControlItem.find(query).sort({ date: -1 });
-    console.log('Found pending items:', items.length);
-    res.json(items);
+    query += ' ORDER BY date DESC';
+    const result = await pool.query(query, params);
+    console.log('Found pending items:', result.rows.length);
+    res.json(result.rows);
   } catch (error) {
     console.error('Onay bekleyen işler alınamadı:', error);
     res.status(500).json({ error: 'Onay bekleyen işler alınamadı', message: error.message });
@@ -547,31 +365,25 @@ app.post('/api/control-items/:id/approve', async (req, res) => {
 
     console.log('Onay isteği:', { id, approvedBy });
 
-    // Admin kontrolü - mock API'de basit kontrol
+    // Admin kontrolü
     if (approvedBy !== 'admin') {
       return res.status(403).json({ error: 'Sadece admin kullanıcıları onay işlemi yapabilir' });
     }
 
-    // ID'nin geçerli ObjectId olup olmadığını kontrol et
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ error: 'Geçersiz ID formatı' });
-    }
-
-    const updatedItem = await ControlItem.findByIdAndUpdate(
-      id,
-      { 
-        approvalStatus: 'approved', 
-        approvedBy: approvedBy, 
-        approvedAt: new Date() 
-      },
-      { new: true }
+    const result = await pool.query(
+      `UPDATE control_items SET 
+       approval_status = 'approved', 
+       approved_by = $1, 
+       approved_at = NOW() 
+       WHERE id = $2 RETURNING *`,
+      [approvedBy, id]
     );
     
-    if (!updatedItem) {
+    if (result.rows.length === 0) {
       return res.status(404).json({ error: 'İş bulunamadı' });
     }
 
-    console.log('İş başarıyla onaylandı:', updatedItem._id);
+    console.log('İş başarıyla onaylandı:', result.rows[0].id);
     res.json({ message: 'İş başarıyla onaylandı' });
   } catch (error) {
     console.error('İş onaylama hatası:', error);
@@ -587,32 +399,26 @@ app.post('/api/control-items/:id/reject', async (req, res) => {
 
     console.log('Red isteği:', { id, rejectedBy, reason });
 
-    // Admin kontrolü - mock API'de basit kontrol
+    // Admin kontrolü
     if (rejectedBy !== 'admin') {
       return res.status(403).json({ error: 'Sadece admin kullanıcıları reddetme işlemi yapabilir' });
     }
 
-    // ID'nin geçerli ObjectId olup olmadığını kontrol et
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ error: 'Geçersiz ID formatı' });
-    }
-
-    const updatedItem = await ControlItem.findByIdAndUpdate(
-      id,
-      { 
-        approvalStatus: 'rejected', 
-        approvedBy: rejectedBy, 
-        approvedAt: new Date(),
-        rejectionReason: reason 
-      },
-      { new: true }
+    const result = await pool.query(
+      `UPDATE control_items SET 
+       approval_status = 'rejected', 
+       approved_by = $1, 
+       approved_at = NOW(),
+       rejection_reason = $2 
+       WHERE id = $3 RETURNING *`,
+      [rejectedBy, reason, id]
     );
     
-    if (!updatedItem) {
+    if (result.rows.length === 0) {
       return res.status(404).json({ error: 'İş bulunamadı' });
     }
 
-    console.log('İş başarıyla reddedildi:', updatedItem._id);
+    console.log('İş başarıyla reddedildi:', result.rows[0].id);
     res.json({ message: 'İş başarıyla reddedildi' });
   } catch (error) {
     console.error('İş reddetme hatası:', error);
