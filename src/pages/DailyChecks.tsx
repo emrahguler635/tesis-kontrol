@@ -283,6 +283,9 @@ const DailyChecks: React.FC = () => {
                     İş Adı
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Yapılan İş
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     <div className="flex items-center gap-1">
                       <Calendar className="w-4 h-4" />
                       Tarih
@@ -321,10 +324,16 @@ const DailyChecks: React.FC = () => {
                             {item.description}
                           </div>
                         )}
-                        {item.work_done && (
-                          <div className="text-xs text-blue-600 mt-1 truncate" title={item.work_done}>
-                            <span className="font-medium">Yapılan:</span> {item.work_done}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="max-w-xs">
+                        {item.work_done ? (
+                          <div className="text-sm text-blue-600 truncate" title={item.work_done}>
+                            {item.work_done}
                           </div>
+                        ) : (
+                          <span className="text-xs text-gray-400">Belirtilmemiş</span>
                         )}
                       </div>
                     </td>
