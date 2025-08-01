@@ -332,6 +332,54 @@ app.delete('/api/messages/:id', async (req, res) => {
   }
 });
 
+// Mesaj istatistikleri endpoint'i
+app.get('/api/messages/stats', async (req, res) => {
+  try {
+    // Vercel'de veritabanı bağlantısı yoksa mock data kullan
+    if (!process.env.DATABASE_URL) {
+      const mockMessages = [
+        { total_count: 13333, pulled_count: 13333 },
+        { total_count: 12, pulled_count: 12 },
+        { total_count: 2, pulled_count: 2 },
+        { total_count: 1, pulled_count: 1 },
+        { total_count: 12, pulled_count: 11 }
+      ];
+      
+      const totalMessages = mockMessages.length;
+      const totalCount = mockMessages.reduce((sum, msg) => sum + (msg.total_count || 0), 0);
+      const pulledCount = mockMessages.reduce((sum, msg) => sum + (msg.pulled_count || 0), 0);
+      const successRate = totalCount > 0 ? parseFloat(((pulledCount / totalCount) * 100).toFixed(1)) : 0;
+      
+      return res.json({
+        totalMessages,
+        totalCount,
+        pulledCount,
+        successRate,
+        messageLog: totalMessages
+      });
+    }
+    
+    const result = await pool.query('SELECT * FROM messages');
+    const messages = result.rows;
+    
+    const totalMessages = messages.length;
+    const totalCount = messages.reduce((sum, msg) => sum + (msg.total_count || 0), 0);
+    const pulledCount = messages.reduce((sum, msg) => sum + (msg.pulled_count || 0), 0);
+    const successRate = totalCount > 0 ? parseFloat(((pulledCount / totalCount) * 100).toFixed(1)) : 0;
+    
+    res.json({
+      totalMessages,
+      totalCount,
+      pulledCount,
+      successRate,
+      messageLog: totalMessages
+    });
+  } catch (error) {
+    console.error('Message stats error:', error);
+    res.status(500).json({ error: 'Mesaj istatistikleri alınamadı' });
+  }
+});
+
 // Onay bekleyen işler endpoint'i
 app.get('/api/control-items/pending-approvals', async (req, res) => {
   try {
