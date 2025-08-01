@@ -59,6 +59,10 @@ const controlItemSchema = new mongoose.Schema({
   workDone: String,
   user: String,
   status: String,
+  approvalStatus: { type: String, default: 'pending', enum: ['pending', 'approved', 'rejected'] },
+  approvedBy: String,
+  approvedAt: Date,
+  rejectionReason: String,
   createdAt: { type: Date, default: Date.now }
 });
 
