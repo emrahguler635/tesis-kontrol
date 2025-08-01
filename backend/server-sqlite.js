@@ -57,6 +57,9 @@ db.serialize(() => {
     workDone TEXT,
     user TEXT,
     status TEXT DEFAULT 'pending',
+    approved_by TEXT,
+    approved_at DATETIME,
+    rejection_reason TEXT,
     createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
 
@@ -119,6 +122,25 @@ db.serialize(() => {
         );
       });
       console.log('Test messages created');
+    }
+  });
+
+  // Eğer control_items tablosu varsa ve eksik kolonları ekle
+  db.run("ALTER TABLE control_items ADD COLUMN approved_by TEXT", (err) => {
+    if (err && !err.message.includes('duplicate column name')) {
+      console.log('approved_by kolonu zaten mevcut');
+    }
+  });
+  
+  db.run("ALTER TABLE control_items ADD COLUMN approved_at DATETIME", (err) => {
+    if (err && !err.message.includes('duplicate column name')) {
+      console.log('approved_at kolonu zaten mevcut');
+    }
+  });
+  
+  db.run("ALTER TABLE control_items ADD COLUMN rejection_reason TEXT", (err) => {
+    if (err && !err.message.includes('duplicate column name')) {
+      console.log('rejection_reason kolonu zaten mevcut');
     }
   });
 });
