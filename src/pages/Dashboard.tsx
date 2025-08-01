@@ -35,12 +35,20 @@ export function Dashboard() {
         // Mesaj istatistiklerini çek
         try {
           const messages = await apiService.getMessages();
+          console.log('Dashboard - Mesajlar yüklendi:', messages);
           
           // Mesaj verilerinden istatistikleri hesapla
           const totalMessages = messages.length;
           const totalCount = messages.reduce((sum, msg) => sum + (msg.totalCount || msg.total_count || 0), 0);
           const pulledCount = messages.reduce((sum, msg) => sum + (msg.pulledCount || msg.pulled_count || 0), 0);
           const successRate = totalCount > 0 ? parseFloat(((pulledCount / totalCount) * 100).toFixed(1)) : 0;
+          
+          console.log('Dashboard - Hesaplanan istatistikler:', {
+            totalMessages,
+            totalCount,
+            pulledCount,
+            successRate
+          });
           
           setMessageStats({
             totalMessages,
