@@ -274,22 +274,59 @@ const DailyChecks: React.FC = () => {
           </div>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {items.map((item, idx) => (
-            <Card key={item.id} className="hover:shadow-lg transition-shadow">
-              <div className="space-y-4">
-                {/* Header */}
+        <Card>
+          <div className="space-y-4">
+            {items.map((item, idx) => (
+              <div key={item.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">{item.title}</h3>
-                    <div className="flex items-center gap-2">
-                      {getStatusIcon(item.status || '')}
-                      <span className={`px-3 py-1 text-xs font-medium rounded-full border ${getStatusColor(item.status || '')}`}>
-                        {getStatusText(item.status || '')}
-                      </span>
+                  {/* Sol Taraf - İş Bilgileri */}
+                  <div className="flex-1 space-y-3">
+                    <div className="flex items-center gap-3">
+                      <h3 className="text-lg font-semibold text-gray-900">{item.title}</h3>
+                      <div className="flex items-center gap-2">
+                        {getStatusIcon(item.status || '')}
+                        <span className={`px-3 py-1 text-xs font-medium rounded-full border ${getStatusColor(item.status || '')}`}>
+                          {getStatusText(item.status || '')}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {item.description && (
+                      <p className="text-sm text-gray-600">{item.description}</p>
+                    )}
+                    
+                    {item.work_done && (
+                      <div className="bg-blue-50 p-3 rounded-lg">
+                        <p className="text-sm text-blue-800">
+                          <span className="font-medium">Yapılan:</span> {item.work_done}
+                        </p>
+                      </div>
+                    )}
+                    
+                    {/* Detay Bilgileri */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-gray-100">
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Calendar className="w-4 h-4 text-gray-400" />
+                        <span className="font-medium">Tarih:</span>
+                        <span>{new Date(item.date).toLocaleDateString('tr-TR')}</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <User className="w-4 h-4 text-gray-400" />
+                        <span className="font-medium">Kullanıcı:</span>
+                        <span>{item.user || 'Belirtilmemiş'}</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Building className="w-4 h-4 text-gray-400" />
+                        <span className="font-medium">Tesis:</span>
+                        <span>{facilities.find(f => f.id === item.facility_id)?.name || 'Belirtilmemiş'}</span>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1">
+                  
+                  {/* Sağ Taraf - Aksiyonlar */}
+                  <div className="flex items-center gap-2 ml-4">
                     <button
                       onClick={() => handleEdit(idx)}
                       className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
@@ -306,43 +343,10 @@ const DailyChecks: React.FC = () => {
                     </button>
                   </div>
                 </div>
-
-                {/* İçerik */}
-                <div className="space-y-3">
-                  {item.description && (
-                    <p className="text-sm text-gray-600">{item.description}</p>
-                  )}
-                  
-                  {item.work_done && (
-                    <div className="bg-blue-50 p-3 rounded-lg">
-                      <p className="text-sm text-blue-800">
-                        <span className="font-medium">Yapılan:</span> {item.work_done}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Bilgiler */}
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Calendar className="w-4 h-4" />
-                      <span>{new Date(item.date).toLocaleDateString('tr-TR')}</span>
-                    </div>
-                    
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <User className="w-4 h-4" />
-                      <span>{item.user || 'Kullanıcı belirtilmemiş'}</span>
-                    </div>
-                    
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Building className="w-4 h-4" />
-                      <span>{facilities.find(f => f.id === item.facility_id)?.name || 'Tesis belirtilmemiş'}</span>
-                    </div>
-                  </div>
-                </div>
               </div>
-            </Card>
-          ))}
-        </div>
+            ))}
+          </div>
+        </Card>
       )}
 
       {/* Modal */}
