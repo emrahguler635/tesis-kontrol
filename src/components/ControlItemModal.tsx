@@ -19,7 +19,7 @@ interface Facility {
 export function ControlItemModal({ open, onClose, initialData, period }: ControlItemModalProps) {
   const { user: currentUser } = useAuthStore();
   const [facilities, setFacilities] = useState<Facility[]>([]);
-  const [users, setUsers] = useState<string[]>([]);
+  const [users, setUsers] = useState<Array<{id: number, username: string, role: string}>>([]);
   const [loading, setLoading] = useState(false);
   const addControlItem = useControlStore(s => s.addControlItem);
   const updateControlItem = useControlStore(s => s.updateControlItem);
@@ -40,7 +40,7 @@ export function ControlItemModal({ open, onClose, initialData, period }: Control
           apiService.getUsers()
         ]);
         setFacilities(facilitiesData);
-        setUsers(usersData.map(u => u.username));
+        setUsers(usersData);
       } catch (error) {
         console.error('Veri yüklenirken hata:', error);
       } finally {
@@ -84,6 +84,7 @@ export function ControlItemModal({ open, onClose, initialData, period }: Control
     e.preventDefault();
     let workDone = '';
     if (status === 'Tamamlandı') workDone = 'Her şey normal';
+    else if (status === 'İşlemde') workDone = 'İşlemde';
     else if (status === 'Beklemede') workDone = 'Beklemede';
     else workDone = '';
     if (initialData) {
@@ -151,7 +152,7 @@ export function ControlItemModal({ open, onClose, initialData, period }: Control
             >
               <option value="">Kullanıcı Seçin</option>
               {users.map(u => (
-                <option key={u} value={u}>{u}</option>
+                <option key={u.id} value={u.username}>{u.username} ({u.role})</option>
               ))}
             </select>
           </div>
@@ -163,8 +164,9 @@ export function ControlItemModal({ open, onClose, initialData, period }: Control
               onChange={e => setStatus(e.target.value)}
               required
             >
-              <option value="">Seçiniz</option>
+              <option value="">Durum Seçin</option>
               <option value="Tamamlandı">Tamamlandı</option>
+              <option value="İşlemde">İşlemde</option>
               <option value="Beklemede">Beklemede</option>
               <option value="Yapılmadı">Yapılmadı</option>
             </select>
