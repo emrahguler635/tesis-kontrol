@@ -403,6 +403,68 @@ app.get('/api/messages', async (req, res) => {
   }
 });
 
+// Users endpoints
+app.get('/api/users', async (req, res) => {
+  try {
+    const users = await User.find().select('-password'); // Şifreleri hariç tut
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: 'Users alınamadı' });
+  }
+});
+
+app.post('/api/users', async (req, res) => {
+  try {
+    const { username, email, password, role } = req.body;
+    const newUser = await User.create({
+      username,
+      email,
+      password, // Gerçek uygulamada şifre hash'lenmeli
+      role: role || 'user',
+      createdAt: new Date()
+    });
+    res.status(201).json(newUser);
+  } catch (error) {
+    res.status(500).json({ error: 'User oluşturulamadı' });
+  }
+});
+
+app.put('/api/users/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { username, email, password, role } = req.body;
+    const updateData = { username, email, role };
+    if (password) {
+      updateData.password = password; // Gerçek uygulamada şifre hash'lenmeli
+    }
+    
+    const updatedUser = await User.findByIdAndUpdate(
+      id, 
+      updateData, 
+      { new: true }
+    );
+    if (!updatedUser) {
+      return res.status(404).json({ error: 'User bulunamadı.' });
+    }
+    res.json(updatedUser);
+  } catch (error) {
+    res.status(500).json({ error: 'User güncellenemedi' });
+  }
+});
+
+app.delete('/api/users/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedUser = await User.findByIdAndDelete(id);
+    if (!deletedUser) {
+      return res.status(404).json({ error: 'User bulunamadı.' });
+    }
+    res.json({ message: 'User silindi', id });
+  } catch (error) {
+    res.status(500).json({ error: 'User silinemedi' });
+  }
+});
+
 app.post('/api/messages', async (req, res) => {
   try {
     const { date, totalCount, pulledCount, description, account } = req.body;
