@@ -90,11 +90,12 @@ export function Dashboard() {
   // Durum hesaplamaları
   const getStatusCounts = () => {
     const tamamlandi = controlItems.filter(item => item.status === 'Tamamlandı').length;
+    const islemde = controlItems.filter(item => item.status === 'İşlemde').length;
     const beklemede = controlItems.filter(item => item.status === 'Beklemede').length;
     const yapilmadi = controlItems.filter(item => item.status === 'Yapılmadı').length;
-    const belirsiz = controlItems.filter(item => !item.status || !['Tamamlandı', 'Beklemede', 'Yapılmadı'].includes(item.status)).length;
+    const belirsiz = controlItems.filter(item => !item.status || !['Tamamlandı', 'İşlemde', 'Beklemede', 'Yapılmadı'].includes(item.status)).length;
     
-    return { tamamlandi, beklemede, yapilmadi, belirsiz };
+    return { tamamlandi, islemde, beklemede, yapilmadi, belirsiz };
   };
 
   const getPeriodCounts = () => {
@@ -167,6 +168,8 @@ export function Dashboard() {
     switch (status) {
       case 'Tamamlandı':
         return <CheckCircle className="w-4 h-4 text-green-500" />;
+      case 'İşlemde':
+        return <Activity className="w-4 h-4 text-purple-500" />;
       case 'Beklemede':
         return <Clock className="w-4 h-4 text-yellow-500" />;
       case 'Yapılmadı':
@@ -180,6 +183,8 @@ export function Dashboard() {
     switch (status) {
       case 'Tamamlandı':
         return 'bg-green-100 text-green-800';
+      case 'İşlemde':
+        return 'bg-purple-100 text-purple-800';
       case 'Beklemede':
         return 'bg-yellow-100 text-yellow-800';
       case 'Yapılmadı':
@@ -218,14 +223,7 @@ export function Dashboard() {
     },
     { 
       name: 'İşlemde', 
-      value: controlItems.filter(item => 
-        (item.period === 'Günlük' || 
-         item.frequency === 'Günlük' ||
-         item.period === 'Günlük İş Programı' ||
-         item.frequency === 'Günlük İş Programı') &&
-        item.status !== 'Tamamlandı' &&
-        item.status !== 'Yapılmadı'
-      ).length, 
+      value: statusCounts.islemde, 
       icon: Activity,
       color: 'text-purple-600',
       bgColor: 'bg-purple-50'

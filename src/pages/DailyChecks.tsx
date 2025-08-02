@@ -497,6 +497,7 @@ const DailyChecks: React.FC = () => {
                 >
                   <option value="">Durum Seçin</option>
                   <option value="Tamamlandı">Tamamlandı</option>
+                  <option value="İşlemde">İşlemde</option>
                   <option value="Beklemede">Beklemede</option>
                   <option value="Yapılmadı">Yapılmadı</option>
                 </select>
