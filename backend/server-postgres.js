@@ -233,6 +233,7 @@ async function initializeDatabase() {
         work_done TEXT,
         user_name VARCHAR(100),
         status VARCHAR(20) DEFAULT 'Aktif',
+        completion_date DATE,
         approval_status VARCHAR(20) DEFAULT 'pending',
         approved_by VARCHAR(100),
         approved_at TIMESTAMP,
@@ -267,6 +268,27 @@ async function initializeDatabase() {
       await client.query('ALTER TABLE control_items ADD COLUMN IF NOT EXISTS rejection_reason TEXT');
     } catch (error) {
       console.log('Rejection_reason kolonu zaten mevcut veya eklenemedi:', error.message);
+    }
+    
+    // Eğer control_items tablosu varsa ve completion_date kolonu yoksa ekle
+    try {
+      await client.query('ALTER TABLE control_items ADD COLUMN IF NOT EXISTS completion_date DATE');
+    } catch (error) {
+      console.log('Completion_date kolonu zaten mevcut veya eklenemedi:', error.message);
+    }
+    
+    // Eğer control_items tablosu varsa ve approved_by kolonu yoksa ekle
+    try {
+      await client.query('ALTER TABLE control_items ADD COLUMN IF NOT EXISTS approved_by VARCHAR(100)');
+    } catch (error) {
+      console.log('Approved_by kolonu zaten mevcut veya eklenemedi:', error.message);
+    }
+    
+    // Eğer control_items tablosu varsa ve approved_at kolonu yoksa ekle
+    try {
+      await client.query('ALTER TABLE control_items ADD COLUMN IF NOT EXISTS approved_at TIMESTAMP');
+    } catch (error) {
+      console.log('Approved_at kolonu zaten mevcut veya eklenemedi:', error.message);
     }
     
     // Admin kullanıcısını kontrol et ve ekle
@@ -411,12 +433,15 @@ app.get('/api/control-items', async (req, res) => {
 
 app.post('/api/control-items', async (req, res) => {
   try {
-    const { title, description, period, date, facilityId, workDone, user, status } = req.body;
+    const { title, description, period, date, facilityId, workDone, user, status, completionDate } = req.body;
     console.log('Control item request body:', req.body);
     
+    // completionDate null ise undefined yap
+    const finalCompletionDate = completionDate || null;
+    
     const result = await pool.query(
-      'INSERT INTO control_items (title, description, period, date, facility_id, work_done, user_name, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
-      [title, description, period, date, facilityId, workDone, user, status]
+      'INSERT INTO control_items (title, description, period, date, facility_id, work_done, user_name, status, completion_date) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
+      [title, description, period, date, facilityId, workDone, user, status, finalCompletionDate]
     );
     console.log('Control item created:', result.rows[0]);
     res.status(201).json(result.rows[0]);
@@ -429,13 +454,13 @@ app.post('/api/control-items', async (req, res) => {
 app.put('/api/control-items/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, period, date, facilityId, workDone, user, status } = req.body;
+    const { title, description, period, date, facilityId, workDone, user, status, completionDate } = req.body;
     console.log('Control item update request body:', req.body);
     
     // Status değişikliğinde onay durumunu güncelle
     let approvalStatus = 'pending';
     if (status === 'Tamamlandı') {
-      approvalStatus = 'approved'; // Otomatik onaylandı
+      approvalStatus = 'pending'; // Onay bekliyor - admin onaylamalı
     } else if (status === 'Beklemede') {
       approvalStatus = 'pending'; // Onay bekliyor
     } else if (status === 'İptal') {
@@ -447,10 +472,13 @@ app.put('/api/control-items/:id', async (req, res) => {
 
     // facilityId'yi facility_id'ye dönüştür
     const facility_id = facilityId || 1;
+    
+    // completionDate null ise undefined yap
+    const finalCompletionDate = completionDate || null;
 
     const result = await pool.query(
-      'UPDATE control_items SET title = $1, description = $2, period = $3, date = $4, facility_id = $5, work_done = $6, user_name = $7, status = $8, approval_status = $9 WHERE id = $10 RETURNING *',
-      [title, description, period, date, facility_id, workDone, userName, status, approvalStatus, id]
+      'UPDATE control_items SET title = $1, description = $2, period = $3, date = $4, facility_id = $5, work_done = $6, user_name = $7, status = $8, approval_status = $9, completion_date = $10 WHERE id = $11 RETURNING *',
+      [title, description, period, date, facility_id, workDone, userName, status, approvalStatus, finalCompletionDate, id]
     );
     console.log('Control item updated:', result.rows[0]);
     res.json(result.rows[0]);
@@ -996,7 +1024,7 @@ app.post('/api/control-items/:id/approve', async (req, res) => {
 
     const query = `
       UPDATE control_items 
-      SET approval_status = 'approved', approved_by = $1, approved_at = NOW() 
+      SET approval_status = 'approved', approved_by = $1, approved_at = NOW(), status = 'Tamamlandı' 
       WHERE id = $2
     `;
     

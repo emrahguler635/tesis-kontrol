@@ -1,0 +1,5 @@
+[33ma481f93[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m İşlemde durumu eklendi - DailyChecks ve Dashboard güncellendi
+[33maaf8cd3[m Yeni İş Ekle modalında kullanıcı seçimi ve durum seçenekleri güncellendi
+[33mb2d1684[m Onay işlemi için gerekli kolonlar eklendi
+[33m8f51f09[m Dashboard mesaj istatistikleri gerçek API verilerini kullanacak şekilde güncellendi
+[33m04a6499[m Dashboard mesaj istatistikleri sabit değerlerle test ediliyor

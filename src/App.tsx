@@ -14,6 +14,7 @@ import BagTV from './pages/BagTV';
 import UserManagement from './pages/UserManagement';
 import DataViewer from './pages/DataViewer';
 import Approvals from './pages/Approvals';
+import CompletedWorks from './pages/CompletedWorks';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore(s => s.isAuthenticated);
@@ -46,6 +47,7 @@ function App() {
                   <Route path="/user-management" element={<UserManagement />} />
                   <Route path="/data-viewer" element={<DataViewer />} />
                   <Route path="/approvals" element={<Approvals />} />
+                  <Route path="/completed-works" element={<CompletedWorks />} />
                 </Routes>
               </Layout>
             </PrivateRoute>

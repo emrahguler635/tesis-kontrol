@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Home, Building, CalendarDays, Clock, CalendarCheck, FileText, MessageCircle, BarChart3, Settings, Monitor, Image as ImageIcon, Users, Database, CheckCircle } from 'lucide-react';
 import { useAuthStore } from '../store';
@@ -14,49 +14,98 @@ interface User {
 
 const Sidebar: React.FC = () => {
   const { user } = useAuthStore();
-  const logo = typeof window !== 'undefined' ? localStorage.getItem('appLogo') : null;
+  
+  // Logo'yu localStorage ve sessionStorage'dan al
+  const logo = React.useMemo(() => {
+    if (typeof window !== 'undefined') {
+      // Önce localStorage'dan dene
+      const localLogo = localStorage.getItem('appLogo');
+      if (localLogo && localLogo !== '/vite.svg') return localLogo;
+      
+      // Yoksa sessionStorage'dan dene
+      const sessionLogo = sessionStorage.getItem('appLogo');
+      if (sessionLogo && sessionLogo !== '/vite.svg') return sessionLogo;
+    }
+    
+    // Hiçbiri yoksa null döndür
+    return null;
+  }, []);
   
   // Kullanıcının yetkilerini kontrol et
   const userPermissions = user?.permissions || [];
-  
-  const allMenuItems = [
-    { to: '/', label: 'Ana Sayfa', icon: <Home size={20} />, permission: 'Ana Sayfa' },
-    { to: '/tesisler', label: 'Tesisler', icon: <Building size={20} />, permission: 'Tesisler' },
-    { to: '/gunluk', label: 'Günlük İş Programı', icon: <CalendarDays size={20} />, permission: 'Günlük İş Programı' },
-    { to: '/haftalik', label: 'Toplam Yapılan İşler', icon: <Clock size={20} />, permission: 'Haftalık İşler' },
-    { to: '/raporlar', label: 'Raporlar', icon: <BarChart3 size={20} />, permission: 'Raporlar' },
-    { to: '/mesaj-takip', label: 'Mesaj Yönetimi', icon: <MessageCircle size={20} />, permission: 'Mesaj Yönetimi' },
-    { to: '/bagtv', label: 'BağTV', icon: <Monitor size={20} />, permission: 'BağTV' },
-    { to: '/data-viewer', label: 'Veri Kontrol', icon: <Database size={20} />, permission: 'Veri Kontrol' },
-    { to: '/ayarlar', label: 'Ayarlar', icon: <Settings size={20} />, permission: 'Ayarlar' },
-  ];
+
+  // Menü sırasını localStorage'dan al
+  const getMenuItems = () => {
+    const savedOrder = localStorage.getItem('menuOrder');
+    if (savedOrder) {
+      try {
+        return JSON.parse(savedOrder);
+      } catch (error) {
+        console.error('Menü sırası yüklenirken hata:', error);
+      }
+    }
+    
+    // Varsayılan menü sırası
+    return [
+      { id: 'home', label: 'Ana Sayfa', icon: '🏠', to: '/', enabled: true },
+      { id: 'facilities', label: 'Tesisler', icon: '🏢', to: '/tesisler', enabled: true },
+      { id: 'daily', label: 'Günlük İş Programı', icon: '📅', to: '/gunluk', enabled: true },
+      { id: 'weekly', label: 'Toplam Yapılan İşler', icon: '⏰', to: '/haftalik', enabled: true },
+      { id: 'reports', label: 'Raporlar', icon: '📊', to: '/raporlar', enabled: true },
+      { id: 'messages', label: 'Mesaj Yönetimi', icon: '💬', to: '/mesaj-takip', enabled: true },
+      { id: 'bagtv', label: 'BağTV', icon: '📺', to: '/bagtv', enabled: true },
+      { id: 'data-viewer', label: 'Veri Kontrol', icon: '🗄️', to: '/data-viewer', enabled: true },
+      { id: 'approvals', label: 'Onay Yönetimi', icon: '✅', to: '/approvals', enabled: true },
+      { id: 'completed-works', label: 'Yapılan İşler', icon: '✅', to: '/completed-works', enabled: true },
+      { id: 'user-management', label: 'Kullanıcı Yönetimi', icon: '👥', to: '/user-management', enabled: true },
+      { id: 'settings', label: 'Ayarlar', icon: '⚙️', to: '/ayarlar', enabled: true },
+    ];
+  };
+
+  const [menuItems, setMenuItems] = useState(getMenuItems());
+
+  // Menü değişikliklerini dinle
+  useEffect(() => {
+    const handleMenuOrderChange = () => {
+      setMenuItems(getMenuItems());
+    };
+
+    window.addEventListener('menuOrderChanged', handleMenuOrderChange);
+    
+    return () => {
+      window.removeEventListener('menuOrderChanged', handleMenuOrderChange);
+    };
+  }, []);
+
+  // İkon mapping'i
+  const getIcon = (icon: string) => {
+    const iconMap: { [key: string]: React.ReactNode } = {
+      '🏠': <Home size={20} />,
+      '🏢': <Building size={20} />,
+      '📅': <CalendarDays size={20} />,
+      '⏰': <Clock size={20} />,
+      '📊': <BarChart3 size={20} />,
+      '💬': <MessageCircle size={20} />,
+      '📺': <Monitor size={20} />,
+      '🗄️': <Database size={20} />,
+      '✅': <CheckCircle size={20} />,
+      '👥': <Users size={20} />,
+      '⚙️': <Settings size={20} />,
+    };
+    return iconMap[icon] || <Home size={20} />;
+  };
 
   // Kullanıcının yetkilerine göre menü öğelerini filtrele
-  const filteredMenuItems = allMenuItems.filter(item => {
+  const filteredMenuItems = menuItems.filter(item => {
+    // Etkin olmayan menüleri gizle
+    if (!item.enabled) return false;
+    
     // Admin kullanıcısı tüm menüleri görebilir
     if (user?.role === 'admin') return true;
     
     // Normal kullanıcılar sadece yetkili oldukları menüleri görebilir
-    // userPermissions array olup olmadığını kontrol et
-    return Array.isArray(userPermissions) && userPermissions.includes(item.permission);
+    return Array.isArray(userPermissions) && userPermissions.includes(item.label);
   });
-
-  // Admin kullanıcısı için onay menüsü ekle
-  const adminMenuItems = user?.role === 'admin' ? [
-    { to: '/approvals', label: 'Onay Yönetimi', icon: <CheckCircle size={20} /> }
-  ] : [];
-
-  // Kullanıcı yönetimi linkini ekle (sadece admin görebilir)
-  const userManagementItem = user?.role === 'admin' ? [
-    { to: '/user-management', label: 'Kullanıcı Yönetimi', icon: <Users size={20} /> }
-  ] : [];
-
-  // Final menü öğelerini birleştir
-  const finalMenuItems = [
-    ...filteredMenuItems,
-    ...adminMenuItems,
-    ...userManagementItem
-  ];
 
   return (
     <aside className="w-64 bg-white h-full shadow-md flex flex-col">
@@ -71,7 +120,7 @@ const Sidebar: React.FC = () => {
         <span className="text-white font-bold text-lg tracking-wide drop-shadow text-center select-none">Bağcılar Belediyesi</span>
       </div>
       <nav className="flex-1 px-4 space-y-1">
-        {finalMenuItems.map(item => (
+        {filteredMenuItems.map(item => (
           <NavLink
             key={item.to}
             to={item.to}
@@ -80,7 +129,7 @@ const Sidebar: React.FC = () => {
               ${isActive ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-100'}`
             }
           >
-            {item.icon}
+            {getIcon(item.icon)}
             <span>{item.label}</span>
           </NavLink>
         ))}

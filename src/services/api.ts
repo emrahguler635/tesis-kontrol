@@ -22,6 +22,8 @@ export interface ControlItem {
   user_name?: string; // Backend'den gelen user_name alanı
   item_name?: string; // Backend'den gelen item_name alanı
   status?: string;
+  approval_status?: string; // Onay durumu
+  completion_date?: string; // Tamamlanma tarihi
   created_at?: string;
 }
 
@@ -86,14 +88,14 @@ class ApiService {
     return this.request<ControlItem[]>(url);
   }
 
-  async createControlItem(item: { title: string; description?: string; period: string; date: string; facilityId?: string; workDone?: string; user?: string; status?: string }): Promise<ControlItem> {
+  async createControlItem(item: { title: string; description?: string; period: string; date: string; facilityId?: string; workDone?: string; user?: string; status?: string; completionDate?: string }): Promise<ControlItem> {
     return this.request<ControlItem>('/control-items', {
       method: 'POST',
       body: JSON.stringify(item),
     });
   }
 
-  async updateControlItem(id: number, item: { title: string; description?: string; period: string; date: string; facilityId?: string; workDone?: string; user?: string; status?: string }): Promise<ControlItem> {
+  async updateControlItem(id: number, item: { title: string; description?: string; period: string; date: string; facilityId?: string; workDone?: string; user?: string; status?: string; completionDate?: string }): Promise<ControlItem> {
     return this.request<ControlItem>(`/control-items/${id}`, {
       method: 'PUT',
       body: JSON.stringify(item),
