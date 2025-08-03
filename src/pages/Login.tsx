@@ -90,14 +90,17 @@ export function Login() {
   };
 
   return (
-    <div 
-      className="min-h-screen flex items-center justify-center p-4 relative bg-cover bg-center bg-no-repeat bg-fixed"
-      style={{
-        backgroundImage: 'url(/belediye.jpg)'
-      }}
-    >
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Arka plan resmi */}
+      <img 
+        src="/belediye.jpg" 
+        alt="Arka plan" 
+        className="absolute inset-0 w-full h-full object-cover"
+        style={{ zIndex: -2 }}
+      />
+      
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm"></div>
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" style={{ zIndex: -1 }}></div>
       
       <div className="w-full max-w-md relative z-10">
         {/* Logo ve Başlık Bölümü */}
