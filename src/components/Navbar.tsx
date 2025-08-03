@@ -150,8 +150,20 @@ export function Navbar() {
                 className="flex items-center space-x-2 text-white hover:text-blue-100 hover:bg-white/10 px-3 py-2 rounded-lg transition-all duration-200" 
                 onClick={() => setUserMenuOpen(v => !v)}
               >
-                <div className="h-8 w-8 bg-white/20 rounded-full flex items-center justify-center">
-                  <User className="h-4 w-4" />
+                <div className="h-8 w-8 bg-white/20 rounded-full flex items-center justify-center overflow-hidden">
+                  {user?.profileImage ? (
+                    <img 
+                      src={user.profileImage} 
+                      alt="Profil" 
+                      className="h-full w-full object-cover rounded-full"
+                    />
+                  ) : (
+                    <img 
+                      src="/default-avatar.svg" 
+                      alt="Profil" 
+                      className="h-full w-full object-cover rounded-full"
+                    />
+                  )}
                 </div>
                 <span className="font-medium">{user?.username || user?.email || 'Kullanıcı'}</span>
                 <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`} />
@@ -159,6 +171,29 @@ export function Navbar() {
               {userMenuOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-xl z-50 animate-in slide-in-from-top-2">
                   <div className="py-2">
+                    <div className="px-4 py-2 border-b border-gray-100">
+                      <div className="flex items-center space-x-3">
+                        <div className="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center overflow-hidden">
+                          {user?.profileImage ? (
+                            <img 
+                              src={user.profileImage} 
+                              alt="Profil" 
+                              className="h-full w-full object-cover rounded-full"
+                            />
+                          ) : (
+                            <img 
+                              src="/default-avatar.svg" 
+                              alt="Profil" 
+                              className="h-full w-full object-cover rounded-full"
+                            />
+                          )}
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-900">{user?.username || 'Kullanıcı'}</div>
+                          <div className="text-sm text-gray-500">{user?.email || 'admin@bagcilar.bel.tr'}</div>
+                        </div>
+                      </div>
+                    </div>
                     <button
                       className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-150"
                       onClick={() => { logout(); navigate('/login'); setUserMenuOpen(false); }}
