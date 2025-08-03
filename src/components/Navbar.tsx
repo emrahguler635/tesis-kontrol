@@ -98,7 +98,7 @@ export function Navbar() {
                 style={{lineHeight: '1.2', maxWidth: '100%', wordBreak: 'break-word'}}
                 onClick={() => navigate('/')}
               >
-                Tesis Kontrol Sistemi
+                WorkPulse – İş Nabzı
               </h1>
             </div>
           </div>
