@@ -1,10 +1,11 @@
 const WhatsAppService = require('../backend/whatsapp-service');
 
-// WhatsApp servisini başlat
-const whatsappService = new WhatsAppService();
+module.exports = function(app) {
+  // WhatsApp servisini başlat
+  const whatsappService = new WhatsAppService();
 
-// WhatsApp servisini başlat
-whatsappService.initialize();
+  // WhatsApp servisini başlat
+  whatsappService.initialize();
 
 // WhatsApp durumunu al
 app.get('/api/whatsapp/status', (req, res) => {
@@ -197,5 +198,4 @@ function createEmergencyMessage(emergencyData) {
     
     return message;
 }
-
-module.exports = app; 
+}; 

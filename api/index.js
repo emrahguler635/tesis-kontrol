@@ -474,4 +474,7 @@ app.post('/api/control-items/:id/reject', async (req, res) => {
   }
 });
 
+// WhatsApp API'sini dahil et
+require('./whatsapp')(app);
+
 module.exports = app; 
