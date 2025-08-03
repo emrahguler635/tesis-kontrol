@@ -13,9 +13,20 @@ export function Navbar() {
   const [notifOpen, setNotifOpen] = useState(false)
   const [remainingTime, setRemainingTime] = useState<string>('')
   const [forceUpdate, setForceUpdate] = useState(0)
+  const [logo, setLogo] = useState('/logo.svg')
 
-  // Logo'yu sabit olarak sunucudan çek
-  const logo = '/logo.svg';
+  // Logo değişikliklerini dinle
+  useEffect(() => {
+    const handleLogoChange = (event: CustomEvent) => {
+      setLogo(event.detail.logo);
+    };
+
+    window.addEventListener('logoChanged', handleLogoChange as EventListener);
+
+    return () => {
+      window.removeEventListener('logoChanged', handleLogoChange as EventListener);
+    };
+  }, []);
 
   // Force update için
   useEffect(() => {

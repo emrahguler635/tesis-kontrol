@@ -40,6 +40,9 @@ export function Settings() {
     // Favicon'u da güncelle
     updateFavicon(logoPath);
     
+    // Tüm bileşenlere logo değişikliği bildirimi gönder
+    window.dispatchEvent(new CustomEvent('logoChanged', { detail: { logo: logoPath } }));
+    
     setUploadMsg('Mevcut logo kullanılıyor!');
     
     // 3 saniye sonra mesajı temizle
@@ -136,6 +139,9 @@ export function Settings() {
         // Favicon'u da güncelle
         updateFavicon(result);
         
+        // Tüm bileşenlere logo değişikliği bildirimi gönder
+        window.dispatchEvent(new CustomEvent('logoChanged', { detail: { logo: result } }));
+        
         setUploadMsg('Logo başarıyla yüklendi!');
         
         // 3 saniye sonra mesajı temizle
@@ -184,6 +190,9 @@ export function Settings() {
     
     // Favicon'u da temizle
     updateFavicon('/vite.svg');
+    
+    // Tüm bileşenlere logo değişikliği bildirimi gönder
+    window.dispatchEvent(new CustomEvent('logoChanged', { detail: { logo: '/vite.svg' } }));
     
     setUploadMsg('Logo temizlendi!');
     setTimeout(() => setUploadMsg(''), 3000);

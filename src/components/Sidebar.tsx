@@ -16,8 +16,21 @@ const Sidebar: React.FC = () => {
   const { user } = useAuthStore();
   const userPermissions = user?.permissions || [];
   
-  // Logo'yu sabit olarak sunucudan çek
-  const logo = '/logo.svg';
+  // Logo'yu state olarak tut
+  const [logo, setLogo] = useState('/logo.svg');
+  
+  // Logo değişikliklerini dinle
+  useEffect(() => {
+    const handleLogoChange = (event: CustomEvent) => {
+      setLogo(event.detail.logo);
+    };
+
+    window.addEventListener('logoChanged', handleLogoChange as EventListener);
+
+    return () => {
+      window.removeEventListener('logoChanged', handleLogoChange as EventListener);
+    };
+  }, []);
   
   // Menü sırasını localStorage'dan al
   const getMenuItems = () => {
