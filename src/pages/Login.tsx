@@ -90,8 +90,20 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4">
-      <div className="w-full max-w-md">
+    <div 
+      className="min-h-screen flex items-center justify-center p-4 relative"
+      style={{
+        backgroundImage: 'url(/background.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed'
+      }}
+    >
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
+      
+      <div className="w-full max-w-md relative z-10">
         {/* Logo ve Başlık Bölümü */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center w-24 h-24 rounded-full bg-white shadow-lg mx-auto mb-6 border-4 border-blue-100">
