@@ -14,21 +14,47 @@ interface AuthState {
   isAuthenticated: boolean;
   login: (user: User) => void;
   logout: () => void;
+  checkAuth: () => boolean;
+  clearAuth: () => void;
 }
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set) => ({
-      user: null,
-      isAuthenticated: false,
-      login: (user) => set({ user, isAuthenticated: true }),
-      logout: () => set({ user: null, isAuthenticated: false }),
-    }),
-    {
-      name: 'auth-storage',
-    }
-  )
-);
+export const useAuthStore = create<AuthState>()((set, get) => ({
+  user: null,
+  isAuthenticated: false,
+  login: (user) => {
+    // Sadece memory'de tut, storage'a kaydetme
+    set({ user, isAuthenticated: true });
+  },
+  logout: () => {
+    // Memory'den temizle
+    set({ user: null, isAuthenticated: false });
+  },
+  checkAuth: () => {
+    // Oturum kontrolü - sadece memory'deki durumu kontrol et
+    const state = get();
+    return state.isAuthenticated && state.user !== null;
+  },
+  clearAuth: () => {
+    // Tüm oturum verilerini temizle
+    set({ user: null, isAuthenticated: false });
+  },
+}));
+
+// Sayfa yüklendiğinde kesinlikle oturumu temizle
+if (typeof window !== 'undefined') {
+  // Eski oturum verilerini temizle
+  sessionStorage.removeItem('auth-user');
+  sessionStorage.removeItem('auth-authenticated');
+  localStorage.removeItem('auth-storage');
+  localStorage.removeItem('auth-user');
+  localStorage.removeItem('auth-authenticated');
+  
+  // Zustand store'u da temizle
+  useAuthStore.getState().clearAuth();
+  
+  // Debug için log
+  console.log('🔒 Oturum temizlendi - Login sayfasına yönlendirilecek');
+}
 
 // Kontrol periyotları için enum
 type Period = 'daily' | 'weekly' | 'monthly' | 'yearly';

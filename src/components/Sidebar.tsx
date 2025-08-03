@@ -28,8 +28,8 @@ const Sidebar: React.FC = () => {
       if (sessionLogo && sessionLogo !== '/vite.svg') return sessionLogo;
     }
     
-    // Hiçbiri yoksa null döndür
-    return null;
+    // Hiçbiri yoksa varsayılan logo
+    return '/logo.svg';
   }, []);
   
   // Menü sırasını localStorage'dan al

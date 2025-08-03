@@ -49,6 +49,9 @@ export const WeeklyChecks: React.FC = () => {
         apiService.getFacilities()
       ]);
       
+      console.log('Weekly Items:', weeklyItems);
+      console.log('Daily Items:', dailyItems);
+      
       // Onaylanmış günlük işleri filtrele
       const approvedDailyItems = dailyItems.filter(item => 
         item.approval_status === 'approved' || item.status === 'Tamamlandı'
@@ -56,6 +59,8 @@ export const WeeklyChecks: React.FC = () => {
       
       // Haftalık işler ve onaylanmış günlük işleri birleştir
       const allItems = [...weeklyItems, ...approvedDailyItems];
+      
+      console.log('All Items:', allItems);
       
       setItems(allItems);
       setFilteredItems(allItems);
@@ -151,7 +156,7 @@ export const WeeklyChecks: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     if (window.confirm('Bu işi silmek istediğinize emin misiniz?')) {
       try {
         await apiService.deleteControlItem(id);
@@ -384,72 +389,75 @@ export const WeeklyChecks: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredItems
-                  .sort((a, b) => (b.recordNo || 0) - (a.recordNo || 0))
-                  .map((item, index) => (
-                  <tr key={item.id} className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors duration-200">
-                    <td className="py-4 px-6">
-                      <div className="text-sm font-bold text-gray-600">
-                        {item.recordNo || index + 1}
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div>
-                        <div className="font-medium text-gray-900">{item.title}</div>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="max-w-xs">
-                        <span className="text-gray-700 text-sm">
-                          {item.description || 'Açıklama yok'}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <span className="text-blue-600 font-medium">{item.work_done || 'Belirtilmemiş'}</span>
-                    </td>
-                    <td className="py-4 px-6 text-gray-600">
-                      {format(new Date(item.date), 'dd.MM.yyyy', { locale: tr })}
-                    </td>
-                    <td className="py-4 px-6 text-gray-600">
-                      {item.completion_date ? format(new Date(item.completion_date), 'dd.MM.yyyy', { locale: tr }) : '-'}
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-2">
-                        <User className="h-4 w-4 text-gray-400" />
-                        <span className="text-gray-700">{item.user_name || item.user}</span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-2">
-                        <Building className="h-4 w-4 text-gray-400" />
-                        <span className="text-gray-700">{getFacilityName(item.facility_id?.toString() || '')}</span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium text-white ${getStatusColor(item.status)}`}>
-                        {getStatusIcon(item.status)}
-                        {getStatusText(item.status)}
-                      </span>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleEdit(item)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(item.id)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                                 {filteredItems
+                   .sort((a, b) => (b.id || 0) - (a.id || 0))
+                   .map((item, index) => {
+                     console.log('Item:', item, 'RecordNo:', item.recordNo, 'ID:', item.id);
+                     return (
+                      <tr key={item.id} className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors duration-200">
+                        <td className="py-4 px-6">
+                          <div className="text-sm font-bold text-gray-600">
+                            {item.recordNo || item.id || index + 1}
+                          </div>
+                        </td>
+                        <td className="py-4 px-6">
+                          <div>
+                            <div className="font-medium text-gray-900">{item.title}</div>
+                          </div>
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="max-w-xs">
+                            <span className="text-gray-700 text-sm">
+                              {item.description || 'Açıklama yok'}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="py-4 px-6">
+                          <span className="text-blue-600 font-medium">{item.work_done || 'Belirtilmemiş'}</span>
+                        </td>
+                        <td className="py-4 px-6 text-gray-600">
+                          {format(new Date(item.date), 'dd.MM.yyyy', { locale: tr })}
+                        </td>
+                        <td className="py-4 px-6 text-gray-600">
+                          {item.completion_date ? format(new Date(item.completion_date), 'dd.MM.yyyy', { locale: tr }) : '-'}
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4 text-gray-400" />
+                            <span className="text-gray-700">{item.user_name || item.user}</span>
+                          </div>
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="flex items-center gap-2">
+                            <Building className="h-4 w-4 text-gray-400" />
+                            <span className="text-gray-700">{getFacilityName(item.facility_id?.toString() || '')}</span>
+                          </div>
+                        </td>
+                        <td className="py-4 px-6">
+                          <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium text-white ${getStatusColor(item.status)}`}>
+                            {getStatusIcon(item.status)}
+                            {getStatusText(item.status)}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleEdit(item)}
+                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(item.id as number)}
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
               </tbody>
             </table>
           </div>

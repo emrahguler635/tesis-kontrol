@@ -19,6 +19,24 @@ export function Settings() {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [uploadMsg, setUploadMsg] = useState('');
 
+  // Mevcut logo dosyasını kullan
+  const useExistingLogo = () => {
+    const logoPath = '/logo.svg';
+    setLogo(logoPath);
+    
+    // Hem localStorage hem sessionStorage'a kaydet
+    localStorage.setItem('appLogo', logoPath);
+    sessionStorage.setItem('appLogo', logoPath);
+    
+    // Favicon'u da güncelle
+    updateFavicon(logoPath);
+    
+    setUploadMsg('Mevcut logo kullanılıyor!');
+    
+    // 3 saniye sonra mesajı temizle
+    setTimeout(() => setUploadMsg(''), 3000);
+  };
+
   // Menü sırası için state
   const [menuItems, setMenuItems] = useState(() => {
     const savedOrder = localStorage.getItem('menuOrder');
@@ -227,7 +245,22 @@ export function Settings() {
       <Card>
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Logo Yükle</h2>
         <div className="space-y-4">
-          <input type="file" accept="image/*" onChange={handleLogoChange} />
+          <div className="flex gap-2 mb-4">
+            <button
+              onClick={useExistingLogo}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+            >
+              <Upload className="h-4 w-4" />
+              Mevcut Logo Kullan
+            </button>
+            <span className="text-sm text-gray-500 self-center">veya</span>
+            <label className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors cursor-pointer">
+              <Upload className="h-4 w-4" />
+              Yeni Logo Yükle
+              <input type="file" accept="image/*" onChange={handleLogoChange} className="hidden" />
+            </label>
+          </div>
+          
           {logo && (
             <div className="flex items-center space-x-4">
               <img src={logo} alt="Logo Önizleme" className="h-16 w-16 rounded shadow border" />

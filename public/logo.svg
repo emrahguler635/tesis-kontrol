@@ -1,0 +1,11 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Arka plan daire -->
+  <circle cx="32" cy="32" r="30" fill="#1e40af" stroke="#3b82f6" stroke-width="2"/>
+  
+  <!-- T harfi -->
+  <path d="M20 20h24v4H36v20h-8V24H20v-4z" fill="white"/>
+  
+  <!-- Ek dekoratif elementler -->
+  <circle cx="32" cy="32" r="8" fill="none" stroke="white" stroke-width="1" opacity="0.3"/>
+  <circle cx="32" cy="32" r="4" fill="none" stroke="white" stroke-width="1" opacity="0.5"/>
+</svg> 

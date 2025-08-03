@@ -33,25 +33,31 @@ const pagePermissions = {
 };
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, checkAuth } = useAuthStore();
   const location = useLocation();
   
-  if (!isAuthenticated) {
+  // Oturum kontrolü - daha sıkı kontrol
+  const isLoggedIn = isAuthenticated && user !== null && checkAuth() && user.id && user.username;
+  
+  // Debug için log
+  console.log('🔍 PrivateRoute Debug:', {
+    isAuthenticated,
+    hasUser: user !== null,
+    checkAuthResult: checkAuth(),
+    hasUserId: user?.id,
+    hasUsername: user?.username,
+    isLoggedIn,
+    currentPath: location.pathname
+  });
+  
+  if (!isLoggedIn) {
+    console.log('🔒 Oturum yok - Login sayfasına yönlendiriliyor');
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   // Sayfa yetki kontrolü
   const currentPath = location.pathname;
   const requiredPermission = pagePermissions[currentPath];
-  
-  // Debug için geçici log
-  console.log('🔍 PrivateRoute Debug:', {
-    currentPath,
-    requiredPermission,
-    userRole: user?.role,
-    userPermissions: user?.permissions,
-    isAuthenticated
-  });
   
   if (requiredPermission) {
     const userPermissions = user?.permissions || [];

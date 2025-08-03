@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { Bell, User, Settings, LogOut, ChevronDown } from 'lucide-react'
+import React, { useState, useMemo } from 'react'
+import { Bell, User, Settings, LogOut, ChevronDown, Image as ImageIcon } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store'
 
@@ -10,18 +10,44 @@ export function Navbar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
 
+  // Logo'yu localStorage ve sessionStorage'dan al
+  const logo = useMemo(() => {
+    if (typeof window !== 'undefined') {
+      // Önce localStorage'dan dene
+      const localLogo = localStorage.getItem('appLogo');
+      if (localLogo && localLogo !== '/vite.svg') return localLogo;
+      
+      // Yoksa sessionStorage'dan dene
+      const sessionLogo = sessionStorage.getItem('appLogo');
+      if (sessionLogo && sessionLogo !== '/vite.svg') return sessionLogo;
+    }
+    
+    // Hiçbiri yoksa varsayılan logo
+    return '/logo.svg';
+  }, []);
+
   return (
     <nav className="bg-gradient-to-r from-blue-600 to-indigo-700 shadow-lg relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <div className="flex-1 flex items-center justify-start">
-                          <h1
+          <div className="flex-1 flex items-center justify-start space-x-3">
+            {/* Logo */}
+            <div className="flex items-center space-x-3">
+              <div className="bg-white/20 rounded-full p-1 flex items-center justify-center">
+                {logo ? (
+                  <img src={logo} alt="Logo" className="h-8 w-8 object-contain rounded-full" />
+                ) : (
+                  <ImageIcon size={24} className="text-white" />
+                )}
+              </div>
+              <h1
                 className="text-xl md:text-2xl lg:text-3xl font-extrabold text-white tracking-wider drop-shadow-lg font-sans whitespace-pre-line text-left cursor-pointer select-none max-w-full break-words overflow-hidden"
                 style={{lineHeight: '1.2', maxWidth: '100%', wordBreak: 'break-word'}}
                 onClick={() => navigate('/')}
               >
-                WorkPulse – İş Nabzı
+                Tesis Kontrol Sistemi
               </h1>
+            </div>
           </div>
           <div className="flex items-center space-x-4">
             {/* Bildirim */}
