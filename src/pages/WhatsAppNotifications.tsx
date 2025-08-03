@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '../components/Card';
-import { api } from '../services/api';
+import { apiService } from '../services/api';
 import { 
   MessageSquare, 
   Smartphone, 
@@ -62,8 +62,8 @@ export function WhatsAppNotifications() {
   // WhatsApp durumunu kontrol et
   const checkStatus = async () => {
     try {
-      const response = await api.get('/whatsapp/status');
-      setStatus(response.data.data);
+      const response = await apiService.request('/whatsapp/status');
+      setStatus(response.data);
     } catch (error) {
       console.error('WhatsApp durumu alınamadı:', error);
     }
@@ -86,16 +86,19 @@ export function WhatsAppNotifications() {
     setLoading(true);
     try {
       const numbers = phoneNumbers.split(',').map(n => n.trim());
-      const response = await api.post('/whatsapp/send', {
-        phoneNumber: numbers[0],
-        message: message
+      const response = await apiService.request('/whatsapp/send', {
+        method: 'POST',
+        body: JSON.stringify({
+          phoneNumber: numbers[0],
+          message: message
+        })
       });
 
-      if (response.data.success) {
+      if (response.success) {
         alert('Mesaj başarıyla gönderildi!');
         setMessage('');
       } else {
-        alert('Mesaj gönderilemedi: ' + response.data.data.error);
+        alert('Mesaj gönderilemedi: ' + response.data.error);
       }
     } catch (error) {
       alert('Mesaj gönderilemedi!');
@@ -114,16 +117,19 @@ export function WhatsAppNotifications() {
     setLoading(true);
     try {
       const numbers = phoneNumbers.split(',').map(n => n.trim());
-      const response = await api.post('/whatsapp/send-bulk', {
-        phoneNumbers: numbers,
-        message: message
+      const response = await apiService.request('/whatsapp/send-bulk', {
+        method: 'POST',
+        body: JSON.stringify({
+          phoneNumbers: numbers,
+          message: message
+        })
       });
 
-      if (response.data.success) {
-        alert(`Toplu mesaj gönderildi! Başarılı: ${response.data.data.totalSent}, Başarısız: ${response.data.data.totalFailed}`);
+      if (response.success) {
+        alert(`Toplu mesaj gönderildi! Başarılı: ${response.data.totalSent}, Başarısız: ${response.data.totalFailed}`);
         setMessage('');
       } else {
-        alert('Toplu mesaj gönderilemedi: ' + response.data.data.error);
+        alert('Toplu mesaj gönderilemedi: ' + response.data.error);
       }
     } catch (error) {
       alert('Toplu mesaj gönderilemedi!');
@@ -142,15 +148,18 @@ export function WhatsAppNotifications() {
     setLoading(true);
     try {
       const numbers = phoneNumbers.split(',').map(n => n.trim());
-      const response = await api.post('/whatsapp/send-daily-notification', {
-        phoneNumbers: numbers,
-        workData: workData
+      const response = await apiService.request('/whatsapp/send-daily-notification', {
+        method: 'POST',
+        body: JSON.stringify({
+          phoneNumbers: numbers,
+          workData: workData
+        })
       });
 
-      if (response.data.success) {
-        alert(`Günlük iş programı bildirimi gönderildi! Başarılı: ${response.data.data.totalSent}, Başarısız: ${response.data.data.totalFailed}`);
+      if (response.success) {
+        alert(`Günlük iş programı bildirimi gönderildi! Başarılı: ${response.data.totalSent}, Başarısız: ${response.data.totalFailed}`);
       } else {
-        alert('Bildirim gönderilemedi: ' + response.data.data.error);
+        alert('Bildirim gönderilemedi: ' + response.data.error);
       }
     } catch (error) {
       alert('Bildirim gönderilemedi!');
@@ -169,15 +178,18 @@ export function WhatsAppNotifications() {
     setLoading(true);
     try {
       const numbers = phoneNumbers.split(',').map(n => n.trim());
-      const response = await api.post('/whatsapp/send-emergency', {
-        phoneNumbers: numbers,
-        emergencyData: emergencyData
+      const response = await apiService.request('/whatsapp/send-emergency', {
+        method: 'POST',
+        body: JSON.stringify({
+          phoneNumbers: numbers,
+          emergencyData: emergencyData
+        })
       });
 
-      if (response.data.success) {
-        alert(`Acil durum bildirimi gönderildi! Başarılı: ${response.data.data.totalSent}, Başarısız: ${response.data.data.totalFailed}`);
+      if (response.success) {
+        alert(`Acil durum bildirimi gönderildi! Başarılı: ${response.data.totalSent}, Başarısız: ${response.data.totalFailed}`);
       } else {
-        alert('Bildirim gönderilemedi: ' + response.data.data.error);
+        alert('Bildirim gönderilemedi: ' + response.data.error);
       }
     } catch (error) {
       alert('Bildirim gönderilemedi!');
