@@ -23,6 +23,14 @@
       "dest": "/dist/assets/$1"
     },
     {
+      "src": "/logo.svg",
+      "dest": "/public/logo.svg"
+    },
+    {
+      "src": "/belediye.jpg",
+      "dest": "/public/belediye.jpg"
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html"
     }
