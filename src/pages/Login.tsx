@@ -93,7 +93,7 @@ export function Login() {
     <div 
       className="min-h-screen flex items-center justify-center p-4 relative"
       style={{
-        backgroundImage: 'url(/background.jpg)',
+        backgroundImage: 'url(/belediye.jpg)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
