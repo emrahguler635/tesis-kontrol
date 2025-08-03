@@ -67,6 +67,7 @@ const Sidebar: React.FC = () => {
       { id: 'approvals', label: 'Onay Yönetimi', icon: '✅', to: '/approvals', enabled: true },
       { id: 'completed-works', label: 'Yapılan İşler', icon: '✅', to: '/completed-works', enabled: true },
       { id: 'user-management', label: 'Kullanıcı Yönetimi', icon: '👥', to: '/user-management', enabled: true },
+      { id: 'whatsapp', label: 'WhatsApp Bildirimleri', icon: '📱', to: '/whatsapp', enabled: true },
       { id: 'settings', label: 'Ayarlar', icon: '⚙️', to: '/settings', enabled: true },
     ];
   };

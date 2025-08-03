@@ -15,6 +15,7 @@ import UserManagement from './pages/UserManagement';
 import DataViewer from './pages/DataViewer';
 import Approvals from './pages/Approvals';
 import CompletedWorks from './pages/CompletedWorks';
+import { WhatsAppNotifications } from './pages/WhatsAppNotifications';
 
 // Sayfa yetki kontrolü için mapping
 const pagePermissions = {
@@ -29,7 +30,8 @@ const pagePermissions = {
   '/approvals': 'Onay Yönetimi',
   '/completed-works': 'Yapılan İşler',
   '/settings': 'Ayarlar',
-  '/user-management': 'Kullanıcı Yönetimi'
+  '/user-management': 'Kullanıcı Yönetimi',
+  '/whatsapp': 'WhatsApp Bildirimleri'
 };
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -105,6 +107,7 @@ function App() {
                   <Route path="/data-control" element={<DataViewer />} />
                   <Route path="/approvals" element={<Approvals />} />
                   <Route path="/completed-works" element={<CompletedWorks />} />
+                  <Route path="/whatsapp" element={<WhatsAppNotifications />} />
                 </Routes>
               </Layout>
             </PrivateRoute>
