@@ -91,7 +91,7 @@ export function Navbar() {
             {/* Logo */}
             <div className="flex items-center space-x-3">
               <div className="bg-white/20 rounded-full p-1 flex items-center justify-center">
-                <img src={logo} alt="Logo" className="h-8 w-8 object-contain rounded-full" />
+                <img src={logo} alt="Logo" className="h-10 w-16 object-contain rounded-full" />
               </div>
               <h1
                 className="text-xl md:text-2xl lg:text-3xl font-extrabold text-white tracking-wider drop-shadow-lg font-sans whitespace-pre-line text-left cursor-pointer select-none max-w-full break-words overflow-hidden"
