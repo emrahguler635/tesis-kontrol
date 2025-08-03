@@ -2,10 +2,6 @@
   "version": 2,
   "builds": [
     {
-      "src": "backend/server-postgres.js",
-      "use": "@vercel/node"
-    },
-    {
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
@@ -15,17 +11,12 @@
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "/backend/server-postgres.js"
-    },
-    {
-      "src": "/assets/(.*)",
-      "dest": "/dist/assets/$1"
-    },
-    {
       "src": "/(.*)",
       "dest": "/index.html"
     }
   ],
+  "env": {
+    "CACHE_BUST": "2025-08-03-21-00"
+  },
   "alias": ["tesis-kontrol.vercel.app"]
 } 
