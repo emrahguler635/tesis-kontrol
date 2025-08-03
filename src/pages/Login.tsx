@@ -91,17 +91,13 @@ export function Login() {
 
   return (
     <div 
-      className="min-h-screen flex items-center justify-center p-4 relative"
+      className="min-h-screen flex items-center justify-center p-4 relative bg-cover bg-center bg-no-repeat bg-fixed"
       style={{
-        backgroundImage: 'url(/belediye.jpg)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed'
+        backgroundImage: 'url(/belediye.jpg)'
       }}
     >
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm"></div>
       
       <div className="w-full max-w-md relative z-10">
         {/* Logo ve Başlık Bölümü */}
