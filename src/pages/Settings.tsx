@@ -258,11 +258,11 @@ export function Settings() {
         <h1 className="text-2xl font-bold text-gray-900">Ayarlar</h1>
       </div>
 
-      {/* Oturum Süresi Ayarları */}
+      {/* Oturum Süresi Ayarları - En üstte */}
       <Card>
         <div className="flex items-center gap-2 mb-4">
           <Clock className="h-5 w-5 text-blue-600" />
-          <h2 className="text-lg font-semibold text-gray-900">Oturum Süresi</h2>
+          <h2 className="text-lg font-semibold text-gray-900">⏰ Oturum Süresi Ayarları</h2>
         </div>
         <div className="space-y-4">
           <div className="flex items-center space-x-4">

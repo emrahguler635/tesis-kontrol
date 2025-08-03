@@ -48,11 +48,13 @@ const Sidebar: React.FC = () => {
   };
 
   const [menuItems, setMenuItems] = useState(getMenuItems());
+  const [forceUpdate, setForceUpdate] = useState(0);
 
   // Menü değişikliklerini dinle
   useEffect(() => {
     const handleMenuOrderChange = () => {
       setMenuItems(getMenuItems());
+      setForceUpdate(prev => prev + 1); // Force update
     };
 
     // localStorage değişikliklerini dinle
@@ -60,6 +62,9 @@ const Sidebar: React.FC = () => {
     
     // Custom event dinle
     window.addEventListener('menuOrderChanged', handleMenuOrderChange);
+
+    // Sayfa yüklendiğinde de güncelle
+    handleMenuOrderChange();
 
     return () => {
       window.removeEventListener('storage', handleMenuOrderChange);

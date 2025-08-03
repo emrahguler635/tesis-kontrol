@@ -12,9 +12,18 @@ export function Navbar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
   const [remainingTime, setRemainingTime] = useState<string>('')
+  const [forceUpdate, setForceUpdate] = useState(0)
 
   // Logo'yu sabit olarak sunucudan çek
   const logo = '/logo.svg';
+
+  // Force update için
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setForceUpdate(prev => prev + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Kalan oturum süresini hesapla
   useEffect(() => {
