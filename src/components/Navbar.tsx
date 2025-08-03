@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react'
-import { Bell, User, Settings, LogOut, ChevronDown, Image as ImageIcon } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { Bell, User, Settings, LogOut, ChevronDown, Image as ImageIcon, Clock } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store'
 
@@ -7,11 +7,39 @@ export function Navbar() {
   const navigate = useNavigate()
   const logout = useAuthStore(s => s.logout)
   const user = useAuthStore(s => s.user)
+  const loginTime = useAuthStore(s => s.loginTime)
+  const sessionTimeout = useAuthStore(s => s.sessionTimeout)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
+  const [remainingTime, setRemainingTime] = useState<string>('')
 
   // Logo'yu sabit olarak sunucudan çek
   const logo = '/logo.svg';
+
+  // Kalan oturum süresini hesapla
+  useEffect(() => {
+    const updateRemainingTime = () => {
+      if (!loginTime) return;
+      
+      const currentTime = Date.now();
+      const timeDiff = currentTime - loginTime;
+      const remaining = sessionTimeout - timeDiff;
+      
+      if (remaining <= 0) {
+        setRemainingTime('Oturum süresi doldu');
+        return;
+      }
+      
+      const minutes = Math.floor(remaining / 60000);
+      const seconds = Math.floor((remaining % 60000) / 1000);
+      setRemainingTime(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+    };
+
+    updateRemainingTime();
+    const interval = setInterval(updateRemainingTime, 1000);
+
+    return () => clearInterval(interval);
+  }, [loginTime, sessionTimeout]);
 
   return (
     <nav className="bg-gradient-to-r from-blue-600 to-indigo-700 shadow-lg relative">
@@ -33,6 +61,14 @@ export function Navbar() {
             </div>
           </div>
           <div className="flex items-center space-x-4">
+            {/* Oturum Süresi */}
+            {loginTime && (
+              <div className="flex items-center space-x-2 text-white text-sm">
+                <Clock className="h-4 w-4" />
+                <span className="font-medium">Oturum: {remainingTime}</span>
+              </div>
+            )}
+            
             {/* Bildirim */}
             <div className="relative">
               <button 

@@ -33,11 +33,14 @@ const pagePermissions = {
 };
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, user, checkAuth } = useAuthStore();
+  const { isAuthenticated, user, checkAuth, checkSessionTimeout } = useAuthStore();
   const location = useLocation();
   
+  // Oturum süresi kontrolü
+  const isSessionExpired = checkSessionTimeout();
+  
   // Oturum kontrolü - daha sıkı kontrol
-  const isLoggedIn = isAuthenticated && user !== null && checkAuth() && user.id && user.username;
+  const isLoggedIn = isAuthenticated && user !== null && checkAuth() && user.id && user.username && !isSessionExpired;
   
   // Debug için log
   console.log('🔍 PrivateRoute Debug:', {
@@ -47,11 +50,12 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
     hasUserId: user?.id,
     hasUsername: user?.username,
     isLoggedIn,
+    isSessionExpired,
     currentPath: location.pathname
   });
   
   if (!isLoggedIn) {
-    console.log('🔒 Oturum yok - Login sayfasına yönlendiriliyor');
+    console.log('🔒 Oturum yok veya süresi dolmuş - Login sayfasına yönlendiriliyor');
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
