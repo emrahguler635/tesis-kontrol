@@ -13,7 +13,18 @@ export function Navbar() {
   const [notifOpen, setNotifOpen] = useState(false)
   const [remainingTime, setRemainingTime] = useState<string>('')
   const [forceUpdate, setForceUpdate] = useState(0)
-  const [logo, setLogo] = useState('/logo.svg')
+  const [logo, setLogo] = useState(() => {
+    // Önce localStorage'dan dene
+    const storedLogo = localStorage.getItem('appLogo');
+    if (storedLogo) return storedLogo;
+    
+    // Yoksa sessionStorage'dan dene
+    const sessionLogo = sessionStorage.getItem('appLogo');
+    if (sessionLogo) return sessionLogo;
+    
+    // Hiçbiri yoksa varsayılan logo
+    return '/logo.svg';
+  })
 
   // Logo değişikliklerini dinle
   useEffect(() => {

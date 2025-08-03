@@ -15,7 +15,7 @@ export function Settings() {
     if (sessionLogo) return sessionLogo;
     
     // Hiçbiri yoksa varsayılan logo
-    return '/vite.svg';
+    return '/logo.svg';
   });
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [uploadMsg, setUploadMsg] = useState('');
@@ -184,15 +184,15 @@ export function Settings() {
 
   // Logo'yu temizle
   const handleClearLogo = () => {
-    setLogo('/vite.svg');
+    setLogo('/logo.svg');
     localStorage.removeItem('appLogo');
     sessionStorage.removeItem('appLogo');
     
     // Favicon'u da temizle
-    updateFavicon('/vite.svg');
+    updateFavicon('/logo.svg');
     
     // Tüm bileşenlere logo değişikliği bildirimi gönder
-    window.dispatchEvent(new CustomEvent('logoChanged', { detail: { logo: '/vite.svg' } }));
+    window.dispatchEvent(new CustomEvent('logoChanged', { detail: { logo: '/logo.svg' } }));
     
     setUploadMsg('Logo temizlendi!');
     setTimeout(() => setUploadMsg(''), 3000);
