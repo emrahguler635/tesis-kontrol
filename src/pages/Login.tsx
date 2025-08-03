@@ -77,23 +77,24 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative">
-      {/* Arka plan resmi */}
-      <img 
-        src={`/belediye.jpg?v=${Date.now()}`}
-        alt="Arka plan"
-        className="absolute inset-0 w-full h-full object-cover"
-        style={{ zIndex: -2 }}
-      />
-      
+    <div
+      className="min-h-screen flex items-center justify-center p-4 relative"
+      style={{
+        backgroundImage: `url(/belediye.jpg?v=${Date.now()})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed'
+      }}
+    >
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" style={{ zIndex: -1 }}></div>
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm"></div>
       
       <div className="w-full max-w-md relative z-10">
         {/* Logo ve Başlık Bölümü */}
         <div className="text-center mb-8 mt-4">
           <div className="flex items-center justify-center w-48 h-40 rounded-full bg-white shadow-lg mx-auto mb-12 border-4 border-blue-100">
-            <img src={`/logo.svg?v=${Date.now()}`} alt="Logo" className="w-44 h-36 object-contain" />
+            <img src={`/logo.svg?v=${Date.now()}&cb=${Math.random()}`} alt="Logo" className="w-44 h-36 object-contain" />
           </div>
           <h1 className="text-4xl font-extrabold text-white mb-8 drop-shadow-2xl tracking-wider whitespace-nowrap">
             WorkPulse – İş Nabzı
