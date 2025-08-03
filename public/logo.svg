@@ -1,23 +1,33 @@
-<svg width="200" height="100" viewBox="0 0 200 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="200" height="120" viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg">
   <!-- Beyaz arka plan daire -->
-  <circle cx="60" cy="50" r="45" fill="white" stroke="#e5e7eb" stroke-width="2"/>
+  <circle cx="60" cy="60" r="50" fill="white" stroke="#e5e7eb" stroke-width="3"/>
   
-  <!-- Mavi B harfi ve buğday motifleri -->
-  <g transform="translate(25, 15)">
-    <!-- B harfi -->
-    <path d="M15 10h20v6H20v8h12v6H20v8h15v6H15V10z" fill="#1e40af"/>
-    
-    <!-- Buğday başakları (stilize edilmiş) -->
-    <path d="M25 5c0-2 2-4 4-4s4 2 4 4c0 2-2 4-4 4s-4-2-4-4z" fill="#fbbf24"/>
-    <path d="M35 8c0-1.5 1.5-3 3-3s3 1.5 3 3c0 1.5-1.5 3-3 3s-3-1.5-3-3z" fill="#fbbf24"/>
-    <path d="M45 12c0-1 1-2 2-2s2 1 2 2c0 1-1 2-2 2s-2-1-2-2z" fill="#fbbf24"/>
+  <!-- 1992 tarihi -->
+  <text x="25" y="45" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#1e40af">1992</text>
+  
+  <!-- Mavi B harfi -->
+  <path d="M35 25h30v8H42v10h18v8H42v10h23v8H35V25z" fill="#1e40af"/>
+  
+  <!-- Buğday başağı (B harfinin solunda) -->
+  <g transform="translate(25, 20)">
+    <!-- Ana sap -->
+    <line x1="0" y1="0" x2="0" y2="25" stroke="#fbbf24" stroke-width="2"/>
+    <!-- Başak taneleri -->
+    <circle cx="0" cy="5" r="2" fill="#fbbf24"/>
+    <circle cx="0" cy="10" r="2" fill="#fbbf24"/>
+    <circle cx="0" cy="15" r="2" fill="#fbbf24"/>
+    <circle cx="0" cy="20" r="2" fill="#fbbf24"/>
+    <!-- Yan dallar -->
+    <line x1="0" y1="8" x2="-8" y2="8" stroke="#fbbf24" stroke-width="1"/>
+    <line x1="0" y1="12" x2="-6" y2="12" stroke="#fbbf24" stroke-width="1"/>
+    <line x1="0" y1="16" x2="-4" y2="16" stroke="#fbbf24" stroke-width="1"/>
   </g>
   
   <!-- BAĞCILAR BELEDİYESİ yazısı -->
-  <text x="120" y="35" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#1e40af">BAĞCILAR</text>
-  <text x="120" y="55" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#1e40af">BELEDİYESİ</text>
+  <text x="120" y="40" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1e40af">BAĞCILAR</text>
+  <text x="120" y="60" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1e40af">BELEDİYESİ</text>
   
-  <!-- Dekoratif çizgiler -->
-  <line x1="110" y1="65" x2="180" y2="65" stroke="#1e40af" stroke-width="2"/>
-  <line x1="110" y1="70" x2="160" y2="70" stroke="#1e40af" stroke-width="1"/>
+  <!-- Alt çizgiler -->
+  <line x1="110" y1="75" x2="180" y2="75" stroke="#1e40af" stroke-width="2"/>
+  <line x1="110" y1="80" x2="160" y2="80" stroke="#1e40af" stroke-width="1"/>
 </svg> 
