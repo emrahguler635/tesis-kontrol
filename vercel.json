@@ -28,7 +28,7 @@
     }
   ],
   "env": {
-    "CACHE_BUST": "2025-08-03-21-05"
+    "CACHE_BUST": "2025-08-03-21-50"
   },
   "alias": ["tesis-kontrol.vercel.app"]
 } 
