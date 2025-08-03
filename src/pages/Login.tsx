@@ -94,11 +94,7 @@ export function Login() {
         {/* Logo ve Başlık Bölümü */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center w-24 h-24 rounded-full bg-white shadow-lg mx-auto mb-6 border-4 border-blue-100">
-            {logo ? (
-              <img src={logo} alt="Logo" className="w-16 h-16 object-contain" />
-            ) : (
-              <ImageIcon className="w-16 h-16 text-blue-400" />
-            )}
+            <img src="/logo.svg" alt="Logo" className="w-16 h-16 object-contain" />
           </div>
           <h1 className="text-3xl font-bold text-gray-800 mb-2">
             WorkPulse – İş Nabzı
