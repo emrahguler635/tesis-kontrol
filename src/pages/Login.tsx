@@ -13,21 +13,8 @@ export function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Logo'yu localStorage ve sessionStorage'dan al
-  const logo = useMemo(() => {
-    if (typeof window !== 'undefined') {
-      // Önce localStorage'dan dene
-      const localLogo = localStorage.getItem('appLogo');
-      if (localLogo && localLogo !== '/vite.svg') return localLogo;
-      
-      // Yoksa sessionStorage'dan dene
-      const sessionLogo = sessionStorage.getItem('appLogo');
-      if (sessionLogo && sessionLogo !== '/vite.svg') return sessionLogo;
-    }
-    
-    // Hiçbiri yoksa null döndür (varsayılan ikon gösterilecek)
-    return null;
-  }, []);
+  // Logo'yu doğrudan al
+  const logo = '/logo.svg';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
