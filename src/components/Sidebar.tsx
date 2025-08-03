@@ -16,21 +16,8 @@ const Sidebar: React.FC = () => {
   const { user } = useAuthStore();
   const userPermissions = user?.permissions || [];
   
-  // Logo'yu localStorage ve sessionStorage'dan al
-  const logo = React.useMemo(() => {
-    if (typeof window !== 'undefined') {
-      // Önce localStorage'dan dene
-      const localLogo = localStorage.getItem('appLogo');
-      if (localLogo && localLogo !== '/vite.svg') return localLogo;
-      
-      // Yoksa sessionStorage'dan dene
-      const sessionLogo = sessionStorage.getItem('appLogo');
-      if (sessionLogo && sessionLogo !== '/vite.svg') return sessionLogo;
-    }
-    
-    // Hiçbiri yoksa varsayılan logo
-    return '/logo.svg';
-  }, []);
+  // Logo'yu sabit olarak sunucudan çek
+  const logo = '/logo.svg';
   
   // Menü sırasını localStorage'dan al
   const getMenuItems = () => {
@@ -111,11 +98,7 @@ const Sidebar: React.FC = () => {
     <aside className="w-64 bg-white h-full shadow-md flex flex-col">
       <div className="flex flex-col items-center justify-center p-6 bg-gradient-to-r from-blue-700 to-blue-400 rounded-b-2xl shadow-md mb-2">
         <div className="bg-white rounded-full shadow-lg p-2 mb-2 flex items-center justify-center">
-          {logo ? (
-            <img src={logo} alt="Logo" className="h-14 w-14 object-contain rounded-full" />
-          ) : (
-            <ImageIcon size={48} className="text-blue-400" />
-          )}
+          <img src={logo} alt="Logo" className="h-14 w-14 object-contain rounded-full" />
         </div>
         <span className="text-white font-bold text-lg tracking-wide drop-shadow text-center select-none">Bağcılar Belediyesi</span>
       </div>
