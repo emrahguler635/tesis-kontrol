@@ -88,7 +88,7 @@ export function Login() {
       }}
     >
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm"></div>
+      <div className="absolute inset-0 bg-black/20"></div>
       
       <div className="w-full max-w-md relative z-10">
         {/* Logo ve Başlık Bölümü */}
