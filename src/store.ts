@@ -56,11 +56,22 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     const state = get();
     if (!state.isAuthenticated || !state.loginTime) return false;
     
+    // Session timeout değerini dinamik olarak al
+    const currentSessionTimeout = (() => {
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('sessionDuration');
+        if (saved) {
+          return parseInt(saved) * 60 * 1000;
+        }
+      }
+      return 30 * 60 * 1000;
+    })();
+    
     const currentTime = Date.now();
     const timeDiff = currentTime - state.loginTime;
     
     // Oturum süresi dolmuş mu kontrol et
-    if (timeDiff > state.sessionTimeout) {
+    if (timeDiff > currentSessionTimeout) {
       console.log('⏰ Oturum süresi doldu - Otomatik çıkış yapılıyor');
       state.logout();
       return true; // Süre doldu

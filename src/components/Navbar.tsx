@@ -41,9 +41,20 @@ export function Navbar() {
     const updateRemainingTime = () => {
       if (!loginTime) return;
       
+      // Session timeout değerini dinamik olarak al
+      const currentSessionTimeout = (() => {
+        if (typeof window !== 'undefined') {
+          const saved = localStorage.getItem('sessionDuration');
+          if (saved) {
+            return parseInt(saved) * 60 * 1000;
+          }
+        }
+        return 30 * 60 * 1000;
+      })();
+      
       const currentTime = Date.now();
       const timeDiff = currentTime - loginTime;
-      const remaining = sessionTimeout - timeDiff;
+      const remaining = currentSessionTimeout - timeDiff;
       
       if (remaining <= 0) {
         setRemainingTime('Oturum süresi doldu');
@@ -59,7 +70,7 @@ export function Navbar() {
     const interval = setInterval(updateRemainingTime, 1000);
 
     return () => clearInterval(interval);
-  }, [loginTime, sessionTimeout]);
+  }, [loginTime]);
 
   return (
     <nav className="bg-gradient-to-r from-blue-600 to-indigo-700 shadow-lg relative">
