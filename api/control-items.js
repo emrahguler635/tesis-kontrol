@@ -2,6 +2,7 @@
 let mockControlItems = [
   {
     id: 1,
+    recordNo: 100,
     title: 'Günlük Test İş 1',
     description: 'Günlük test açıklama',
     period: 'Günlük',
@@ -14,6 +15,7 @@ let mockControlItems = [
   },
   {
     id: 2,
+    recordNo: 99,
     title: 'Haftalık Test İş 1',
     description: 'Haftalık test açıklama',
     period: 'Haftalık',
@@ -26,6 +28,7 @@ let mockControlItems = [
   },
   {
     id: 3,
+    recordNo: 98,
     title: '1112222',
     description: 'aaaaaa',
     period: 'Günlük',
@@ -53,8 +56,10 @@ module.exports = (req, res) => {
   if (req.method === 'GET') {
     res.status(200).json(mockControlItems);
   } else if (req.method === 'POST') {
+    const newRecordNo = mockControlItems.length > 0 ? Math.max(...mockControlItems.map(item => item.recordNo || 0)) + 1 : 1;
     const newItem = {
       id: Date.now(),
+      recordNo: newRecordNo,
       ...req.body,
       created_at: new Date()
     };

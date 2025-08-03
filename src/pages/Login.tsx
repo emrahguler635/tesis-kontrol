@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useAuthStore } from '../store';
 import { useNavigate } from 'react-router-dom';
 import { User, Lock, Eye, EyeOff, Building2, Image as ImageIcon } from 'lucide-react';
+import { apiService } from '../services/api';
 
 export function Login() {
   const { login } = useAuthStore();
@@ -33,35 +34,52 @@ export function Login() {
     setError('');
     setLoading(true);
 
-    console.log('Login attempt:', { username, password });
-
     try {
-      // Basit login simülasyonu - gerçek uygulamada API çağrısı yapılır
-      if (username === 'admin' && password === 'admin') {
-        console.log('Login successful, calling login function...');
-        
+      // Gerçek API çağrısı yap
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+
+      // Debug için geçici log
+      console.log('🔍 Login Response:', data);
+
+      if (response.ok && data.success !== false) {
+        // Kullanıcı verilerini hazırla
         const userData = {
-          id: '1',
-          username: 'admin',
-          email: 'admin@example.com',
-          role: 'admin',
-          permissions: ['Ana Sayfa', 'Tesisler', 'Günlük İş Programı', 'Haftalık İşler', 'Raporlar', 'Mesaj Yönetimi', 'BağTV', 'Veri Kontrol', 'Ayarlar']
+          id: data.id || data.user?.id || '1',
+          username: data.username || data.user?.username || username,
+          email: data.email || data.user?.email || `${username}@example.com`,
+          role: data.role || data.user?.role || 'user',
+          permissions: data.permissions || data.user?.permissions || []
         };
         
-        console.log('User data:', userData);
+        // Admin kullanıcısı için tüm modülleri ekle
+        if (userData.role === 'admin') {
+          userData.permissions = [
+            'Ana Sayfa', 'Tesisler', 'Günlük İş Programı', 'Toplam Yapılan İşler', 
+            'Raporlar', 'Mesaj Yönetimi', 'BağTV', 'Veri Kontrol', 'Onay Yönetimi', 
+            'Yapılan İşler', 'Ayarlar', 'Kullanıcı Yönetimi'
+          ];
+        }
+        
+        // Debug için geçici log
+        console.log('🔍 User Data:', userData);
+        
         login(userData);
-        console.log('Login function called successfully');
         
         // Kısa bir gecikme ekleyelim
         setTimeout(() => {
-          console.log('Navigating to home page...');
           navigate('/');
         }, 100);
         
       } else {
-        console.log('Login failed: invalid credentials');
-        console.log('Expected: admin/admin, Got:', username + '/' + password);
-        setError('Kullanıcı adı veya şifre hatalı!');
+        setError(data.error || data.message || 'Kullanıcı adı veya şifre hatalı!');
       }
     } catch (error) {
       console.error('Login error:', error);

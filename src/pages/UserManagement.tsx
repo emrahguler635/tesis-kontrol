@@ -118,6 +118,9 @@ const UserManagement: React.FC = () => {
         role: 'user',
         permissions: ['Ana Sayfa']
       });
+      
+      // Kullanıcıya uyarı göster
+      alert('✅ Kullanıcı güncellendi!\n\n🔄 Sistem otomatik olarak güncellendi.\n\n⚠️ Değişikliklerin etkili olması için:\n1. Uygulamayı yeniden deploy edin\n2. Kullanıcıyı yeniden giriş yaptırın');
     } catch (error) {
       console.error('Kullanıcı güncellenirken hata:', error);
       alert('Kullanıcı güncellenirken bir hata oluştu.');
@@ -126,6 +129,21 @@ const UserManagement: React.FC = () => {
 
   const activeUsers = users.filter(user => user.role !== 'deleted').length;
   const adminUsers = users.filter(user => user.role === 'admin').length;
+
+  const modulePermissions = [
+    { key: 'Ana Sayfa', value: 'Ana Sayfa' },
+    { key: 'Tesisler', value: 'Tesisler' },
+    { key: 'Günlük İş Programı', value: 'Günlük İş Programı' },
+    { key: 'Toplam Yapılan İşler', value: 'Toplam Yapılan İşler' },
+    { key: 'Raporlar', value: 'Raporlar' },
+    { key: 'Mesaj Yönetimi', value: 'Mesaj Yönetimi' },
+    { key: 'BağTV', value: 'BağTV' },
+    { key: 'Veri Kontrol', value: 'Veri Kontrol' },
+    { key: 'Onay Yönetimi', value: 'Onay Yönetimi' },
+    { key: 'Yapılan İşler', value: 'Yapılan İşler' },
+    { key: 'Ayarlar', value: 'Ayarlar' },
+    { key: 'Kullanıcı Yönetimi', value: 'Kullanıcı Yönetimi' }
+  ];
 
   return (
     <div className="space-y-6">
@@ -349,7 +367,6 @@ const UserManagement: React.FC = () => {
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 >
-                  <option value="user">Kullanıcı</option>
                   <option value="admin">Admin</option>
                 </select>
               </div>
@@ -359,20 +376,7 @@ const UserManagement: React.FC = () => {
                   Modül Yetkileri
                 </label>
                 <div className="grid grid-cols-2 gap-3">
-                  {[
-                    { key: 'Ana Sayfa', value: 'Ana Sayfa' },
-                    { key: 'Tesisler', value: 'Tesisler' },
-                    { key: 'Günlük İş Programı', value: 'Günlük İş Programı' },
-                    { key: 'Haftalık İşler', value: 'Haftalık İşler' },
-                    { key: 'Aylık İşler', value: 'Aylık İşler' },
-                    { key: 'Yıllık İşler', value: 'Yıllık İşler' },
-                    { key: 'Mesaj Yönetimi', value: 'Mesaj Yönetimi' },
-                    { key: 'BağTV', value: 'BağTV' },
-                    { key: 'Raporlar', value: 'Raporlar' },
-                    { key: 'Ayarlar', value: 'Ayarlar' },
-                    { key: 'Kullanıcı Yönetimi', value: 'Kullanıcı Yönetimi' },
-                    { key: 'Veri Kontrol', value: 'Veri Kontrol' }
-                  ].map(({ key, value }) => (
+                  {modulePermissions.map(({ key, value }) => (
                     <label key={key} className="flex items-center space-x-2">
                       <input
                         type="checkbox"
@@ -488,9 +492,8 @@ const UserManagement: React.FC = () => {
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 >
-                  <option value="user">Kullanıcı</option>
                   <option value="admin">Admin</option>
-                  </select>
+                </select>
               </div>
               
               <div>
@@ -498,20 +501,7 @@ const UserManagement: React.FC = () => {
                   Modül Yetkileri
                 </label>
                 <div className="grid grid-cols-2 gap-3">
-                  {[
-                    { key: 'Ana Sayfa', value: 'Ana Sayfa' },
-                    { key: 'Tesisler', value: 'Tesisler' },
-                    { key: 'Günlük İş Programı', value: 'Günlük İş Programı' },
-                    { key: 'Haftalık İşler', value: 'Haftalık İşler' },
-                    { key: 'Aylık İşler', value: 'Aylık İşler' },
-                    { key: 'Yıllık İşler', value: 'Yıllık İşler' },
-                    { key: 'Mesaj Yönetimi', value: 'Mesaj Yönetimi' },
-                    { key: 'BağTV', value: 'BağTV' },
-                    { key: 'Raporlar', value: 'Raporlar' },
-                    { key: 'Ayarlar', value: 'Ayarlar' },
-                    { key: 'Kullanıcı Yönetimi', value: 'Kullanıcı Yönetimi' },
-                    { key: 'Veri Kontrol', value: 'Veri Kontrol' }
-                  ].map(({ key, value }) => (
+                  {modulePermissions.map(({ key, value }) => (
                     <label key={key} className="flex items-center space-x-2">
                       <input
                         type="checkbox"

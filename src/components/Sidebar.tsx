@@ -14,6 +14,7 @@ interface User {
 
 const Sidebar: React.FC = () => {
   const { user } = useAuthStore();
+  const userPermissions = user?.permissions || [];
   
   // Logo'yu localStorage ve sessionStorage'dan al
   const logo = React.useMemo(() => {
@@ -31,9 +32,6 @@ const Sidebar: React.FC = () => {
     return null;
   }, []);
   
-  // Kullanıcının yetkilerini kontrol et
-  const userPermissions = user?.permissions || [];
-
   // Menü sırasını localStorage'dan al
   const getMenuItems = () => {
     const savedOrder = localStorage.getItem('menuOrder');
@@ -50,31 +48,34 @@ const Sidebar: React.FC = () => {
       { id: 'home', label: 'Ana Sayfa', icon: '🏠', to: '/', enabled: true },
       { id: 'facilities', label: 'Tesisler', icon: '🏢', to: '/tesisler', enabled: true },
       { id: 'daily', label: 'Günlük İş Programı', icon: '📅', to: '/gunluk', enabled: true },
-      { id: 'weekly', label: 'Toplam Yapılan İşler', icon: '⏰', to: '/haftalik', enabled: true },
+      { id: 'weekly', label: 'Haftalık İşler', icon: '⏰', to: '/haftalik', enabled: true },
       { id: 'reports', label: 'Raporlar', icon: '📊', to: '/raporlar', enabled: true },
       { id: 'messages', label: 'Mesaj Yönetimi', icon: '💬', to: '/mesaj-takip', enabled: true },
       { id: 'bagtv', label: 'BağTV', icon: '📺', to: '/bagtv', enabled: true },
       { id: 'data-viewer', label: 'Veri Kontrol', icon: '🗄️', to: '/data-viewer', enabled: true },
-      { id: 'approvals', label: 'Onay Yönetimi', icon: '✅', to: '/approvals', enabled: true },
-      { id: 'completed-works', label: 'Yapılan İşler', icon: '✅', to: '/completed-works', enabled: true },
       { id: 'user-management', label: 'Kullanıcı Yönetimi', icon: '👥', to: '/user-management', enabled: true },
       { id: 'settings', label: 'Ayarlar', icon: '⚙️', to: '/ayarlar', enabled: true },
     ];
   };
 
-  const [menuItems, setMenuItems] = useState(getMenuItems());
+  const menuItems = [
+    { id: 'dashboard', label: 'Ana Sayfa', icon: '🏠', to: '/', enabled: true },
+    { id: 'facilities', label: 'Tesisler', icon: '🏢', to: '/facilities', enabled: true },
+    { id: 'daily', label: 'Günlük İş Programı', icon: '📋', to: '/daily-checks', enabled: true },
+    { id: 'weekly', label: 'Toplam Yapılan İşler', icon: '⏰', to: '/haftalik', enabled: true },
+    { id: 'reports', label: 'Raporlar', icon: '📈', to: '/reports', enabled: true },
+    { id: 'messages', label: 'Mesaj Yönetimi', icon: '💬', to: '/messages', enabled: true },
+    { id: 'bagtv', label: 'BağTV', icon: '📺', to: '/bagtv', enabled: true },
+    { id: 'data-control', label: 'Veri Kontrol', icon: '🔍', to: '/data-control', enabled: true },
+    { id: 'approvals', label: 'Onay Yönetimi', icon: '✅', to: '/approvals', enabled: true },
+    { id: 'completed-works', label: 'Yapılan İşler', icon: '✅', to: '/completed-works', enabled: true },
+    { id: 'settings', label: 'Ayarlar', icon: '⚙️', to: '/settings', enabled: true },
+    { id: 'user-management', label: 'Kullanıcı Yönetimi', icon: '👥', to: '/user-management', enabled: true }
+  ];
 
   // Menü değişikliklerini dinle
   useEffect(() => {
-    const handleMenuOrderChange = () => {
-      setMenuItems(getMenuItems());
-    };
-
-    window.addEventListener('menuOrderChanged', handleMenuOrderChange);
-    
-    return () => {
-      window.removeEventListener('menuOrderChanged', handleMenuOrderChange);
-    };
+    // Menü öğelerini güncelle
   }, []);
 
   // İkon mapping'i
@@ -97,14 +98,13 @@ const Sidebar: React.FC = () => {
 
   // Kullanıcının yetkilerine göre menü öğelerini filtrele
   const filteredMenuItems = menuItems.filter(item => {
-    // Etkin olmayan menüleri gizle
     if (!item.enabled) return false;
     
-    // Admin kullanıcısı tüm menüleri görebilir
+    // Admin kullanıcısı için tüm menüleri göster
     if (user?.role === 'admin') return true;
     
-    // Normal kullanıcılar sadece yetkili oldukları menüleri görebilir
-    return Array.isArray(userPermissions) && userPermissions.includes(item.label);
+    const hasPermission = Array.isArray(userPermissions) && userPermissions.includes(item.label);
+    return hasPermission;
   });
 
   return (

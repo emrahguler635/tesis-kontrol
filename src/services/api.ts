@@ -11,6 +11,7 @@ export interface Facility {
 // ControlItem type definition
 export interface ControlItem {
   id: number;
+  recordNo?: number; // Kayıt numarası
   title: string;
   description?: string;
   period: string;

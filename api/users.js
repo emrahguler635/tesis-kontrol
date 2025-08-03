@@ -1,3 +1,5 @@
+const { mockUsers, updateUser, addUser, deleteUser } = require('./shared-users');
+
 module.exports = (req, res) => {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -10,45 +12,6 @@ module.exports = (req, res) => {
     return;
   }
 
-  // Mock data for users
-  const mockUsers = [
-    {
-      id: 1,
-      username: 'admin',
-      email: 'admin@example.com',
-      role: 'admin',
-      created_at: new Date()
-    },
-    {
-      id: 2,
-      username: 'Ferhat Yilmaz',
-      email: 'ferhat@example.com',
-      role: 'user',
-      created_at: new Date()
-    },
-    {
-      id: 3,
-      username: 'emrah',
-      email: 'emrah@example.com',
-      role: 'user',
-      created_at: new Date()
-    },
-    {
-      id: 4,
-      username: 'Yasin Yıldız',
-      email: 'yasin@example.com',
-      role: 'user',
-      created_at: new Date()
-    },
-    {
-      id: 5,
-      username: 'Abdullah Özdemir',
-      email: 'abdullah@example.com',
-      role: 'user',
-      created_at: new Date()
-    }
-  ];
-
   if (req.method === 'GET') {
     res.status(200).json(mockUsers);
   } else if (req.method === 'POST') {
@@ -57,6 +20,7 @@ module.exports = (req, res) => {
       ...req.body,
       created_at: new Date()
     };
+    addUser(newUser);
     res.status(201).json(newUser);
   } else if (req.method === 'PUT') {
     const userId = req.url.split('/').pop();
@@ -65,8 +29,28 @@ module.exports = (req, res) => {
       ...req.body,
       created_at: new Date()
     };
+    
+    // Kullanıcı güncellemesi yapıldığında console'a detaylı log yazdır
+    console.log('🔧 Kullanıcı güncellendi:', updatedUser);
+    console.log('✅ Merkezi kullanıcı listesi güncellendi');
+    console.log('📋 Güncellenen kullanıcı bilgileri:');
+    console.log(`   - ID: ${updatedUser.id}`);
+    console.log(`   - Kullanıcı Adı: ${updatedUser.username}`);
+    console.log(`   - E-posta: ${updatedUser.email}`);
+    console.log(`   - Rol: ${updatedUser.role}`);
+    console.log(`   - Yetkiler: ${JSON.stringify(updatedUser.permissions)}`);
+    
+    // Merkezi listeyi güncelle
+    const success = updateUser(parseInt(userId), updatedUser);
+    if (success) {
+      console.log('✅ Merkezi kullanıcı listesi güncellendi');
+      console.log('🔄 Hem api/login.js hem de api/users.js aynı listeyi kullanıyor');
+    }
+    
     res.status(200).json(updatedUser);
   } else if (req.method === 'DELETE') {
+    const userId = req.url.split('/').pop();
+    const success = deleteUser(parseInt(userId));
     res.status(200).json({ message: 'User deleted successfully' });
   } else {
     res.status(405).json({ error: 'Method not allowed' });

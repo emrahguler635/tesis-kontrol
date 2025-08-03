@@ -16,12 +16,59 @@ import DataViewer from './pages/DataViewer';
 import Approvals from './pages/Approvals';
 import CompletedWorks from './pages/CompletedWorks';
 
+// Sayfa yetki kontrolü için mapping
+const pagePermissions = {
+  '/': 'Ana Sayfa',
+  '/facilities': 'Tesisler',
+  '/daily-checks': 'Günlük İş Programı',
+  '/haftalik': 'Toplam Yapılan İşler',
+  '/reports': 'Raporlar',
+  '/messages': 'Mesaj Yönetimi',
+  '/bagtv': 'BağTV',
+  '/data-control': 'Veri Kontrol',
+  '/approvals': 'Onay Yönetimi',
+  '/completed-works': 'Yapılan İşler',
+  '/settings': 'Ayarlar',
+  '/user-management': 'Kullanıcı Yönetimi'
+};
+
 function PrivateRoute({ children }: { children: React.ReactNode }) {
-  const isAuthenticated = useAuthStore(s => s.isAuthenticated);
+  const { isAuthenticated, user } = useAuthStore();
   const location = useLocation();
+  
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
+
+  // Sayfa yetki kontrolü
+  const currentPath = location.pathname;
+  const requiredPermission = pagePermissions[currentPath];
+  
+  // Debug için geçici log
+  console.log('🔍 PrivateRoute Debug:', {
+    currentPath,
+    requiredPermission,
+    userRole: user?.role,
+    userPermissions: user?.permissions,
+    isAuthenticated
+  });
+  
+  if (requiredPermission) {
+    const userPermissions = user?.permissions || [];
+    
+    // Admin kullanıcısı için tüm sayfalara erişim
+    if (user?.role === 'admin') {
+      console.log('✅ Admin erişimi - tüm sayfalar');
+      return <>{children}</>;
+    }
+    
+    if (!userPermissions.includes(requiredPermission)) {
+      console.log('❌ Yetki yok - ana sayfaya yönlendiriliyor');
+      return <Navigate to="/" replace />;
+    }
+    console.log('✅ Yetki var - sayfa gösteriliyor');
+  }
+
   return <>{children}</>;
 }
 
@@ -37,15 +84,15 @@ function App() {
               <Layout>
                 <Routes>
                   <Route path="/" element={<Dashboard />} />
-                  <Route path="/tesisler" element={<Facilities />} />
-                  <Route path="/gunluk" element={<DailyChecks />} />
+                  <Route path="/facilities" element={<Facilities />} />
+                  <Route path="/daily-checks" element={<DailyChecks />} />
                   <Route path="/haftalik" element={<WeeklyChecks />} />
-                  <Route path="/raporlar" element={<Reports />} />
-                  <Route path="/mesaj-takip" element={<Messages />} />
-                  <Route path="/ayarlar" element={<Settings />} />
+                  <Route path="/reports" element={<Reports />} />
+                  <Route path="/messages" element={<Messages />} />
+                  <Route path="/settings" element={<Settings />} />
                   <Route path="/bagtv" element={<BagTV />} />
                   <Route path="/user-management" element={<UserManagement />} />
-                  <Route path="/data-viewer" element={<DataViewer />} />
+                  <Route path="/data-control" element={<DataViewer />} />
                   <Route path="/approvals" element={<Approvals />} />
                   <Route path="/completed-works" element={<CompletedWorks />} />
                 </Routes>

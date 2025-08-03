@@ -52,7 +52,7 @@ export function Navbar() {
             {/* Ayarlar */}
             <button 
               className="p-2 text-white hover:text-blue-100 hover:bg-white/10 rounded-lg transition-all duration-200" 
-              onClick={() => navigate('/ayarlar')}
+              onClick={() => navigate('/settings')}
             >
               <Settings className="h-5 w-5" />
             </button>
