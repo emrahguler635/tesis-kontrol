@@ -193,6 +193,10 @@ export function Settings() {
   const saveMenuOrder = () => {
     try {
       localStorage.setItem('menuOrder', JSON.stringify(menuItems));
+      
+      // Sidebar'a bildirim gönder
+      window.dispatchEvent(new CustomEvent('menuOrderChanged'));
+      
       setMenuMsg('Menü sırası kaydedildi!');
       setTimeout(() => setMenuMsg(''), 3000);
     } catch (error) {
