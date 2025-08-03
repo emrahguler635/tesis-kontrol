@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '../components/Card';
-import { Upload, Trash2, CheckCircle, GripVertical, Save, RotateCcw } from 'lucide-react';
+import { Upload, Trash2, CheckCircle, GripVertical, Save, RotateCcw, Clock } from 'lucide-react';
+import { useAuthStore } from '../store';
 
 export function Settings() {
   // Logo yükleme için state
@@ -18,6 +19,14 @@ export function Settings() {
   });
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [uploadMsg, setUploadMsg] = useState('');
+
+  // Oturum süresi ayarları
+  const { sessionTimeout, resetSessionTimer } = useAuthStore();
+  const [sessionDuration, setSessionDuration] = useState(() => {
+    const saved = localStorage.getItem('sessionDuration');
+    return saved ? parseInt(saved) : 30; // Varsayılan 30 dakika
+  });
+  const [sessionMsg, setSessionMsg] = useState('');
 
   // Mevcut logo dosyasını kullan
   const useExistingLogo = () => {
@@ -37,11 +46,57 @@ export function Settings() {
     setTimeout(() => setUploadMsg(''), 3000);
   };
 
-  // Menü sırası için state
+  // Oturum süresini kaydet
+  const saveSessionDuration = () => {
+    localStorage.setItem('sessionDuration', sessionDuration.toString());
+    
+    // Store'u güncelle
+    const newTimeout = sessionDuration * 60 * 1000; // Dakikayı milisaniyeye çevir
+    useAuthStore.setState({ sessionTimeout: newTimeout });
+    
+    // Oturum süresini sıfırla
+    resetSessionTimer();
+    
+    setSessionMsg('Oturum süresi kaydedildi!');
+    setTimeout(() => setSessionMsg(''), 3000);
+  };
+
+  // Menü sırasını localStorage'dan al
+  const getMenuItems = () => {
+    const savedOrder = localStorage.getItem('menuOrder');
+    if (savedOrder) {
+      try {
+        return JSON.parse(savedOrder);
+      } catch (error) {
+        console.error('Menü sırası yüklenirken hata:', error);
+      }
+    }
+    
+    // Varsayılan menü sırası
+    return [
+      { id: 'home', label: 'Ana Sayfa', icon: '🏠', to: '/', enabled: true },
+      { id: 'facilities', label: 'Tesisler', icon: '🏢', to: '/facilities', enabled: true },
+      { id: 'daily', label: 'Günlük İş Programı', icon: '📅', to: '/daily-checks', enabled: true },
+      { id: 'weekly', label: 'Toplam Yapılan İşler', icon: '⏰', to: '/haftalik', enabled: true },
+      { id: 'reports', label: 'Raporlar', icon: '📊', to: '/reports', enabled: true },
+      { id: 'messages', label: 'Mesaj Yönetimi', icon: '💬', to: '/messages', enabled: true },
+      { id: 'bagtv', label: 'BağTV', icon: '📺', to: '/bagtv', enabled: true },
+      { id: 'data-control', label: 'Veri Kontrol', icon: '🗄️', to: '/data-control', enabled: true },
+      { id: 'approvals', label: 'Onay Yönetimi', icon: '✅', to: '/approvals', enabled: true },
+      { id: 'completed-works', label: 'Yapılan İşler', icon: '✅', to: '/completed-works', enabled: true },
+      { id: 'user-management', label: 'Kullanıcı Yönetimi', icon: '👥', to: '/user-management', enabled: true },
+      { id: 'settings', label: 'Ayarlar', icon: '⚙️', to: '/settings', enabled: true },
+    ];
+  };
+
   const [menuItems, setMenuItems] = useState(() => {
     const savedOrder = localStorage.getItem('menuOrder');
     if (savedOrder) {
-      return JSON.parse(savedOrder);
+      try {
+        return JSON.parse(savedOrder);
+      } catch (error) {
+        console.error('Menü sırası yüklenirken hata:', error);
+      }
     }
     
     // Varsayılan menü sırası
@@ -116,7 +171,6 @@ export function Settings() {
       // Sayfa başlığını da güncelle
       document.title = 'Tesis Kontrol Sistemi';
       
-      console.log('Favicon güncellendi:', logoData.substring(0, 50) + '...');
     } catch (error) {
       console.error('Favicon güncelleme hatası:', error);
     }
@@ -127,31 +181,19 @@ export function Settings() {
     setLogo('/vite.svg');
     localStorage.removeItem('appLogo');
     sessionStorage.removeItem('appLogo');
-    setLogoFile(null);
     
-    // Favicon'u da varsayılana döndür
-    const favicon = document.querySelector('link[rel="icon"]') as HTMLLinkElement;
-    if (favicon) {
-      favicon.href = '/vite.svg';
-      favicon.type = 'image/svg+xml';
-    }
+    // Favicon'u da temizle
+    updateFavicon('/vite.svg');
     
     setUploadMsg('Logo temizlendi!');
-    
     setTimeout(() => setUploadMsg(''), 3000);
   };
 
-  // Menü sırasını kaydet ve sidebar'ı güncelle
+  // Menü sırasını kaydet
   const saveMenuOrder = () => {
     try {
       localStorage.setItem('menuOrder', JSON.stringify(menuItems));
-      
-      // Sidebar'ı yeniden yüklemek için bir event tetikle
-      window.dispatchEvent(new CustomEvent('menuOrderChanged', { 
-        detail: { menuItems } 
-      }));
-      
-      setMenuMsg('Menü sırası başarıyla kaydedildi!');
+      setMenuMsg('Menü sırası kaydedildi!');
       setTimeout(() => setMenuMsg(''), 3000);
     } catch (error) {
       console.error('Menü sırası kaydedilirken hata:', error);
@@ -161,24 +203,10 @@ export function Settings() {
 
   // Menü sırasını sıfırla
   const resetMenuOrder = () => {
-    const defaultOrder = [
-      { id: 'home', label: 'Ana Sayfa', icon: '🏠', to: '/', enabled: true },
-      { id: 'facilities', label: 'Tesisler', icon: '🏢', to: '/facilities', enabled: true },
-      { id: 'daily', label: 'Günlük İş Programı', icon: '📅', to: '/daily-checks', enabled: true },
-      { id: 'weekly', label: 'Toplam Yapılan İşler', icon: '⏰', to: '/haftalik', enabled: true },
-      { id: 'reports', label: 'Raporlar', icon: '📊', to: '/reports', enabled: true },
-      { id: 'messages', label: 'Mesaj Yönetimi', icon: '💬', to: '/messages', enabled: true },
-      { id: 'bagtv', label: 'BağTV', icon: '📺', to: '/bagtv', enabled: true },
-      { id: 'data-control', label: 'Veri Kontrol', icon: '🗄️', to: '/data-control', enabled: true },
-      { id: 'approvals', label: 'Onay Yönetimi', icon: '✅', to: '/approvals', enabled: true },
-      { id: 'completed-works', label: 'Yapılan İşler', icon: '✅', to: '/completed-works', enabled: true },
-      { id: 'user-management', label: 'Kullanıcı Yönetimi', icon: '👥', to: '/user-management', enabled: true },
-      { id: 'settings', label: 'Ayarlar', icon: '⚙️', to: '/settings', enabled: true },
-    ];
-    
-    setMenuItems(defaultOrder);
+    const defaultItems = getMenuItems();
+    setMenuItems(defaultItems);
     localStorage.removeItem('menuOrder');
-    setMenuMsg('Menü sırası varsayılana döndürüldü!');
+    setMenuMsg('Menü sırası sıfırlandı!');
     setTimeout(() => setMenuMsg(''), 3000);
   };
 
@@ -189,22 +217,19 @@ export function Settings() {
     ));
   };
 
-  // Drag and drop için
+  // Drag & Drop için state
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
 
   const handleDragStart = (e: React.DragEvent, id: string) => {
     setDraggedItem(id);
-    e.dataTransfer.effectAllowed = 'move';
   };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
   };
 
   const handleDrop = (e: React.DragEvent, targetId: string) => {
     e.preventDefault();
-    
     if (!draggedItem || draggedItem === targetId) return;
 
     setMenuItems(prev => {
@@ -212,15 +237,11 @@ export function Settings() {
       const draggedIndex = items.findIndex(item => item.id === draggedItem);
       const targetIndex = items.findIndex(item => item.id === targetId);
       
-      if (draggedIndex === -1 || targetIndex === -1) return prev;
-      
       const [draggedItemObj] = items.splice(draggedIndex, 1);
       items.splice(targetIndex, 0, draggedItemObj);
       
       return items;
     });
-    
-    setDraggedItem(null);
   };
 
   const handleDragEnd = () => {
@@ -228,18 +249,55 @@ export function Settings() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center">
-        <div className="p-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl shadow-lg">
-          <Upload className="h-8 w-8 text-white" />
-        </div>
-        <div className="ml-4">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            Ayarlar
-          </h1>
-          <p className="text-gray-600 mt-1">Uygulama ayarları ve yapılandırması</p>
-        </div>
+    <div className="space-y-6 p-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">Ayarlar</h1>
       </div>
+
+      {/* Oturum Süresi Ayarları */}
+      <Card>
+        <div className="flex items-center gap-2 mb-4">
+          <Clock className="h-5 w-5 text-blue-600" />
+          <h2 className="text-lg font-semibold text-gray-900">Oturum Süresi</h2>
+        </div>
+        <div className="space-y-4">
+          <div className="flex items-center space-x-4">
+            <label className="text-sm font-medium text-gray-700">
+              Oturum Süresi (dakika):
+            </label>
+            <select
+              value={sessionDuration}
+              onChange={(e) => setSessionDuration(parseInt(e.target.value))}
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value={5}>5 dakika</option>
+              <option value={10}>10 dakika</option>
+              <option value={15}>15 dakika</option>
+              <option value={30}>30 dakika</option>
+              <option value={60}>1 saat</option>
+              <option value={120}>2 saat</option>
+              <option value={240}>4 saat</option>
+              <option value={480}>8 saat</option>
+            </select>
+            <button
+              onClick={saveSessionDuration}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+            >
+              <Save className="h-4 w-4" />
+              Kaydet
+            </button>
+          </div>
+          <p className="text-sm text-gray-600">
+            Oturum süresi dolduğunda otomatik olarak çıkış yapılır. Kullanıcı aktivitesi süreyi sıfırlar.
+          </p>
+          {sessionMsg && (
+            <div className="flex items-center gap-2 text-sm">
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              <span className="text-green-600">{sessionMsg}</span>
+            </div>
+          )}
+        </div>
+      </Card>
 
       {/* Logo Yükleme */}
       <Card>

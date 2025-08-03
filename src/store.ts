@@ -25,7 +25,16 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   user: null,
   isAuthenticated: false,
   loginTime: null,
-  sessionTimeout: 30 * 60 * 1000, // 30 dakika
+  sessionTimeout: (() => {
+    // localStorage'dan oturum süresini oku
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('sessionDuration');
+      if (saved) {
+        return parseInt(saved) * 60 * 1000; // Dakikayı milisaniyeye çevir
+      }
+    }
+    return 30 * 60 * 1000; // Varsayılan 30 dakika
+  })(),
   login: (user) => {
     // Sadece memory'de tut, storage'a kaydetme
     set({ user, isAuthenticated: true, loginTime: Date.now() });
