@@ -1,18 +1,14 @@
-<svg width="200" height="80" viewBox="0 0 200 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Arka plan -->
-  <rect width="200" height="80" fill="#1e40af"/>
+<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Arka plan daire -->
+  <circle cx="50" cy="50" r="45" fill="#1e40af"/>
   
-  <!-- Logo container -->
-  <circle cx="40" cy="40" r="35" fill="#3b82f6"/>
+  <!-- İç daire -->
+  <circle cx="50" cy="50" r="35" fill="#3b82f6"/>
   
-  <!-- Stylized 'B' harfi -->
-  <path d="M25 15h20v8H33v12h10v8H33v12h12v8H25V15z" fill="white"/>
+  <!-- B harfi -->
+  <path d="M30 25h25v10H40v8h12v10H40v8h15v10H30V25z" fill="white"/>
   
-  <!-- Bağcılar Belediyesi yazısı -->
-  <text x="85" y="30" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">BAĞCILAR</text>
-  <text x="85" y="45" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">BELEDİYESİ</text>
-  
-  <!-- Dekoratif elementler -->
-  <circle cx="40" cy="40" r="25" fill="none" stroke="white" stroke-width="1" opacity="0.3"/>
-  <circle cx="40" cy="40" r="15" fill="none" stroke="white" stroke-width="1" opacity="0.5"/>
+  <!-- Bağcılar yazısı -->
+  <text x="50" y="75" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="white" text-anchor="middle">BAĞCILAR</text>
+  <text x="50" y="85" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="white" text-anchor="middle">BELEDİYESİ</text>
 </svg> 
