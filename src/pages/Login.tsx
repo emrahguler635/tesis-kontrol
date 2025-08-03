@@ -91,7 +91,7 @@ export function Login() {
       
       <div className="w-full max-w-md relative z-10">
         {/* Logo ve Başlık Bölümü */}
-        <div className="text-center mb-8 mt-32">
+        <div className="text-center mb-8 mt-4">
           <div className="flex items-center justify-center w-48 h-40 rounded-full bg-white shadow-lg mx-auto mb-12 border-4 border-blue-100">
             <img src={`/logo.svg?v=${Date.now()}`} alt="Logo" className="w-44 h-36 object-contain" />
           </div>
