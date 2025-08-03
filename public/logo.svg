@@ -5,8 +5,8 @@
   <!-- İç daire -->
   <circle cx="50" cy="50" r="35" fill="#3b82f6"/>
   
-  <!-- B harfi -->
-  <path d="M30 25h25v10H40v8h12v10H40v8h15v10H30V25z" fill="white"/>
+  <!-- E harfi -->
+  <path d="M25 25h35v8H33v8h20v8H33v8h27v8H25V25z" fill="white"/>
   
   <!-- Bağcılar yazısı -->
   <text x="50" y="75" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="white" text-anchor="middle">BAĞCILAR</text>
