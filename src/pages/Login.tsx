@@ -80,7 +80,7 @@ export function Login() {
     <div 
       className="min-h-screen flex items-center justify-center p-4 relative"
       style={{
-        backgroundImage: 'url(/belediye.jpg)',
+        backgroundImage: 'url(/belediye.jpg?v=2025-08-03-22-00)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
@@ -94,7 +94,7 @@ export function Login() {
         {/* Logo ve Başlık Bölümü */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center w-24 h-24 rounded-full bg-white shadow-lg mx-auto mb-6 border-4 border-blue-100">
-            <img src="/logo.svg" alt="Logo" className="w-20 h-20 object-contain" />
+            <img src="/logo.svg?v=2025-08-03-22-00" alt="Logo" className="w-20 h-20 object-contain" />
           </div>
           <h1 className="text-3xl font-bold text-gray-800 mb-2">
             WorkPulse – İş Nabzı
