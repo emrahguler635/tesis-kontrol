@@ -8,18 +8,22 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// PostgreSQL bağlantısı - Neon
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  }
-});
+// PostgreSQL bağlantısı - Neon (koşullu)
+let pool = null;
+if (process.env.DATABASE_URL) {
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+      rejectUnauthorized: false
+    }
+  });
+}
 
 // Test endpoint
 app.get('/api/test', (req, res) => {
   res.json({ 
     message: 'Server çalışıyor!',
+    database_url: process.env.DATABASE_URL ? 'Mevcut' : 'Eksik',
     timestamp: new Date().toISOString()
   });
 });
@@ -63,6 +67,9 @@ app.post('/api/login', async (req, res) => {
 // Facilities endpoints
 app.get('/api/facilities', async (req, res) => {
   try {
+    if (!pool) {
+      return res.status(503).json({ error: 'Veritabanı bağlantısı mevcut değil' });
+    }
     const result = await pool.query('SELECT * FROM facilities ORDER BY created_at DESC');
     res.json(result.rows);
   } catch (error) {
