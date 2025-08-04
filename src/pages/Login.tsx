@@ -69,19 +69,21 @@ export function Login() {
   };
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center p-4 relative"
-      style={{
-        backgroundImage: `url(/belediye.jpg?v=${Date.now()})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed',
-        backgroundBlendMode: 'overlay'
-      }}
-    >
+    <div className="min-h-screen flex items-center justify-center p-4 relative">
+      {/* Fixed Background Image */}
+      <div
+        className="fixed inset-0 z-0"
+        style={{
+          backgroundImage: `url(/belediye.jpg?v=${Date.now()})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed'
+        }}
+      />
+      
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/20"></div>
+      <div className="absolute inset-0 bg-black/20 z-10"></div>
       
       <div className="w-full max-w-md relative z-10">
         {/* Logo ve Başlık Bölümü */}
