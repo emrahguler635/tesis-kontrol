@@ -18,6 +18,13 @@ export function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Boş alan kontrolü
+    if (!username.trim() || !password.trim()) {
+      setError('Kullanıcı adı ve şifre gereklidir!');
+      return;
+    }
+    
     setError('');
     setLoading(true);
 
@@ -155,9 +162,14 @@ export function Login() {
                   type="text"
                   value={username}
                   onChange={e => setUsername(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      return false;
+                    }
+                  }}
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                   placeholder="Kullanıcı adınızı girin"
-                  required
                   autoFocus
                   style={{
                     transform: 'translate3d(0,0,0)',
@@ -183,9 +195,14 @@ export function Login() {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      return false;
+                    }
+                  }}
                   className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                   placeholder="Şifrenizi girin"
-                  required
                   style={{
                     transform: 'translate3d(0,0,0)',
                     willChange: 'auto',
@@ -211,7 +228,7 @@ export function Login() {
             {/* Giriş Butonu */}
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !username.trim() || !password.trim()}
               className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
