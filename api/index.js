@@ -1,12 +1,28 @@
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
+const mongoose = require('mongoose');
 
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// MongoDB bağlantısı - Local
+let mongoClient = null;
+if (process.env.NODE_ENV !== 'production') {
+  try {
+    mongoose.connect('mongodb://localhost:27017/tesis-kontrol', {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    });
+    mongoClient = mongoose.connection;
+    console.log('MongoDB bağlantısı başarılı');
+  } catch (error) {
+    console.log('MongoDB bağlantısı başarısız:', error.message);
+  }
+}
 
 // PostgreSQL bağlantısı - Neon (koşullu)
 let pool = null;
@@ -19,11 +35,24 @@ if (process.env.DATABASE_URL) {
   });
 }
 
+// User Schema
+const userSchema = new mongoose.Schema({
+  username: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  email: { type: String, required: true },
+  role: { type: String, default: 'user' },
+  permissions: [String],
+  created_at: { type: Date, default: Date.now }
+});
+
+const User = mongoose.model('User', userSchema);
+
 // Test endpoint
 app.get('/api/test', (req, res) => {
   res.json({ 
     message: 'Server çalışıyor!',
     database_url: process.env.DATABASE_URL ? 'Mevcut' : 'Eksik',
+    mongo_connected: mongoClient ? 'Bağlı' : 'Bağlı değil',
     timestamp: new Date().toISOString()
   });
 });
@@ -39,24 +68,43 @@ app.post('/api/login', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Kullanıcı adı ve şifre gerekli' });
     }
     
-    // Basit kontrol
-    if (username === 'admin' && password === 'admin123') {
-      console.log('Login successful for user:', username);
-      res.json({
-        success: true,
-        id: 'admin-id',
-        username: 'admin',
-        email: 'admin@admin.com',
-        role: 'admin',
-        permissions: [
-          'Ana Sayfa', 'Tesisler', 'Günlük İş Programı', 'Toplam Yapılan İşler', 
-          'Raporlar', 'Mesaj Yönetimi', 'BağTV', 'Veri Kontrol', 'Onay Yönetimi', 
-          'Yapılan İşler', 'Ayarlar', 'Kullanıcı Yönetimi'
-        ]
-      });
+    // MongoDB'den kullanıcı kontrolü
+    if (mongoClient && mongoClient.readyState === 1) {
+      const user = await User.findOne({ username, password });
+      if (user) {
+        console.log('Login successful for user:', username);
+        res.json({
+          success: true,
+          id: user._id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          permissions: user.permissions || []
+        });
+      } else {
+        console.log('Login failed: Invalid credentials');
+        res.status(401).json({ success: false, error: 'Kullanıcı adı veya şifre hatalı' });
+      }
     } else {
-      console.log('Login failed: Invalid credentials');
-      res.status(401).json({ success: false, error: 'Kullanıcı adı veya şifre hatalı' });
+      // MongoDB bağlantısı yoksa basit kontrol
+      if (username === 'admin' && password === 'admin123') {
+        console.log('Login successful for user:', username);
+        res.json({
+          success: true,
+          id: 'admin-id',
+          username: 'admin',
+          email: 'admin@admin.com',
+          role: 'admin',
+          permissions: [
+            'Ana Sayfa', 'Tesisler', 'Günlük İş Programı', 'Toplam Yapılan İşler', 
+            'Raporlar', 'Mesaj Yönetimi', 'BağTV', 'Veri Kontrol', 'Onay Yönetimi', 
+            'Yapılan İşler', 'Ayarlar', 'Kullanıcı Yönetimi'
+          ]
+        });
+      } else {
+        console.log('Login failed: Invalid credentials');
+        res.status(401).json({ success: false, error: 'Kullanıcı adı veya şifre hatalı' });
+      }
     }
   } catch (error) {
     console.error('Login error:', error);
