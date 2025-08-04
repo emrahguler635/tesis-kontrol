@@ -262,6 +262,14 @@ class ApiService {
     });
   }
 
+  // Login endpoint'i
+  async login(credentials: { username: string; password: string }): Promise<any> {
+    return this.request<any>('/login', {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+    });
+  }
+
   // Gerçek HTTP isteklerini yapan request fonksiyonu
   private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
     // Mock API kullan (Vercel'de)

@@ -22,21 +22,13 @@ export function Login() {
     setLoading(true);
 
     try {
-      // Gerçek API çağrısı yap
-      const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-      });
-
-      const data = await response.json();
+      // API servisi kullan
+      const data = await apiService.login({ username, password });
 
       // Debug için geçici log
       console.log('🔍 Login Response:', data);
 
-      if (response.ok && data.success !== false) {
+      if (data.success !== false) {
         // Kullanıcı verilerini hazırla
         const userData = {
           id: data.id || data.user?.id || '1',
@@ -84,7 +76,8 @@ export function Login() {
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed'
+        backgroundAttachment: 'fixed',
+        backgroundBlendMode: 'overlay'
       }}
     >
       {/* Overlay */}
