@@ -78,7 +78,11 @@ export function Login() {
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          backgroundAttachment: 'fixed'
+          backgroundAttachment: 'fixed',
+          transform: 'translateZ(0)',
+          willChange: 'auto',
+          backfaceVisibility: 'hidden',
+          perspective: '1000px'
         }}
       />
       
@@ -140,6 +144,11 @@ export function Login() {
                   placeholder="Kullanıcı adınızı girin"
                   required
                   autoFocus
+                  style={{
+                    transform: 'translateZ(0)',
+                    willChange: 'auto',
+                    backfaceVisibility: 'hidden'
+                  }}
                 />
               </div>
             </div>
@@ -160,6 +169,11 @@ export function Login() {
                   className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                   placeholder="Şifrenizi girin"
                   required
+                  style={{
+                    transform: 'translateZ(0)',
+                    willChange: 'auto',
+                    backfaceVisibility: 'hidden'
+                  }}
                 />
                 <button
                   type="button"
