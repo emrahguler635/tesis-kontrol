@@ -25,6 +25,11 @@ export function Login() {
       return;
     }
     
+    // Loading durumunda tekrar submit'i engelle
+    if (loading) {
+      return;
+    }
+    
     setError('');
     setLoading(true);
 
@@ -162,12 +167,6 @@ export function Login() {
                   type="text"
                   value={username}
                   onChange={e => setUsername(e.target.value)}
-                  onKeyPress={e => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      return false;
-                    }
-                  }}
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                   placeholder="Kullanıcı adınızı girin"
                   autoFocus
@@ -195,12 +194,6 @@ export function Login() {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  onKeyPress={e => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      return false;
-                    }
-                  }}
                   className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                   placeholder="Şifrenizi girin"
                   style={{
