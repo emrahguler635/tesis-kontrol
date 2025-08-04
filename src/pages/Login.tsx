@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useAuthStore } from '../store';
 import { useNavigate } from 'react-router-dom';
 import { User, Lock, Eye, EyeOff, Building2, Image as ImageIcon } from 'lucide-react';
@@ -16,7 +16,7 @@ export function Login() {
   // Logo'yu doğrudan al
   const logo = '/logo.svg';
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Boş alan kontrolü
@@ -78,31 +78,33 @@ export function Login() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [username, password, loading, login, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative">
       {/* Fixed Background Image */}
-      <div
-        className="absolute inset-0 z-0"
-        style={{
-          backgroundImage: `url(/belediye.jpg?v=${Date.now()})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          transform: 'translate3d(0,0,0)',
-          willChange: 'auto',
-          backfaceVisibility: 'hidden',
-          perspective: '1000px',
-          position: 'fixed',
-          top: '0',
-          left: '0',
-          right: '0',
-          bottom: '0',
-          width: '100vw',
-          height: '100vh'
-        }}
-      />
+      {useMemo(() => (
+        <div
+          className="absolute inset-0 z-0"
+          style={{
+            backgroundImage: `url(/belediye.jpg?v=${Date.now()})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            transform: 'translate3d(0,0,0)',
+            willChange: 'auto',
+            backfaceVisibility: 'hidden',
+            perspective: '1000px',
+            position: 'fixed',
+            top: '0',
+            left: '0',
+            right: '0',
+            bottom: '0',
+            width: '100vw',
+            height: '100vh'
+          }}
+        />
+      ), [])}
       
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/20 z-10"></div>
