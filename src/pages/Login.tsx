@@ -72,17 +72,23 @@ export function Login() {
     <div className="min-h-screen flex items-center justify-center p-4 relative">
       {/* Fixed Background Image */}
       <div
-        className="fixed inset-0 z-0"
+        className="absolute inset-0 z-0"
         style={{
           backgroundImage: `url(/belediye.jpg?v=${Date.now()})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          backgroundAttachment: 'fixed',
-          transform: 'translateZ(0)',
+          transform: 'translate3d(0,0,0)',
           willChange: 'auto',
           backfaceVisibility: 'hidden',
-          perspective: '1000px'
+          perspective: '1000px',
+          position: 'fixed',
+          top: '0',
+          left: '0',
+          right: '0',
+          bottom: '0',
+          width: '100vw',
+          height: '100vh'
         }}
       />
       
@@ -109,7 +115,16 @@ export function Login() {
         </div>
 
         {/* Giriş Formu */}
-        <div className="bg-white rounded-xl shadow-2xl p-8 border border-gray-100">
+        <div 
+          className="bg-white rounded-xl shadow-2xl p-8 border border-gray-100"
+          style={{
+            transform: 'translate3d(0,0,0)',
+            willChange: 'auto',
+            backfaceVisibility: 'hidden',
+            position: 'relative',
+            zIndex: 10
+          }}
+        >
           <div className="flex items-center justify-center mb-6">
             <div className="p-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full">
               <Building2 className="h-8 w-8 text-white" />
@@ -145,9 +160,11 @@ export function Login() {
                   required
                   autoFocus
                   style={{
-                    transform: 'translateZ(0)',
+                    transform: 'translate3d(0,0,0)',
                     willChange: 'auto',
-                    backfaceVisibility: 'hidden'
+                    backfaceVisibility: 'hidden',
+                    position: 'relative',
+                    zIndex: 1
                   }}
                 />
               </div>
@@ -170,9 +187,11 @@ export function Login() {
                   placeholder="Şifrenizi girin"
                   required
                   style={{
-                    transform: 'translateZ(0)',
+                    transform: 'translate3d(0,0,0)',
                     willChange: 'auto',
-                    backfaceVisibility: 'hidden'
+                    backfaceVisibility: 'hidden',
+                    position: 'relative',
+                    zIndex: 1
                   }}
                 />
                 <button
