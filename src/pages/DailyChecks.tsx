@@ -229,7 +229,7 @@ const DailyChecks: React.FC = () => {
               description: '',
               user: user?.username || '',
               facilityId: '',
-              status: ''
+              status: 'İşlemde'
             };
             setFormData(formDataWithUser);
             setModalOpen(true);

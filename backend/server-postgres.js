@@ -5,8 +5,23 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// CORS ayarları - Frontend domain'lerini ekle
+const corsOptions = {
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'https://tesis-kontrol.vercel.app',
+    'https://tesis-kontrol-p2ig88ats-emrahs-projects-7d7ccaf2.vercel.app',
+    'https://tesis-kontrol-aob4vd5yz-emrahs-projects-7d7ccaf2.vercel.app',
+    'https://tesis-kontrol-alyk5p34i-emrahs-projects-7d7ccaf2.vercel.app'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // PostgreSQL bağlantısı
@@ -94,6 +109,71 @@ app.get('/api/setup-database', async (req, res) => {
       message: error.message,
       timestamp: new Date().toISOString()
     });
+  }
+});
+
+// BagTV Controls endpoint'leri
+app.get('/api/bagtv-controls', async (req, res) => {
+  try {
+    const { facilityId } = req.query;
+    
+    let query = 'SELECT * FROM bagtv_controls';
+    let params = [];
+    
+    if (facilityId) {
+      query += ' WHERE facility_id = $1';
+      params.push(facilityId);
+    }
+    
+    query += ' ORDER BY created_at DESC';
+    
+    const result = await pool.query(query, params);
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error('BagTV controls GET error:', error);
+    res.status(500).json({ error: 'Database hatası' });
+  }
+});
+
+app.post('/api/bagtv-controls', async (req, res) => {
+  try {
+    const { facilityId, date, action, description, checkedBy } = req.body;
+    
+    const query = `
+      INSERT INTO bagtv_controls (facility_id, date, action, description, checked_by, created_at)
+      VALUES ($1, $2, $3, $4, $5, NOW())
+      RETURNING *
+    `;
+    
+    const params = [facilityId, date, action, description, checkedBy];
+    
+    const result = await pool.query(query, params);
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('BagTV controls POST error:', error);
+    res.status(500).json({ error: 'Kayıt eklenirken hata oluştu' });
+  }
+});
+
+app.delete('/api/bagtv-controls/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    if (!id) {
+      return res.status(400).json({ error: 'ID gerekli' });
+    }
+    
+    const query = 'DELETE FROM bagtv_controls WHERE id = $1';
+    const result = await pool.query(query, [id]);
+    
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Kayıt bulunamadı' });
+    }
+    
+    res.status(200).json({ message: 'Kayıt başarıyla silindi' });
+  } catch (error) {
+    console.error('BagTV controls DELETE error:', error);
+    res.status(500).json({ error: 'Kayıt silinirken hata oluştu' });
   }
 });
 
@@ -253,6 +333,27 @@ async function initializeDatabase() {
         description TEXT NOT NULL,
         sender VARCHAR(100) DEFAULT 'admin',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    // YBS Work Items tablosu
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS ybs_work_items (
+        id SERIAL PRIMARY KEY,
+        title VARCHAR(200) NOT NULL,
+        description TEXT,
+        request_date DATE NOT NULL,
+        completion_date DATE,
+        requesting_department VARCHAR(100) NOT NULL,
+        responsible_users JSONB DEFAULT '[]',
+        jira_number VARCHAR(50),
+        status VARCHAR(20) DEFAULT 'pending',
+        approval_status VARCHAR(20) DEFAULT 'pending',
+        approved_by VARCHAR(100),
+        approved_at TIMESTAMP,
+        created_by VARCHAR(100) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
     
@@ -1069,6 +1170,325 @@ app.post('/api/control-items/:id/reject', async (req, res) => {
   } catch (error) {
     console.error('İş reddetme hatası:', error);
     res.status(500).json({ error: 'İş reddedilemedi', message: error.message });
+  }
+});
+
+// YBS İş Programı endpoint'leri
+app.get('/api/ybs-work-items', async (req, res) => {
+  try {
+    console.log('YBS work items endpoint çağrıldı');
+    
+    // Önce tablo var mı kontrol et
+    const tableCheck = await pool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_name = 'ybs_work_items'
+      );
+    `);
+    
+    if (!tableCheck.rows[0].exists) {
+      console.log('ybs_work_items tablosu bulunamadı, oluşturuluyor...');
+      await initializeDatabase();
+    }
+    
+    const result = await pool.query('SELECT * FROM ybs_work_items ORDER BY created_at DESC');
+    console.log('YBS work items bulundu:', result.rows.length);
+    
+    // Verileri düzelt - responsible_users JSON'dan parse et
+    const rows = result.rows.map(row => ({
+      ...row,
+      responsibleUsers: row.responsible_users ? JSON.parse(row.responsible_users) : [],
+      requestingDepartment: row.requesting_department,
+      requestDate: row.request_date,
+      completionDate: row.completion_date,
+      jiraNumber: row.jira_number,
+      approvalStatus: row.approval_status,
+      approvedBy: row.approved_by,
+      approvedAt: row.approved_at,
+      createdBy: row.created_by,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    }));
+    
+    res.json(rows);
+  } catch (error) {
+    console.error('YBS work items GET error:', error);
+    res.status(500).json({ error: 'YBS işleri alınamadı', details: error.message });
+  }
+});
+
+app.post('/api/ybs-work-items', async (req, res) => {
+  try {
+    const { 
+      title, description, requestDate, completionDate, requestingDepartment, 
+      responsibleUsers, jiraNumber, status, approvalStatus, createdBy 
+    } = req.body;
+    
+    const query = `
+      INSERT INTO ybs_work_items (
+        title, description, request_date, completion_date, requesting_department,
+        responsible_users, jira_number, status, approval_status, created_by, created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
+      RETURNING *
+    `;
+    
+    const params = [
+      title, description, requestDate, completionDate, requestingDepartment,
+      JSON.stringify(responsibleUsers), jiraNumber, status, approvalStatus, createdBy
+    ];
+    
+    const result = await pool.query(query, params);
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('YBS work items POST error:', error);
+    res.status(500).json({ error: 'YBS işi oluşturulamadı', message: error.message });
+  }
+});
+
+app.put('/api/ybs-work-items/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { 
+      title, description, requestDate, completionDate, requestingDepartment,
+      responsibleUsers, jiraNumber, status, approvalStatus 
+    } = req.body;
+    
+    const query = `
+      UPDATE ybs_work_items 
+      SET title = $1, description = $2, request_date = $3, completion_date = $4,
+          requesting_department = $5, responsible_users = $6, jira_number = $7,
+          status = $8, approval_status = $9, updated_at = NOW()
+      WHERE id = $10
+      RETURNING *
+    `;
+    
+    const params = [
+      title, description, requestDate, completionDate, requestingDepartment,
+      JSON.stringify(responsibleUsers), jiraNumber, status, approvalStatus, id
+    ];
+    
+    const result = await pool.query(query, params);
+    
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'YBS işi bulunamadı' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('YBS work items PUT error:', error);
+    res.status(500).json({ error: 'YBS işi güncellenemedi', message: error.message });
+  }
+});
+
+app.delete('/api/ybs-work-items/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query('DELETE FROM ybs_work_items WHERE id = $1', [id]);
+    
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'YBS işi bulunamadı' });
+    }
+    
+    res.json({ message: 'YBS işi başarıyla silindi' });
+  } catch (error) {
+    console.error('YBS work items DELETE error:', error);
+    res.status(500).json({ error: 'YBS işi silinemedi', message: error.message });
+  }
+});
+
+// Test verisi ekleme endpoint'i
+app.post('/api/ybs-work-items/seed', async (req, res) => {
+  try {
+    const testData = [
+      {
+        title: 'Sistem Güncellemesi',
+        description: 'Ana sistem güncellemesi ve güvenlik yamaları',
+        requestDate: '2024-01-15',
+        completionDate: '2024-01-20',
+        requestingDepartment: 'Bilgi İşlem Müdürlüğü',
+        responsibleUsers: ['Ahmet Yılmaz', 'Mehmet Demir'],
+        jiraNumber: 'CITYPLUS-2024-001',
+        status: 'completed',
+        approvalStatus: 'pending',
+        createdBy: 'admin'
+      },
+      {
+        title: 'Veritabanı Optimizasyonu',
+        description: 'Performans iyileştirmesi için veritabanı optimizasyonu',
+        requestDate: '2024-01-10',
+        completionDate: null,
+        requestingDepartment: 'Teknoloji Müdürlüğü',
+        responsibleUsers: ['Fatma Kaya'],
+        jiraNumber: 'CITYPLUS-2024-002',
+        status: 'in_progress',
+        approvalStatus: 'pending',
+        createdBy: 'admin'
+      },
+      {
+        title: 'Kullanıcı Eğitimi',
+        description: 'Yeni sistem kullanıcı eğitimi programı',
+        requestDate: '2024-01-05',
+        completionDate: null,
+        requestingDepartment: 'İnsan Kaynakları Müdürlüğü',
+        responsibleUsers: ['Ali Özkan', 'Ayşe Yıldız'],
+        jiraNumber: 'CITYPLUS-2024-003',
+        status: 'pending',
+        approvalStatus: 'pending',
+        createdBy: 'admin'
+      }
+    ];
+
+    for (const item of testData) {
+      const query = `
+        INSERT INTO ybs_work_items (
+          title, description, request_date, completion_date, requesting_department,
+          responsible_users, jira_number, status, approval_status, created_by, created_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
+        ON CONFLICT DO NOTHING
+      `;
+      
+      const params = [
+        item.title, item.description, item.requestDate, item.completionDate, item.requestingDepartment,
+        JSON.stringify(item.responsibleUsers), item.jiraNumber, item.status, item.approvalStatus, item.createdBy
+      ];
+      
+      await pool.query(query, params);
+    }
+    
+    res.json({ message: 'Test verisi başarıyla eklendi' });
+  } catch (error) {
+    console.error('Test verisi ekleme hatası:', error);
+    res.status(500).json({ error: 'Test verisi eklenemedi', message: error.message });
+  }
+});
+
+app.put('/api/ybs-work-items/:id/approval', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { approvalStatus, approvedBy, approvedAt } = req.body;
+    
+    const query = `
+      UPDATE ybs_work_items 
+      SET approval_status = $1, approved_by = $2, approved_at = $3, updated_at = NOW()
+      WHERE id = $4
+      RETURNING *
+    `;
+    
+    const result = await pool.query(query, [approvalStatus, approvedBy, approvedAt, id]);
+    
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'YBS işi bulunamadı' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('YBS work items approval PUT error:', error);
+    res.status(500).json({ error: 'YBS işi onayı güncellenemedi', message: error.message });
+  }
+});
+
+// LocalStorage'dan veri import etme endpoint'i
+app.post('/api/import-localstorage', async (req, res) => {
+  try {
+    const { facilities, bagtvFacilities, controlItems, messages } = req.body;
+    console.log('Import request received:', { 
+      facilities: facilities?.length || 0, 
+      bagtvFacilities: bagtvFacilities?.length || 0, 
+      controlItems: controlItems?.length || 0, 
+      messages: messages?.length || 0 
+    });
+
+    const imported = {
+      facilities: 0,
+      bagtvFacilities: 0,
+      controlItems: 0,
+      messages: 0
+    };
+
+    // Tesisleri import et
+    if (facilities && facilities.length > 0) {
+      for (const facility of facilities) {
+        try {
+          await pool.query(
+            'INSERT INTO facilities (name, description, status) VALUES ($1, $2, $3) ON CONFLICT (name) DO NOTHING',
+            [facility.name, facility.description, facility.status || 'active']
+          );
+          imported.facilities++;
+        } catch (error) {
+          console.error('Facility import error:', error);
+        }
+      }
+    }
+
+    // BagTV Tesislerini import et
+    if (bagtvFacilities && bagtvFacilities.length > 0) {
+      for (const facility of bagtvFacilities) {
+        try {
+          await pool.query(
+            'INSERT INTO bagtv_facilities (name, tv_count, description, status) VALUES ($1, $2, $3, $4) ON CONFLICT (name) DO NOTHING',
+            [facility.name, facility.tvCount || 0, facility.description, facility.status || 'Aktif']
+          );
+          imported.bagtvFacilities++;
+        } catch (error) {
+          console.error('BagTV facility import error:', error);
+        }
+      }
+    }
+
+    // Kontrol öğelerini import et
+    if (controlItems && controlItems.length > 0) {
+      for (const item of controlItems) {
+        try {
+          await pool.query(
+            'INSERT INTO control_items (title, description, period, date, user_name, facility_id, status, work_done) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT DO NOTHING',
+            [
+              item.title,
+              item.description,
+              item.period,
+              item.date,
+              item.user_name || item.user,
+              item.facility_id,
+              item.status || 'Beklemede',
+              item.work_done || ''
+            ]
+          );
+          imported.controlItems++;
+        } catch (error) {
+          console.error('Control item import error:', error);
+        }
+      }
+    }
+
+    // Mesajları import et
+    if (messages && messages.length > 0) {
+      for (const message of messages) {
+        try {
+          await pool.query(
+            'INSERT INTO messages (description, total_count, pulled_count, date, account) VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING',
+            [
+              message.description,
+              message.totalCount || 0,
+              message.pulledCount || 0,
+              message.date,
+              message.account || ''
+            ]
+          );
+          imported.messages++;
+        } catch (error) {
+          console.error('Message import error:', error);
+        }
+      }
+    }
+
+    console.log('Import completed:', imported);
+    res.json({ 
+      message: 'Veriler başarıyla import edildi', 
+      imported 
+    });
+  } catch (error) {
+    console.error('Import error:', error);
+    res.status(500).json({ error: 'Import işlemi başarısız oldu', message: error.message });
   }
 });
 

@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Card } from '../components/Card';
-import { BarChart3, TrendingUp, Users, Calendar, CheckCircle, Clock, AlertCircle, Activity, MessageSquare, Monitor, Building, Percent } from 'lucide-react';
+import { BarChart3, TrendingUp, Users, Calendar, CheckCircle, Clock, AlertCircle, Activity, MessageSquare, Monitor, Building, Percent, Plus, Zap } from 'lucide-react';
 import { apiService, ControlItem } from '../services/api';
+import { useNavigate } from 'react-router-dom';
 
 const controlTypes = [
   { key: 'Günlük', label: 'Günlük İş Programı', color: 'from-blue-500 to-blue-600', bar: 'bg-blue-500', icon: Calendar },
@@ -11,6 +12,7 @@ const controlTypes = [
 ];
 
 export function Dashboard() {
+  const navigate = useNavigate();
   const [controlItems, setControlItems] = useState<ControlItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [messageStats, setMessageStats] = useState({
@@ -193,10 +195,21 @@ export function Dashboard() {
   }
 
   return (
-    <div className={classes.container}>
-      <div>
-        <h1 className={`font-bold text-gray-900 ${classes.title}`}>Dashboard</h1>
-        <p className={`text-gray-600 ${classes.subtitle}`}>Tesis kontrol sisteminin genel durumu</p>
+    <div className={`${classes.container} overflow-y-auto h-full`}>
+      <div className="flex items-center mb-6">
+        <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl mr-4">
+          <div className="flex items-center justify-center">
+            <Activity className="text-white h-6 w-6 mr-2" />
+            <Plus className="text-white h-4 w-4" />
+            <Plus className="text-white h-4 w-4" />
+          </div>
+        </div>
+        <div>
+          <h1 className={`font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent ${classes.title}`}>
+            Dashboard
+          </h1>
+          <p className={`text-gray-600 ${classes.subtitle}`}>Tesis kontrol sisteminin genel durumu</p>
+        </div>
       </div>
 
       {/* İş Programı Özet Raporu */}
@@ -378,49 +391,94 @@ export function Dashboard() {
 
       {/* Hızlı İşlemler */}
       <div>
-        <h2 className={`font-bold text-gray-900 mb-4 ${classes.title}`}>Hızlı İşlemler</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-            <div className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Calendar className="h-6 w-6 text-blue-600" />
+        <div className="flex items-center mb-4">
+          <div className="p-2 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg mr-3">
+            <Zap className={`text-white ${classes.iconSize}`} />
+          </div>
+          <div>
+            <h2 className={`font-bold bg-gradient-to-r from-orange-600 to-orange-800 bg-clip-text text-transparent ${classes.title}`}>
+              Hızlı İşlemler
+            </h2>
+            <p className={`text-gray-600 ${classes.subtitle}`}>Sık kullanılan işlemler</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+          <Card 
+            className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200"
+            onClick={() => navigate('/daily-checks')}
+          >
+            <div className="p-3">
+              <div className="flex flex-col items-center text-center">
+                <div className="p-2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg mb-2">
+                  <Calendar className="h-5 w-5 text-white" />
                 </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900">Günlük İş Programı</h3>
-                  <p className="text-sm text-gray-600">Günlük işlerinizi yönetin</p>
-                </div>
+                <h3 className="font-semibold text-gray-900 text-sm">Günlük İş</h3>
+                <p className="text-xs text-gray-600">Programı</p>
               </div>
             </div>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-            <div className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <Activity className="h-6 w-6 text-green-600" />
+          <Card 
+            className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer bg-gradient-to-br from-green-50 to-green-100 border-green-200"
+            onClick={() => navigate('/haftalik')}
+          >
+            <div className="p-3">
+              <div className="flex flex-col items-center text-center">
+                <div className="p-2 bg-gradient-to-r from-green-500 to-green-600 rounded-lg mb-2">
+                  <Activity className="h-5 w-5 text-white" />
                 </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900">Toplam Yapılan İşler</h3>
-                  <p className="text-sm text-gray-600">Tamamlanan işleri görüntüleyin</p>
-                </div>
+                <h3 className="font-semibold text-gray-900 text-sm">Toplam Yapılan</h3>
+                <p className="text-xs text-gray-600">İşler</p>
               </div>
             </div>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-            <div className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-100 rounded-lg">
-                  <MessageSquare className="h-6 w-6 text-purple-600" />
+          <Card 
+            className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200"
+            onClick={() => navigate('/messages')}
+          >
+            <div className="p-3">
+              <div className="flex flex-col items-center text-center">
+                <div className="p-2 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg mb-2">
+                  <MessageSquare className="h-5 w-5 text-white" />
                 </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900">Mesaj Yönetimi</h3>
-                  <p className="text-sm text-gray-600">Mesajlarınızı yönetin</p>
-                </div>
+                <h3 className="font-semibold text-gray-900 text-sm">Mesaj</h3>
+                <p className="text-xs text-gray-600">Yönetimi</p>
               </div>
             </div>
           </Card>
+
+          <Card 
+            className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200"
+            onClick={() => navigate('/bagtv')}
+          >
+            <div className="p-3">
+              <div className="flex flex-col items-center text-center">
+                <div className="p-2 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg mb-2">
+                  <Monitor className="h-5 w-5 text-white" />
+                </div>
+                <h3 className="font-semibold text-gray-900 text-sm">BağTV</h3>
+                <p className="text-xs text-gray-600">Sistemleri</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card 
+            className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer bg-gradient-to-br from-indigo-50 to-indigo-100 border-indigo-200"
+            onClick={() => navigate('/facilities')}
+          >
+            <div className="p-3">
+              <div className="flex flex-col items-center text-center">
+                <div className="p-2 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg mb-2">
+                  <Building className="h-5 w-5 text-white" />
+                </div>
+                <h3 className="font-semibold text-gray-900 text-sm">Tesisler</h3>
+                <p className="text-xs text-gray-600">Bilgileri</p>
+              </div>
+            </div>
+          </Card>
+
+
         </div>
       </div>
     </div>

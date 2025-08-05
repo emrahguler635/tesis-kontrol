@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, XCircle, Clock, AlertCircle, Shield } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, AlertCircle, Shield, Filter, Calendar, User, Building, Activity, Plus } from 'lucide-react';
 import { apiService } from '../services/api';
 import { Card } from '../components/Card';
 import { useAuthStore } from '../store';
@@ -52,6 +52,26 @@ const Approvals: React.FC = () => {
       loadPendingApprovals();
     }
   }, [user]);
+
+  const loadPendingApprovals = async () => {
+    try {
+      setLoading(true);
+      
+      // Onay bekleyen işleri yükle
+      const pendingItems = await apiService.getPendingApprovals(user?.username);
+      
+      // Sadece development'ta log
+      if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+        console.log('Onay bekleyen işler yüklendi:', pendingItems?.length || 0);
+      }
+      
+      setPendingItems(pendingItems);
+    } catch (error) {
+      console.error('Onay bekleyen işler yüklenirken hata:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleApprove = async (id: number) => {
     if (!isAdmin) {
@@ -118,22 +138,40 @@ const Approvals: React.FC = () => {
   }
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Onay Yönetimi</h1>
-        {!isAdmin && (
-          <div className="flex items-center gap-2 text-blue-600">
-            <Shield className="h-5 w-5" />
-            <span className="text-sm">Sadece kendi işlerinizi görüyorsunuz</span>
+    <div>
+      {/* Modern Başlık */}
+      <div className="flex items-center mb-6">
+        <div className="p-3 bg-gradient-to-r from-orange-500 to-red-600 rounded-xl mr-4">
+          <div className="flex items-center justify-center">
+            <Shield className="text-white h-6 w-6 mr-2" />
+            <Plus className="text-white h-4 w-4" />
           </div>
-        )}
-        {isAdmin && (
-          <div className="flex items-center gap-2 text-green-600">
-            <Shield className="h-5 w-5" />
-            <span className="text-sm">Admin - Tüm işleri onaylayabilirsiniz</span>
-          </div>
-        )}
+        </div>
+        <div>
+          <h1 className="font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent text-2xl">
+            Onay Yönetimi
+          </h1>
+          <p className="text-gray-600 text-sm">Bekleyen onay işlemleri ve yönetimi</p>
+        </div>
       </div>
+
+      {/* Admin Durumu */}
+      <Card className="mb-6">
+        <div className="flex items-center justify-between p-4">
+          {!isAdmin && (
+            <div className="flex items-center gap-2 text-blue-600">
+              <Shield className="h-5 w-5" />
+              <span className="text-sm font-medium">Sadece kendi işlerinizi görüyorsunuz</span>
+            </div>
+          )}
+          {isAdmin && (
+            <div className="flex items-center gap-2 text-green-600">
+              <Shield className="h-5 w-5" />
+              <span className="text-sm font-medium">Admin - Tüm işleri onaylayabilirsiniz</span>
+            </div>
+          )}
+        </div>
+      </Card>
 
       {pendingItems.length === 0 ? (
         <div className="text-center py-8">
@@ -143,49 +181,61 @@ const Approvals: React.FC = () => {
       ) : (
         <div className="grid gap-4">
           {pendingItems.map((item) => (
-            <Card key={item.id} className="p-6">
+            <Card key={item.id} className="p-6 hover:shadow-lg transition-all duration-300">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    {item.title || 'Başlık belirtilmemiş'}
-                  </h3>
+                  <div className="flex items-center gap-3 mb-3">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {item.title || 'Başlık belirtilmemiş'}
+                    </h3>
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(item.approval_status || 'pending')}`}>
+                      {item.approval_status === 'pending' ? 'Beklemede' : 
+                       item.approval_status === 'approved' ? 'Onaylandı' : 
+                       item.approval_status === 'rejected' ? 'Reddedildi' : 'Bilinmiyor'}
+                    </span>
+                  </div>
+                  
                   {item.description && (
-                    <p className="text-gray-600 mb-2">{item.description}</p>
+                    <p className="text-gray-600 mb-3">{item.description}</p>
                   )}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-500">
-                    <div>
-                      <span className="font-medium">Periyot:</span> {item.period}
+                  
+                  {item.workDone && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+                      <p className="text-sm font-medium text-blue-800 mb-1">Yapılan İş:</p>
+                      <p className="text-sm text-blue-700">{item.workDone}</p>
                     </div>
-                    <div>
-                      <span className="font-medium">Tarih:</span> {item.date}
+                  )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-gray-500" />
+                      <span className="text-gray-600">Tarih: {new Date(item.date).toLocaleDateString('tr-TR')}</span>
                     </div>
-                    <div>
-                      <span className="font-medium">Kullanıcı:</span> {item.user || 'Belirtilmemiş'}
+                    
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4 text-gray-500" />
+                      <span className="text-gray-600">Kullanıcı: {item.user || 'Belirtilmemiş'}</span>
                     </div>
-                    <div>
-                      <span className="font-medium">Durum:</span>
-                      <span className={`ml-1 px-2 py-1 rounded-full text-xs ${getStatusColor(item.approval_status || 'pending')}`}>
-                        {item.approval_status === 'pending' ? 'Beklemede' : 
-                         item.approval_status === 'approved' ? 'Onaylandı' : 
-                         item.approval_status === 'rejected' ? 'Reddedildi' : 'Bilinmiyor'}
-                      </span>
+                    
+                    <div className="flex items-center gap-2">
+                      <Activity className="h-4 w-4 text-gray-500" />
+                      <span className="text-gray-600">Periyot: {item.period}</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Building className="h-4 w-4 text-gray-500" />
+                      <span className="text-gray-600">Tesis: {item.facilityId || 'Belirtilmemiş'}</span>
                     </div>
                   </div>
-                  {item.workDone && (
-                    <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                      <p className="text-sm text-blue-800">
-                        <span className="font-medium">Yapılan İş:</span> {item.workDone}
-                      </p>
-                    </div>
-                  )}
                 </div>
                 
                 {isAdmin && item.approval_status === 'pending' && (
-                  <div className="flex gap-2 ml-4">
+                  <div className="flex flex-col gap-2 ml-4">
                     <button
                       onClick={() => handleApprove(item.id)}
-                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
                     >
+                      <CheckCircle className="h-4 w-4 inline mr-1" />
                       Onayla
                     </button>
                     <button
@@ -195,17 +245,18 @@ const Approvals: React.FC = () => {
                           handleReject(item.id, reason);
                         }
                       }}
-                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
                     >
+                      <XCircle className="h-4 w-4 inline mr-1" />
                       Reddet
                     </button>
                   </div>
                 )}
                 
                 {!isAdmin && item.approval_status === 'pending' && (
-                  <div className="ml-4 text-sm text-gray-500">
+                  <div className="ml-4 flex items-center gap-2 text-yellow-600">
                     <Clock className="h-5 w-5" />
-                    <span>Onay bekliyor</span>
+                    <span className="text-sm font-medium">Onay bekliyor</span>
                   </div>
                 )}
               </div>
@@ -213,6 +264,37 @@ const Approvals: React.FC = () => {
           ))}
         </div>
       )}
+
+      {/* İstatistikler */}
+      <Card className="mt-6">
+        <div className="p-4">
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">Onay İstatistikleri</h3>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-yellow-600">{pendingItems.length}</div>
+              <div className="text-sm text-gray-600">Bekleyen Onay</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">
+                {pendingItems.filter(item => item.approval_status === 'approved').length}
+              </div>
+              <div className="text-sm text-gray-600">Onaylanan</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-red-600">
+                {pendingItems.filter(item => item.approval_status === 'rejected').length}
+              </div>
+              <div className="text-sm text-gray-600">Reddedilen</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">
+                {Array.from(new Set(pendingItems.map(item => item.user))).length}
+              </div>
+              <div className="text-sm text-gray-600">Aktif Kullanıcı</div>
+            </div>
+          </div>
+        </div>
+      </Card>
     </div>
   );
 };

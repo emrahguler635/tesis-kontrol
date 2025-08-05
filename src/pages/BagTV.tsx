@@ -42,6 +42,7 @@ const BagTV: React.FC = () => {
   const [allFilterEnd, setAllFilterEnd] = useState('');
   const [facilitySearchTerm, setFacilitySearchTerm] = useState('');
   const [controlSearchTerm, setControlSearchTerm] = useState('');
+  const [users, setUsers] = useState<any[]>([]);
   const [screenSize, setScreenSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight
@@ -80,7 +81,17 @@ const BagTV: React.FC = () => {
 
   useEffect(() => {
     fetchFacilities();
+    fetchUsers();
   }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const data = await apiService.getUsers();
+      setUsers(data);
+    } catch (error) {
+      console.error('Kullanıcılar alınamadı:', error);
+    }
+  };
 
   // Responsive tasarım için dinamik sınıflar
   const getResponsiveClasses = () => {
@@ -175,7 +186,7 @@ const BagTV: React.FC = () => {
         console.log('Updating facility with ID:', editId);
         await apiService.updateBagTVFacility(editId, {
           name: form.name,
-          tv_count: parseInt(form.tvCount) || 0,
+          tvCount: parseInt(form.tvCount) || 0,
           description: form.description,
           status: form.status
         });
@@ -183,7 +194,7 @@ const BagTV: React.FC = () => {
         console.log('Creating new facility');
         await apiService.createBagTVFacility({
           name: form.name,
-          tv_count: parseInt(form.tvCount) || 0,
+          tvCount: parseInt(form.tvCount) || 0,
           description: form.description,
           status: form.status
         });
@@ -211,6 +222,9 @@ const BagTV: React.FC = () => {
   const openDetailPanel = async (facility: any) => {
     setSelectedFacility(facility);
     await fetchControls(facility._id || facility.id);
+    // Tarih alanını bugünün tarihi ile doldur
+    const today = new Date().toISOString().split('T')[0];
+    setControlForm({ date: today, action: '', description: '', checkedBy: '' });
   };
 
   const closeDetailPanel = () => {
@@ -221,34 +235,53 @@ const BagTV: React.FC = () => {
 
   const fetchControls = async (facilityId: string) => {
     try {
+      console.log('Fetching controls for facility:', facilityId);
+      console.log('Facility ID type:', typeof facilityId);
+      console.log('Facility ID value:', facilityId);
+      
       const data = await apiService.getBagTVControls(facilityId);
+      console.log('Fetched controls:', data);
       setControls(data);
       setFilteredControls(data);
     } catch (error) {
       console.error('BagTV controls fetch error:', error);
+      alert('Kontroller alınırken hata oluştu: ' + error.message);
     }
   };
 
-  const handleControlFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleControlFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setControlForm({ ...controlForm, [e.target.name]: e.target.value });
   };
 
   const handleControlSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Form submitted:', controlForm);
+    console.log('Selected facility:', selectedFacility);
+    
     setControlSaving(true);
     try {
-      await apiService.createBagTVControl({
+      const controlData = {
         facilityId: selectedFacility._id || selectedFacility.id,
-        title: controlForm.action,
         date: controlForm.date,
         action: controlForm.action,
         description: controlForm.description,
         checkedBy: controlForm.checkedBy
-      });
+      };
+      
+      console.log('Sending control data:', controlData);
+      
+      const result = await apiService.createBagTVControl(controlData);
+      console.log('API response:', result);
+      
+      // Formu temizle
+      const today = new Date().toISOString().split('T')[0];
+      setControlForm({ date: today, action: '', description: '', checkedBy: '' });
+      
+      // Kontrolleri yeniden yükle
       await fetchControls(selectedFacility._id || selectedFacility.id);
-      setControlForm({ date: '', action: '', description: '', checkedBy: '' });
     } catch (error) {
       console.error('BagTV control save error:', error);
+      alert('Kayıt yapılırken hata oluştu: ' + error.message);
     } finally {
       setControlSaving(false);
     }
@@ -696,15 +729,66 @@ const BagTV: React.FC = () => {
                 <button onClick={handleExportExcel} className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-xs">Excel'e Aktar</button>
               </div>
             </div>
-            <form onSubmit={handleControlSubmit} className="mb-4 p-4 bg-gray-50 rounded-lg">
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
-                <input type="date" name="date" value={controlForm.date} onChange={handleControlFormChange} placeholder="Tarih" required className="border rounded px-2 py-1" />
-                <input type="text" name="action" value={controlForm.action} onChange={handleControlFormChange} placeholder="Ne Yapıldı" required className="border rounded px-2 py-1" />
-                <input type="text" name="checkedBy" value={controlForm.checkedBy} onChange={handleControlFormChange} placeholder="Kontrol Eden" required className="border rounded px-2 py-1" />
-                <input type="text" name="description" value={controlForm.description} onChange={handleControlFormChange} placeholder="Açıklama" className="border rounded px-2 py-1" />
+            <form onSubmit={handleControlSubmit} className="mb-4 p-6 bg-gray-50 rounded-lg">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Tarih</label>
+                  <input 
+                    type="date" 
+                    name="date" 
+                    value={controlForm.date} 
+                    onChange={handleControlFormChange} 
+                    required 
+                    className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Kontrol Eden</label>
+                  <select 
+                    name="checkedBy" 
+                    value={controlForm.checkedBy} 
+                    onChange={handleControlFormChange} 
+                    required 
+                    className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">Kullanıcı seçin...</option>
+                    {users.map((user: any) => (
+                      <option key={user.id || user._id} value={user.username}>
+                        {user.username} - {user.role}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="lg:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Ne Yapıldı</label>
+                  <input 
+                    type="text" 
+                    name="action" 
+                    value={controlForm.action} 
+                    onChange={handleControlFormChange} 
+                    placeholder="Yapılan işlemi açıklayın..." 
+                    required 
+                    className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                  />
+                </div>
+                <div className="lg:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Açıklama</label>
+                  <textarea 
+                    name="description" 
+                    value={controlForm.description} 
+                    onChange={handleControlFormChange} 
+                    placeholder="Detaylı açıklama ekleyin..." 
+                    rows={3}
+                    className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                  />
+                </div>
               </div>
-              <div className="flex justify-end">
-                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" disabled={controlSaving}>
+              <div className="flex justify-end mt-4">
+                <button 
+                  type="submit" 
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium" 
+                  disabled={controlSaving}
+                >
                   {controlSaving ? 'Kaydediliyor...' : 'Ekle'}
                 </button>
               </div>

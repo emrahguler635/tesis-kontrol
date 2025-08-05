@@ -68,7 +68,7 @@ export function Login() {
       <div
         className="absolute inset-0 z-0"
         style={{
-          backgroundImage: `url(/belediye.jpg?v=${Date.now()}&cb=${Math.random()}&nocache=1&force=1&refresh=1)`,
+          backgroundImage: `url(/belediye.jpg?v=1.0&cb=1&nocache=1&force=1&refresh=1&cache=1&timestamp=1&version=2.0)`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
@@ -87,33 +87,9 @@ export function Login() {
         }}
       />
       
-      {/* Force load image with multiple parameters */}
+      {/* Force load image once */}
       <img 
-        src={`/belediye.jpg?v=${Date.now()}&cb=${Math.random()}&nocache=1&force=1&refresh=1`}
-        alt="" 
-        style={{ 
-          position: 'absolute', 
-          top: '-9999px', 
-          left: '-9999px',
-          width: '1px',
-          height: '1px',
-          opacity: '0'
-        }} 
-      />
-      <img 
-        src={`/belediye.jpg?v=${Date.now()}&cb=${Math.random()}&nocache=1&force=1&refresh=1`}
-        alt="" 
-        style={{ 
-          position: 'absolute', 
-          top: '-9999px', 
-          left: '-9999px',
-          width: '1px',
-          height: '1px',
-          opacity: '0'
-        }} 
-      />
-      <img 
-        src={`/belediye.jpg?v=${Date.now()}&cb=${Math.random()}&nocache=1&force=1&refresh=1`}
+        src={`/belediye.jpg?v=1.0&cb=1&nocache=1&force=1&refresh=1&cache=1&timestamp=1&version=2.0`}
         alt="" 
         style={{ 
           position: 'absolute', 

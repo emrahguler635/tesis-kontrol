@@ -298,6 +298,68 @@ class ApiService {
     });
   }
 
+  // YBS Work Program endpoints
+  async getYBSWorkItems(): Promise<any[]> {
+    this.log('debug', 'YBS work items requested');
+    return this.request<any[]>('/ybs-work-items');
+  }
+
+  async createYBSWorkItem(item: {
+    title: string;
+    description: string;
+    requestDate: string;
+    completionDate?: string;
+    requestingDepartment: string;
+    responsibleUsers: string[];
+    jiraNumber?: string;
+    status: string;
+    approvalStatus: string;
+    createdBy: string;
+  }): Promise<any> {
+    this.log('info', 'Creating YBS work item', item);
+    return this.request<any>('/ybs-work-items', {
+      method: 'POST',
+      body: JSON.stringify(item),
+    });
+  }
+
+  async updateYBSWorkItem(id: number, item: {
+    title: string;
+    description: string;
+    requestDate: string;
+    completionDate?: string;
+    requestingDepartment: string;
+    responsibleUsers: string[];
+    jiraNumber?: string;
+    status: string;
+    approvalStatus: string;
+  }): Promise<any> {
+    this.log('info', `Updating YBS work item ${id}`, item);
+    return this.request<any>(`/ybs-work-items/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(item),
+    });
+  }
+
+  async deleteYBSWorkItem(id: number): Promise<any> {
+    this.log('info', `Deleting YBS work item ${id}`);
+    return this.request<any>(`/ybs-work-items/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async updateYBSWorkItemApproval(id: number, approval: {
+    approvalStatus: string;
+    approvedBy: string;
+    approvedAt: string;
+  }): Promise<any> {
+    this.log('info', `Updating YBS work item approval ${id}`, approval);
+    return this.request<any>(`/ybs-work-items/${id}/approval`, {
+      method: 'PUT',
+      body: JSON.stringify(approval),
+    });
+  }
+
   // Authentication
   async login(credentials: { username: string; password: string }): Promise<any> {
     this.log('info', 'Login attempt', { username: credentials.username, password: '***' });
@@ -379,6 +441,32 @@ class ApiService {
       return this.mockWhatsAppAPI(endpoint, options);
     }
     
+    // YBS endpoint'leri için gerçek API kullan (hem development hem production'da)
+    if (endpoint.includes('/ybs-work-items')) {
+      return this.realYBSAPI(endpoint, options);
+    }
+    
+    // BağTV kontrolleri için gerçek API kullan (development ve production'da)
+    if (endpoint.includes('/bagtv-controls')) {
+      const response = await fetch(url, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...options?.headers,
+        },
+        ...options,
+      });
+  
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: 'Network error' }));
+        this.log('error', `API Error: ${response.status}`, error);
+        throw new Error(error.error || `HTTP error! status: ${response.status}`);
+      }
+  
+      const data = await response.json();
+      this.log('debug', `API Response: ${options?.method || 'GET'} ${url}`, data);
+      return data;
+    }
+    
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
@@ -398,6 +486,251 @@ class ApiService {
     return data;
   }
  
+  // Mock BagTV Controls API
+  async mockBagTVControlsAPI(endpoint: string, options?: RequestInit): Promise<any> {
+    this.log('debug', `Mock BagTV Controls API: ${endpoint}`, options);
+    
+    // Simüle edilmiş gecikme
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Mock data - Global olarak sakla
+    if (!(window as any).mockBagTVControls) {
+      (window as any).mockBagTVControls = [
+        {
+          _id: '1',
+          facilityId: '1',
+          date: '2025-08-05',
+          action: 'Sistem kontrolü yapıldı',
+          description: 'Tüm TV sistemleri kontrol edildi ve çalışır durumda',
+          checkedBy: 'emrah',
+          createdAt: new Date()
+        },
+        {
+          _id: '2',
+          facilityId: '2',
+          date: '2025-08-04',
+          action: 'Bakım yapıldı',
+          description: 'TV sistemlerinde rutin bakım yapıldı',
+          checkedBy: 'admin',
+          createdAt: new Date()
+        }
+      ];
+    }
+    
+    const mockBagTVControls = (window as any).mockBagTVControls;
+    
+    if (endpoint === '/bagtv-controls' && options?.method === 'GET') {
+      // Query parametrelerini parse et
+      const urlParams = new URLSearchParams(endpoint.includes('?') ? endpoint.split('?')[1] : '');
+      const facilityId = urlParams.get('facilityId');
+      
+      this.log('debug', `GET request - facilityId: ${facilityId}`);
+      
+      if (facilityId) {
+        // Sadece belirli tesis için kontrolleri filtrele
+        const facilityControls = mockBagTVControls.filter((control: any) => {
+          this.log('debug', `Comparing control.facilityId (${control.facilityId}) with requested facilityId (${facilityId})`);
+          return control.facilityId === facilityId;
+        });
+        this.log('debug', `Filtered controls for facility ${facilityId}:`, facilityControls);
+        return facilityControls;
+      } else {
+        this.log('debug', 'Returning all controls:', mockBagTVControls);
+        return mockBagTVControls;
+      }
+    }
+    
+    if (endpoint === '/bagtv-controls' && options?.method === 'POST') {
+      const body = JSON.parse(options.body as string);
+      this.log('debug', 'POST request body:', body);
+      
+      const newControl = {
+        _id: Date.now().toString(),
+        ...body,
+        createdAt: new Date()
+      };
+      
+      mockBagTVControls.push(newControl);
+      this.log('debug', 'Added new control:', newControl);
+      this.log('debug', 'Updated controls list:', mockBagTVControls);
+      
+      return newControl;
+    }
+    
+    if (endpoint.includes('/bagtv-controls/') && options?.method === 'DELETE') {
+      const id = endpoint.split('/').pop();
+      const index = mockBagTVControls.findIndex((control: any) => control._id === id);
+      
+      if (index !== -1) {
+        mockBagTVControls.splice(index, 1);
+        return { message: 'Control deleted successfully' };
+      } else {
+        throw new Error('Control not found');
+      }
+    }
+    
+    return mockBagTVControls;
+  }
+
+  // Gerçek YBS API
+  async realYBSAPI(endpoint: string, options?: RequestInit): Promise<any> {
+    this.log('debug', `Real YBS API: ${endpoint}`, options);
+    
+    // Gerçek API endpoint'ine istek at
+    const apiUrl = this.isDevelopment 
+      ? `http://localhost:3001/api${endpoint}`
+      : `https://backend-bskpouo60-emrahs-projects-7d7ccaf2.vercel.app/api${endpoint}`;
+    
+    const response = await fetch(apiUrl, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`YBS API Error: ${response.status} ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  // Mock YBS API (yedek olarak)
+  async mockYBSAPI(endpoint: string, options?: RequestInit): Promise<any> {
+    this.log('debug', `Mock YBS API: ${endpoint}`, options);
+    
+    // Simüle edilmiş gecikme
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Local Storage'dan veri yükle veya varsayılan verileri kullan
+    const loadYBSData = (): any[] => {
+      const stored = localStorage.getItem('ybs_work_items');
+      if (stored) {
+        try {
+          return JSON.parse(stored);
+        } catch (error) {
+          console.error('Local storage parse error:', error);
+        }
+      }
+      
+      // Varsayılan veriler (Neon'daki gerçek veriler)
+      const defaultData = [
+        {
+          id: 1,
+          title: 'tyest',
+          description: 'test',
+          requestDate: '2025-08-05',
+          completionDate: '2025-08-05',
+          requestingDepartment: 'bilgi işlem',
+          responsibleUsers: ['emrah2', 'Ferhat'],
+          jiraNumber: '',
+          status: 'pending',
+          approvalStatus: 'pending',
+          createdBy: 'admin',
+          createdAt: '2025-08-05T10:00:00Z',
+          updatedAt: '2025-08-05T15:30:00Z'
+        },
+        {
+          id: 2,
+          title: '52',
+          description: 'aaaaa',
+          requestDate: '2025-08-05',
+          completionDate: null,
+          requestingDepartment: 'özel',
+          responsibleUsers: ['emrah2', 'Ferhat'],
+          jiraNumber: '',
+          status: 'pending',
+          approvalStatus: 'pending',
+          createdBy: 'admin',
+          createdAt: '2025-08-05T09:00:00Z',
+          updatedAt: '2025-08-05T14:20:00Z'
+        },
+        {
+          id: 3,
+          title: '28',
+          description: 'aaaaaaaa',
+          requestDate: '2025-08-05',
+          completionDate: null,
+          requestingDepartment: 'çevre',
+          responsibleUsers: ['emrah2', 'emrah1'],
+          jiraNumber: '',
+          status: 'pending',
+          approvalStatus: 'pending',
+          createdBy: 'admin',
+          createdAt: '2025-08-05T11:30:00Z',
+          updatedAt: '2025-08-05T11:30:00Z'
+        }
+      ];
+      
+      return defaultData;
+    };
+    
+    // Local Storage'a kaydet
+    const saveYBSData = (data: any[]): void => {
+      try {
+        localStorage.setItem('ybs_work_items', JSON.stringify(data));
+      } catch (error) {
+        console.error('Local storage save error:', error);
+      }
+    };
+    
+    // Veriyi yükle
+    let mockData = loadYBSData();
+    
+    if (endpoint === '/ybs-work-items' && (!options || options.method === 'GET')) {
+      return mockData;
+    }
+    
+    if (endpoint === '/ybs-work-items' && options?.method === 'POST') {
+      const newItem = JSON.parse(options.body as string);
+      const id = Math.max(...mockData.map((item: any) => item.id)) + 1;
+      const item = {
+        id,
+        ...newItem,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      mockData.push(item);
+      saveYBSData(mockData); // Local Storage'a kaydet
+      return item;
+    }
+    
+    if (endpoint.startsWith('/ybs-work-items/') && options?.method === 'PUT') {
+      const id = parseInt(endpoint.split('/').pop()!);
+      const updateData = JSON.parse(options.body as string);
+      const itemIndex = mockData.findIndex((item: any) => item.id === id);
+      
+      if (itemIndex === -1) {
+        throw new Error('YBS işi bulunamadı');
+      }
+      
+      mockData[itemIndex] = {
+        ...mockData[itemIndex],
+        ...updateData,
+        updatedAt: new Date().toISOString()
+      };
+      
+      saveYBSData(mockData); // Local Storage'a kaydet
+      return mockData[itemIndex];
+    }
+    
+    if (endpoint.startsWith('/ybs-work-items/') && options?.method === 'DELETE') {
+      const id = parseInt(endpoint.split('/').pop()!);
+      const itemIndex = mockData.findIndex((item: any) => item.id === id);
+      
+      if (itemIndex === -1) {
+        throw new Error('YBS işi bulunamadı');
+      }
+      
+      mockData.splice(itemIndex, 1);
+      saveYBSData(mockData); // Local Storage'a kaydet
+      return { message: 'YBS işi silindi' };
+    }
+    
+    throw new Error(`Unknown YBS endpoint: ${endpoint}`);
+  }
+
   // Mock WhatsApp API
   async mockWhatsAppAPI(endpoint: string, options?: RequestInit): Promise<any> {
     this.log('debug', `Mock WhatsApp API: ${endpoint}`, options);

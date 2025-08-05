@@ -16,6 +16,8 @@ import DataViewer from './pages/DataViewer';
 import Approvals from './pages/Approvals';
 import CompletedWorks from './pages/CompletedWorks';
 import { WhatsAppNotifications } from './pages/WhatsAppNotifications';
+import YBSWorkProgram from './pages/YBSWorkProgram';
+import YBSApprovals from './pages/YBSApprovals';
 
 // Sayfa yetki kontrolü için mapping
 const pagePermissions = {
@@ -31,7 +33,9 @@ const pagePermissions = {
   '/completed-works': 'Yapılan İşler',
   '/settings': 'Ayarlar',
   '/user-management': 'Kullanıcı Yönetimi',
-  '/whatsapp': 'WhatsApp Bildirimleri'
+  '/whatsapp': 'WhatsApp Bildirimleri',
+  '/ybs-work-program': 'YBS İş Programı',
+  '/ybs-approvals': 'YBS Onay Ekranı'
 };
 
 // PrivateRoute bileşeni
@@ -61,36 +65,40 @@ const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route
-          path="*"
-          element={
-            <PrivateRoute>
-              <Layout>
-                <Routes>
-                  <Route path="/" element={<Dashboard />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/facilities" element={<Facilities />} />
-                  <Route path="/daily-checks" element={<DailyChecks />} />
-                  <Route path="/haftalik" element={<WeeklyChecks />} />
-                  <Route path="/reports" element={<Reports />} />
-                  <Route path="/messages" element={<Messages />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/bagtv" element={<BagTV />} />
-                  <Route path="/user-management" element={<UserManagement />} />
-                  <Route path="/data-control" element={<DataViewer />} />
-                  <Route path="/approvals" element={<Approvals />} />
-                  <Route path="/completed-works" element={<CompletedWorks />} />
-                  <Route path="/whatsapp" element={<WhatsAppNotifications />} />
-                </Routes>
-              </Layout>
-            </PrivateRoute>
-          }
-        />
-      </Routes>
-    </Router>
+    <div className="h-screen overflow-hidden">
+      <Router>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route
+            path="*"
+            element={
+              <PrivateRoute>
+                <Layout>
+                  <Routes>
+                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/facilities" element={<Facilities />} />
+                    <Route path="/daily-checks" element={<DailyChecks />} />
+                    <Route path="/haftalik" element={<WeeklyChecks />} />
+                    <Route path="/reports" element={<Reports />} />
+                    <Route path="/messages" element={<Messages />} />
+                    <Route path="/settings" element={<Settings />} />
+                    <Route path="/bagtv" element={<BagTV />} />
+                    <Route path="/user-management" element={<UserManagement />} />
+                    <Route path="/data-control" element={<DataViewer />} />
+                    <Route path="/approvals" element={<Approvals />} />
+                                                          <Route path="/completed-works" element={<CompletedWorks />} />
+                    <Route path="/whatsapp" element={<WhatsAppNotifications />} />
+                    <Route path="/ybs-work-program" element={<YBSWorkProgram />} />
+                    <Route path="/ybs-approvals" element={<YBSApprovals />} />
+                  </Routes>
+                </Layout>
+              </PrivateRoute>
+            }
+          />
+        </Routes>
+      </Router>
+    </div>
   );
 }
 
