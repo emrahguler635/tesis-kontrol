@@ -28,27 +28,30 @@ const Approvals: React.FC = () => {
   const isAdmin = user?.role === 'admin';
 
   useEffect(() => {
-    loadPendingApprovals();
-  }, []);
+    const loadPendingApprovals = async () => {
+      try {
+        setLoading(true);
+        
+        // Onay bekleyen işleri yükle
+        const pendingItems = await apiService.getPendingApprovals(user?.username);
+        
+        // Sadece development'ta log
+        if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+          console.log('Onay bekleyen işler yüklendi:', pendingItems?.length || 0);
+        }
+        
+        setPendingItems(pendingItems);
+      } catch (error) {
+        console.error('Onay bekleyen işler yüklenirken hata:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const loadPendingApprovals = async () => {
-    try {
-      setLoading(true);
-      console.log('Onay bekleyen isler yukleniyor...');
-      console.log('Current user:', user);
-      console.log('Is admin:', isAdmin);
-      
-      // Admin ise tüm bekleyen işleri, değilse sadece kendi işlerini getir
-      const items = await apiService.getPendingApprovals(isAdmin ? undefined : user?.username);
-      console.log('API\'den gelen veriler:', items);
-      console.log('Veri sayisi:', items.length);
-      setPendingItems(items);
-    } catch (error) {
-      console.error('Onay bekleyen isler yuklenirken hata:', error);
-    } finally {
-      setLoading(false);
+    if (user) {
+      loadPendingApprovals();
     }
-  };
+  }, [user]);
 
   const handleApprove = async (id: number) => {
     if (!isAdmin) {

@@ -14,31 +14,17 @@ export function Login() {
   const [loading, setLoading] = useState(false);
 
   // Logo'yu doğrudan al
-  const logo = '/logo.svg';
+  const logo = '/logo-new.svg';
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Boş alan kontrolü
-    if (!username.trim() || !password.trim()) {
-      setError('Kullanıcı adı ve şifre gereklidir!');
-      return;
-    }
-    
-    // Loading durumunda tekrar submit'i engelle
-    if (loading) {
-      return;
-    }
-    
-    setError('');
+    if (loading) return;
+
     setLoading(true);
+    setError('');
 
     try {
-      // API servisi kullan
       const data = await apiService.login({ username, password });
-
-      // Debug için geçici log
-      console.log('🔍 Login Response:', data);
 
       if (data.success !== false) {
         // Kullanıcı verilerini hazırla
@@ -59,15 +45,11 @@ export function Login() {
           ];
         }
         
-        // Debug için geçici log
-        console.log('🔍 User Data:', userData);
+        // Kullanıcı verilerini store'a kaydet
+        useAuthStore.getState().login(userData);
         
-        login(userData);
-        
-        // Kısa bir gecikme ekleyelim
-        setTimeout(() => {
-          navigate('/');
-        }, 100);
+        // Başarılı giriş sonrası yönlendirme
+        navigate('/dashboard');
         
       } else {
         setError(data.error || data.message || 'Kullanıcı adı veya şifre hatalı!');
@@ -78,33 +60,70 @@ export function Login() {
     } finally {
       setLoading(false);
     }
-  }, [username, password, loading, login, navigate]);
+  }, [username, password, loading, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative">
       {/* Fixed Background Image */}
-      {useMemo(() => (
-        <div
-          className="absolute inset-0 z-0"
-          style={{
-            backgroundImage: `url(/belediye.jpg?v=${Date.now()})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-            transform: 'translate3d(0,0,0)',
-            willChange: 'auto',
-            backfaceVisibility: 'hidden',
-            perspective: '1000px',
-            position: 'fixed',
-            top: '0',
-            left: '0',
-            right: '0',
-            bottom: '0',
-            width: '100vw',
-            height: '100vh'
-          }}
-        />
-      ), [])}
+      <div
+        className="absolute inset-0 z-0"
+        style={{
+          backgroundImage: `url(/belediye.jpg?v=${Date.now()}&cb=${Math.random()}&nocache=1&force=1&refresh=1)`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          transform: 'translate3d(0,0,0)',
+          willChange: 'auto',
+          backfaceVisibility: 'hidden',
+          perspective: '1000px',
+          position: 'fixed',
+          top: '0',
+          left: '0',
+          right: '0',
+          bottom: '0',
+          width: '100vw',
+          height: '100vh',
+          backgroundColor: '#f8f9fa'
+        }}
+      />
+      
+      {/* Force load image with multiple parameters */}
+      <img 
+        src={`/belediye.jpg?v=${Date.now()}&cb=${Math.random()}&nocache=1&force=1&refresh=1`}
+        alt="" 
+        style={{ 
+          position: 'absolute', 
+          top: '-9999px', 
+          left: '-9999px',
+          width: '1px',
+          height: '1px',
+          opacity: '0'
+        }} 
+      />
+      <img 
+        src={`/belediye.jpg?v=${Date.now()}&cb=${Math.random()}&nocache=1&force=1&refresh=1`}
+        alt="" 
+        style={{ 
+          position: 'absolute', 
+          top: '-9999px', 
+          left: '-9999px',
+          width: '1px',
+          height: '1px',
+          opacity: '0'
+        }} 
+      />
+      <img 
+        src={`/belediye.jpg?v=${Date.now()}&cb=${Math.random()}&nocache=1&force=1&refresh=1`}
+        alt="" 
+        style={{ 
+          position: 'absolute', 
+          top: '-9999px', 
+          left: '-9999px',
+          width: '1px',
+          height: '1px',
+          opacity: '0'
+        }} 
+      />
       
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/20 z-10"></div>
@@ -113,7 +132,7 @@ export function Login() {
         {/* Logo ve Başlık Bölümü */}
         <div className="text-center mb-8 mt-4">
           <div className="flex items-center justify-center w-48 h-40 rounded-full bg-white shadow-lg mx-auto mb-12 border-4 border-blue-100">
-            <img src={`/logo.svg?v=${Date.now()}&cb=${Math.random()}`} alt="Logo" className="w-44 h-36 object-contain" />
+            <img src="/logo.svg" alt="Logo" className="w-44 h-36 object-contain" />
           </div>
           <h1 className="text-4xl font-extrabold text-white mb-8 drop-shadow-2xl tracking-wider whitespace-nowrap">
             WorkPulse – İş Nabzı

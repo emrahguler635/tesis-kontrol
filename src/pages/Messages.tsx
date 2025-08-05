@@ -310,9 +310,9 @@ const Messages: React.FC = () => {
       ) : (
         <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
           <div className="overflow-auto max-h-[calc(100vh-400px)]">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50 sticky top-0 z-10">
-                <tr>
+            <table className="w-full border border-gray-300">
+              <thead className="sticky top-0 bg-white/90 backdrop-blur-sm z-10">
+                <tr className="border-b-2 border-gray-400">
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
                     Tarih
                   </th>

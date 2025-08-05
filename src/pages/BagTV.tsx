@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../services/api';
 import * as XLSX from 'xlsx';
-import { Search, Building2, Tv, Calendar, Filter } from 'lucide-react';
+import { Plus, Search, Tv, Building2, Calendar, Edit, Trash2, Eye, CheckSquare } from 'lucide-react';
 
 interface BagTVFacility {
   id: number;
@@ -42,6 +42,22 @@ const BagTV: React.FC = () => {
   const [allFilterEnd, setAllFilterEnd] = useState('');
   const [facilitySearchTerm, setFacilitySearchTerm] = useState('');
   const [controlSearchTerm, setControlSearchTerm] = useState('');
+  const [screenSize, setScreenSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setScreenSize({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const fetchFacilities = async () => {
     try {
@@ -65,6 +81,65 @@ const BagTV: React.FC = () => {
   useEffect(() => {
     fetchFacilities();
   }, []);
+
+  // Responsive tasarım için dinamik sınıflar
+  const getResponsiveClasses = () => {
+    const { width, height } = screenSize;
+    
+    // Mobil
+    if (width < 768) {
+      return {
+        container: "h-screen flex flex-col overflow-hidden",
+        header: "flex-shrink-0 p-2",
+        title: "text-xl",
+        subtitle: "text-sm",
+        statsGrid: "grid grid-cols-2 gap-2 mb-2",
+        tableContainer: "flex-1 min-h-0 overflow-hidden",
+        table: "h-full overflow-auto",
+        buttonSize: "text-xs px-2 py-1"
+      };
+    }
+    
+    // Tablet
+    if (width < 1024) {
+      return {
+        container: "h-screen flex flex-col overflow-hidden",
+        header: "flex-shrink-0 p-3",
+        title: "text-2xl",
+        subtitle: "text-sm",
+        statsGrid: "grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3",
+        tableContainer: "flex-1 min-h-0 overflow-hidden",
+        table: "h-full overflow-auto",
+        buttonSize: "text-sm px-3 py-1"
+      };
+    }
+    
+    // Desktop
+    if (width < 1440) {
+      return {
+        container: "h-screen flex flex-col overflow-hidden",
+        header: "flex-shrink-0 p-4",
+        title: "text-3xl",
+        subtitle: "text-base",
+        statsGrid: "grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4",
+        tableContainer: "flex-1 min-h-0 overflow-hidden",
+        table: "h-full overflow-auto",
+        buttonSize: "text-sm px-3 py-1"
+      };
+    }
+    
+    // Büyük ekranlar
+    return {
+      container: "h-screen flex flex-col overflow-hidden",
+      header: "flex-shrink-0 p-6",
+      title: "text-4xl",
+      subtitle: "text-lg",
+      statsGrid: "grid grid-cols-2 lg:grid-cols-4 gap-6 mb-6",
+      tableContainer: "flex-1 min-h-0 overflow-hidden",
+      table: "h-full overflow-auto",
+      buttonSize: "text-base px-4 py-2"
+    };
+  };
 
   const handleOpenModal = (facility?: any) => {
     if (facility) {
@@ -100,7 +175,7 @@ const BagTV: React.FC = () => {
         console.log('Updating facility with ID:', editId);
         await apiService.updateBagTVFacility(editId, {
           name: form.name,
-          tvCount: Number(form.tvCount),
+          tv_count: parseInt(form.tvCount) || 0,
           description: form.description,
           status: form.status
         });
@@ -108,45 +183,40 @@ const BagTV: React.FC = () => {
         console.log('Creating new facility');
         await apiService.createBagTVFacility({
           name: form.name,
-          tvCount: Number(form.tvCount),
+          tv_count: parseInt(form.tvCount) || 0,
           description: form.description,
           status: form.status
         });
       }
-      console.log('Facility saved successfully');
-      setIsModalOpen(false);
-      fetchFacilities();
-    } catch (err) {
-      console.error('Error saving facility:', err);
-      alert('Tesis kaydedilirken hata oluştu!');
+      await fetchFacilities();
+      handleCloseModal();
+    } catch (error) {
+      console.error('BagTV facility save error:', error);
     } finally {
       setSaving(false);
-      setEditId(null);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Bu tesisi silmek istediğinize emin misiniz?')) return;
-    try {
-      await apiService.deleteBagTVFacility(id);
-      fetchFacilities();
-    } catch (err) {
-      alert('Tesis silinirken hata oluştu!');
+    if (window.confirm('Bu tesisi silmek istediğinizden emin misiniz?')) {
+      try {
+        await apiService.deleteBagTVFacility(id);
+        await fetchFacilities();
+      } catch (error) {
+        console.error('BagTV facility delete error:', error);
+      }
     }
   };
 
   const openDetailPanel = async (facility: any) => {
     setSelectedFacility(facility);
-    await fetchControls(facility._id?.toString() || facility.id?.toString());
+    await fetchControls(facility._id || facility.id);
   };
 
   const closeDetailPanel = () => {
     setSelectedFacility(null);
     setControls([]);
     setFilteredControls([]);
-    setControlForm({ date: '', action: '', description: '', checkedBy: '' });
-    setFilterStart('');
-    setFilterEnd('');
   };
 
   const fetchControls = async (facilityId: string) => {
@@ -154,9 +224,8 @@ const BagTV: React.FC = () => {
       const data = await apiService.getBagTVControls(facilityId);
       setControls(data);
       setFilteredControls(data);
-    } catch (err) {
-      setControls([]);
-      setFilteredControls([]);
+    } catch (error) {
+      console.error('BagTV controls fetch error:', error);
     }
   };
 
@@ -166,270 +235,321 @@ const BagTV: React.FC = () => {
 
   const handleControlSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedFacility) return;
     setControlSaving(true);
     try {
       await apiService.createBagTVControl({
-        facilityId: selectedFacility._id?.toString() || selectedFacility.id?.toString(),
+        facilityId: selectedFacility._id || selectedFacility.id,
+        title: controlForm.action,
         date: controlForm.date,
         action: controlForm.action,
         description: controlForm.description,
         checkedBy: controlForm.checkedBy
       });
+      await fetchControls(selectedFacility._id || selectedFacility.id);
       setControlForm({ date: '', action: '', description: '', checkedBy: '' });
-      await fetchControls(selectedFacility._id?.toString() || selectedFacility.id?.toString());
-    } catch (err) {
-      alert('Kontrol kaydı eklenirken hata oluştu!');
+    } catch (error) {
+      console.error('BagTV control save error:', error);
     } finally {
       setControlSaving(false);
     }
   };
 
   const handleDeleteControl = async (id: string) => {
-    if (!window.confirm('Bu kontrol kaydını silmek istediğinize emin misiniz?')) return;
-    try {
-      await apiService.deleteBagTVControl(id);
-      if (selectedFacility) await fetchControls(selectedFacility._id?.toString() || selectedFacility.id?.toString());
-    } catch (err) {
-      alert('Kontrol kaydı silinirken hata oluştu!');
+    if (window.confirm('Bu kontrolü silmek istediğinizden emin misiniz?')) {
+      try {
+        await apiService.deleteBagTVControl(id);
+        await fetchControls(selectedFacility._id || selectedFacility.id);
+      } catch (error) {
+        console.error('BagTV control delete error:', error);
+      }
     }
   };
 
-  // Tarih aralığı filtreleme
   const handleFilter = () => {
-    if (!filterStart && !filterEnd) {
-      setFilteredControls(controls);
-      return;
+    let filtered = controls;
+    if (filterStart && filterEnd) {
+      filtered = filtered.filter((control: any) => {
+        const controlDate = new Date(control.date);
+        const start = new Date(filterStart);
+        const end = new Date(filterEnd);
+        return controlDate >= start && controlDate <= end;
+      });
     }
-    const start = filterStart ? new Date(filterStart) : null;
-    const end = filterEnd ? new Date(filterEnd) : null;
-    setFilteredControls(
-      controls.filter((c: any) => {
-        const d = new Date(c.date);
-        if (start && d < start) return false;
-        if (end && d > end) return false;
-        return true;
-      })
-    );
+    setFilteredControls(filtered);
   };
 
-  // Excel'e aktar
   const handleExportExcel = () => {
-    const ws = XLSX.utils.json_to_sheet(
-      filteredControls.map((c: any) => ({
-        Tarih: c.date ? new Date(c.date).toLocaleDateString('tr-TR') : '',
-        'Ne Yapıldı': c.action,
-        Açıklama: c.description,
-        'Kontrol Eden': c.checkedBy
-      }))
-    );
+    const ws = XLSX.utils.json_to_sheet(filteredControls);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Kontrol Gecmisi');
-    XLSX.writeFile(wb, `${selectedFacility?.name || 'kontrol'}-gecmis.xlsx`);
+    XLSX.utils.book_append_sheet(wb, ws, 'BagTV Controls');
+    XLSX.writeFile(wb, `bagtv_controls_${selectedFacility?.name || 'facility'}.xlsx`);
   };
 
-  // Tüm kontrolleri çek
   const fetchAllControls = async () => {
     try {
       const data = await apiService.getBagTVControls();
       setAllControls(data);
       setAllFilteredControls(data);
-    } catch (err) {
-      setAllControls([]);
-      setAllFilteredControls([]);
+    } catch (error) {
+      console.error('All BagTV controls fetch error:', error);
     }
   };
 
-  // Tüm kontrollerde tarih aralığı filtreleme
   const handleAllFilter = () => {
-    if (!allFilterStart && !allFilterEnd) {
-      setAllFilteredControls(allControls);
-      return;
+    let filtered = allControls;
+    if (allFilterStart && allFilterEnd) {
+      filtered = filtered.filter((control: any) => {
+        const controlDate = new Date(control.date);
+        const start = new Date(allFilterStart);
+        const end = new Date(allFilterEnd);
+        return controlDate >= start && controlDate <= end;
+      });
     }
-    const start = allFilterStart ? new Date(allFilterStart) : null;
-    const end = allFilterEnd ? new Date(allFilterEnd) : null;
-    setAllFilteredControls(
-      allControls.filter((c: any) => {
-        const d = new Date(c.date);
-        if (start && d < start) return false;
-        if (end && d > end) return false;
-        return true;
-      })
-    );
+    setAllFilteredControls(filtered);
   };
 
-  // Tüm kontrolleri Excel'e aktar
   const handleAllExportExcel = () => {
-    const ws = XLSX.utils.json_to_sheet(
-      allFilteredControls.map((c: any) => ({
-        Tesis: (facilities.find((f: any) => f._id === c.facilityId || f.id === c.facilityId)?.name) || '',
-        Tarih: c.date ? new Date(c.date).toLocaleDateString('tr-TR') : '',
-        'Ne Yapıldı': c.action,
-        Açıklama: c.description,
-        'Kontrol Eden': c.checkedBy
-      }))
-    );
+    const ws = XLSX.utils.json_to_sheet(allFilteredControls);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'TumKontrolGecmisi');
-    XLSX.writeFile(wb, 'tum-kontrol-gecmisi.xlsx');
+    XLSX.utils.book_append_sheet(wb, ws, 'All BagTV Controls');
+    XLSX.writeFile(wb, 'all_bagtv_controls.xlsx');
   };
 
   const filteredFacilities = facilities.filter((facility: any) =>
-    facility.name?.toLowerCase().includes(facilitySearchTerm.toLowerCase())
+    facility.name.toLowerCase().includes(facilitySearchTerm.toLowerCase())
   );
+
+  const classes = getResponsiveClasses();
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-lg">Yükleniyor...</div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col">
-      {/* Sabit İstatistik Kartları */}
-      <div className="mb-6 flex-shrink-0">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-            <div className="p-6 text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-blue-100">Toplam TV</p>
-                  <p className="text-3xl font-bold">{totalTV}</p>
-                </div>
-                <div className="p-3 bg-white bg-opacity-20 rounded-full">
-                  <Tv className="h-8 w-8 text-white" />
-                </div>
+    <div className={classes.container}>
+      {/* Sabit Başlık ve İstatistikler */}
+      <div className={classes.header}>
+        {/* Başlık */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center">
+            <div className="p-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg mr-4">
+              <Tv className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h1 className={`font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent ${classes.title}`}>
+                BağTV Yönetimi
+              </h1>
+              <p className={`text-gray-600 ${classes.subtitle}`}>Tesis ve kontrol yönetim sistemi</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
+              onClick={() => {
+                setShowAllControls(!showAllControls);
+                if (!showAllControls) fetchAllControls();
+              }}
+            >
+              <CheckSquare className="h-4 w-4" />
+              {showAllControls ? 'Kontrolleri Gizle' : 'Tüm Kontrolleri Göster'}
+            </button>
+            <button
+              className={`bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 ${classes.buttonSize}`}
+              onClick={() => handleOpenModal()}
+            >
+              <Plus className="h-4 w-4" />
+              Tesis Ekle
+            </button>
+          </div>
+        </div>
+
+        {/* İstatistik Kartları */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* Toplam TV */}
+          <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+            <div className="flex items-center justify-between h-40 p-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl">
+              <div className="flex-1">
+                <p className="text-base font-medium text-blue-100 mb-3">Toplam TV</p>
+                <p className="text-4xl font-bold text-white mb-2">{totalTV}</p>
+                <p className="text-sm text-blue-200">Aktif TV</p>
+              </div>
+              <div className="p-5 bg-white/20 rounded-xl backdrop-blur-sm">
+                <Tv className="h-12 w-12 text-white" />
               </div>
             </div>
           </div>
-          
-          <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-            <div className="p-6 text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-green-100">Aktif Tesis</p>
-                  <p className="text-3xl font-bold">{facilities.filter(f => f.status === 'Aktif').length}</p>
-                </div>
-                <div className="p-3 bg-white bg-opacity-20 rounded-full">
-                  <Building2 className="h-8 w-8 text-white" />
-                </div>
+
+          {/* Aktif Tesis */}
+          <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+            <div className="flex items-center justify-between h-40 p-6 bg-gradient-to-br from-green-500 to-green-600 rounded-xl">
+              <div className="flex-1">
+                <p className="text-base font-medium text-green-100 mb-3">Aktif Tesis</p>
+                <p className="text-4xl font-bold text-white mb-2">{facilities.filter(f => f.status === 'Aktif').length}</p>
+                <p className="text-sm text-green-200">Çalışan Tesis</p>
+              </div>
+              <div className="p-5 bg-white/20 rounded-xl backdrop-blur-sm">
+                <Building2 className="h-12 w-12 text-white" />
               </div>
             </div>
           </div>
-          
-          <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-            <div className="p-6 text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-purple-100">Toplam Tesis</p>
-                  <p className="text-3xl font-bold">{facilities.length}</p>
-                </div>
-                <div className="p-3 bg-white bg-opacity-20 rounded-full">
-                  <Calendar className="h-8 w-8 text-white" />
-                </div>
+
+          {/* Toplam Tesis */}
+          <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+            <div className="flex items-center justify-between h-40 p-6 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl">
+              <div className="flex-1">
+                <p className="text-base font-medium text-purple-100 mb-3">Toplam Tesis</p>
+                <p className="text-4xl font-bold text-white mb-2">{facilities.length}</p>
+                <p className="text-sm text-purple-200">Tüm Tesisler</p>
+              </div>
+              <div className="p-5 bg-white/20 rounded-xl backdrop-blur-sm">
+                <Calendar className="h-12 w-12 text-white" />
               </div>
             </div>
           </div>
-          
-          <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-            <div className="p-6 text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-orange-100">Ortalama TV</p>
-                  <p className="text-3xl font-bold">{facilities.length > 0 ? (totalTV / facilities.length).toFixed(1) : '0.0'}</p>
-                </div>
-                <div className="p-3 bg-white bg-opacity-20 rounded-full">
-                  <Tv className="h-8 w-8 text-white" />
-                </div>
+
+          {/* Ortalama TV */}
+          <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+            <div className="flex items-center justify-between h-40 p-6 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl">
+              <div className="flex-1">
+                <p className="text-base font-medium text-orange-100 mb-3">Ortalama TV</p>
+                <p className="text-4xl font-bold text-white mb-2">{facilities.length > 0 ? (totalTV / facilities.length).toFixed(1) : '0.0'}</p>
+                <p className="text-sm text-orange-200">Tesis Başına</p>
+              </div>
+              <div className="p-5 bg-white/20 rounded-xl backdrop-blur-sm">
+                <Tv className="h-12 w-12 text-white" />
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Sabit Başlık ve Arama */}
-      <div className="mb-4 flex-shrink-0">
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="flex items-center mb-4 justify-between">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl shadow-lg">
-                <Tv className="h-8 w-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                  BağTV Yönetimi
-                </h1>
-                <p className="text-gray-600 mt-1">Tesis ve kontrol yönetim sistemi</p>
-              </div>
+        {/* Tesis Yönetimi Başlığı */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center">
+            <div className="p-3 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg mr-4">
+              <Building2 className="h-6 w-6 text-white" />
             </div>
-            <button
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              onClick={() => handleOpenModal()}
-            >
-              + Tesis Ekle
-            </button>
+            <div>
+              <h2 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-indigo-800 bg-clip-text text-transparent">
+                Tesis Yönetimi
+              </h2>
+              <p className="text-gray-600 text-sm">Tesis takip ve yönetim sistemi</p>
+            </div>
           </div>
+          
           {/* Tesis Arama */}
-          <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Search className="h-5 w-5 text-blue-600" />
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-gray-400" />
               </div>
-              <div className="flex-1">
-                <input
-                  type="text"
-                  value={facilitySearchTerm}
-                  onChange={(e) => setFacilitySearchTerm(e.target.value)}
-                  placeholder="Tesis ara..."
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              {facilitySearchTerm && (
-                <button
-                  onClick={() => setFacilitySearchTerm('')}
-                  className="text-gray-400 hover:text-gray-600 transition-colors px-3 py-2"
-                  title="Aramayı temizle"
-                >
-                  ×
-                </button>
-              )}
+              <input
+                type="text"
+                value={facilitySearchTerm}
+                onChange={(e) => setFacilitySearchTerm(e.target.value)}
+                placeholder="Tesis ara..."
+                className="w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              />
             </div>
             {facilitySearchTerm && (
-              <div className="mt-2 text-sm text-gray-600">
-                "{facilitySearchTerm}" için {filteredFacilities.length} tesis bulundu
-              </div>
+              <button
+                onClick={() => setFacilitySearchTerm('')}
+                className="text-gray-400 hover:text-gray-600 transition-colors px-2 py-2"
+                title="Aramayı temizle"
+              >
+                ×
+              </button>
             )}
           </div>
         </div>
+
+        {facilitySearchTerm && (
+          <div className="mb-4 text-sm text-gray-600">
+            "{facilitySearchTerm}" için {filteredFacilities.length} tesis bulundu
+          </div>
+        )}
       </div>
 
       {/* Kaydırılabilir Tesis Listesi */}
-      <div className="flex-1 overflow-hidden">
+      <div className={classes.tableContainer}>
         <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden h-full">
-          <div className="overflow-auto h-full">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50 sticky top-0 z-10">
-                <tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Tesis</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">TV Adeti</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Açıklama</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Durum</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">İşlemler</th>
+          <div className={classes.table}>
+            <table className="w-full border border-gray-300">
+              <thead className="sticky top-0 bg-white/90 backdrop-blur-sm z-10">
+                <tr className="border-b-2 border-gray-400">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                    TESİS
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                    TV ADETİ
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                    AÇIKLAMA
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                    DURUM
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                    İŞLEMLER
+                  </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="bg-white divide-y divide-gray-200">
                 {filteredFacilities.map((facility: any) => (
-                  <tr key={facility._id || facility.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-2 font-semibold">{facility.name}</td>
-                    <td className="px-4 py-2">{facility.tvCount ?? '-'}</td>
-                    <td className="px-4 py-2">{facility.description ?? '-'}</td>
-                    <td className="px-4 py-2">{facility.status ?? '-'}</td>
-                    <td className="px-4 py-2 space-x-2">
-                      <button className="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs" onClick={() => handleOpenModal(facility)}>Düzenle</button>
-                      <button className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs" onClick={() => handleDelete(facility._id || facility.id)}>Sil</button>
-                      <button className="px-2 py-1 bg-gray-500 text-white rounded hover:bg-gray-600 text-xs" onClick={() => openDetailPanel(facility)}>Detay</button>
+                  <tr key={facility._id || facility.id} className="hover:bg-gray-50 transition-colors duration-200">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-8 w-8">
+                          <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center">
+                            <Building2 className="h-4 w-4 text-white" />
+                          </div>
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-900">{facility.name}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <div className="flex items-center">
+                        <Tv className="h-4 w-4 text-gray-400 mr-2" />
+                        {facility.tvCount ?? '-'}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">
+                      {facility.description ?? '-'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                        {facility.status ?? 'Aktif'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex items-center justify-end gap-2">
+                        <button 
+                          className="p-1 text-blue-600 hover:text-blue-800 transition-colors" 
+                          onClick={() => handleOpenModal(facility)}
+                          title="Düzenle"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                        <button 
+                          className="p-1 text-red-600 hover:text-red-800 transition-colors" 
+                          onClick={() => handleDelete(facility._id || facility.id)}
+                          title="Sil"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                        <button 
+                          className="p-1 text-gray-600 hover:text-gray-800 transition-colors" 
+                          onClick={() => openDetailPanel(facility)}
+                          title="Kontrol"
+                        >
+                          <CheckSquare className="h-4 w-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -439,20 +559,7 @@ const BagTV: React.FC = () => {
         </div>
       </div>
 
-      {/* Tüm Kontroller Butonu */}
-      <div className="mt-4 flex-shrink-0">
-        <div className="flex justify-end">
-          <button
-            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors mb-2"
-            onClick={() => {
-              setShowAllControls(!showAllControls);
-              if (!showAllControls) fetchAllControls();
-            }}
-          >
-            {showAllControls ? 'Tüm Kontrolleri Gizle' : 'Tüm Kontrolleri Göster'}
-          </button>
-        </div>
-      </div>
+      
 
       {/* Tüm Kontroller Paneli */}
       {showAllControls && (

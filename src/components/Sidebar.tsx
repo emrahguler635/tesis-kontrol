@@ -27,7 +27,7 @@ const Sidebar: React.FC = () => {
     if (sessionLogo) return sessionLogo;
     
     // Hiçbiri yoksa varsayılan logo
-    return '/logo.svg';
+    return '/logo-new.svg';
   });
   
   // Logo değişikliklerini dinle
@@ -130,7 +130,7 @@ const Sidebar: React.FC = () => {
     <aside className="w-64 bg-white h-full shadow-md flex flex-col">
       <div className="flex flex-col items-center justify-center p-6 bg-gradient-to-r from-blue-700 to-blue-400 rounded-b-2xl shadow-md mb-2">
         <div className="bg-white rounded-full shadow-lg p-2 mb-2 flex items-center justify-center">
-          <img src={logo} alt="Logo" className="h-16 w-24 object-contain rounded-full" />
+                          <img src="/logo.svg" alt="Logo" className="h-16 w-24 object-contain rounded-full" />
         </div>
         <span className="text-white font-bold text-lg tracking-wide drop-shadow text-center select-none">Bağcılar Belediyesi</span>
       </div>

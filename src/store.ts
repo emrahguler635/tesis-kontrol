@@ -85,7 +85,10 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     const state = get();
     if (state.isAuthenticated) {
       set({ loginTime: Date.now() });
-      console.log('🔄 Oturum süresi sıfırlandı');
+      // Sadece development'ta log at
+      if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+        console.log('🔄 Oturum süresi sıfırlandı');
+      }
     }
   },
 }));
@@ -106,7 +109,9 @@ if (typeof window !== 'undefined') {
   useAuthStore.getState().clearAuth();
   
   // Debug için log
-  console.log('🔒 Oturum temizlendi - Login sayfasına yönlendirilecek');
+  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+    console.log('🔒 Oturum temizlendi - Login sayfasına yönlendirilecek');
+  }
   
   // Oturum süresi kontrolü için interval başlat
   sessionCheckInterval = setInterval(() => {

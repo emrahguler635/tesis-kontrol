@@ -3,8 +3,6 @@ import { Card } from '../components/Card';
 import { apiService } from '../services/api';
 import { 
   MessageSquare, 
-  Smartphone, 
-  QrCode, 
   Send, 
   Users, 
   AlertTriangle,
@@ -13,13 +11,19 @@ import {
   Clock,
   Building,
   MapPin,
-  FileText
+  FileText,
+  RefreshCw,
+  QrCode,
+  Scan,
+  Phone
 } from 'lucide-react';
 
 interface WhatsAppStatus {
-  isReady: boolean;
+  isConnected: boolean;
   connectionStatus: string;
   qrCode: string | null;
+  phoneNumber: string | null;
+  lastSeen: string | null;
 }
 
 interface WorkData {
@@ -37,11 +41,18 @@ interface EmergencyData {
 }
 
 export function WhatsAppNotifications() {
-  const [status, setStatus] = useState<WhatsAppStatus | null>(null);
+  const [status, setStatus] = useState<WhatsAppStatus>({
+    isConnected: false,
+    connectionStatus: 'Bağlantı yok',
+    qrCode: null,
+    phoneNumber: null,
+    lastSeen: null
+  });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [phoneNumbers, setPhoneNumbers] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState<'custom' | 'daily' | 'emergency'>('custom');
+  const [showQR, setShowQR] = useState(false);
   
   // Günlük iş programı verisi
   const [workData, setWorkData] = useState<WorkData>({
@@ -62,10 +73,60 @@ export function WhatsAppNotifications() {
   // WhatsApp durumunu kontrol et
   const checkStatus = async () => {
     try {
-      const response = await apiService.request('/whatsapp/status');
+      const response = await apiService.getWhatsAppStatus();
       setStatus(response.data);
+      
+      // Eğer bağlıysa QR'ı gizle
+      if (response.data.isConnected) {
+        setShowQR(false);
+      }
     } catch (error) {
       console.error('WhatsApp durumu alınamadı:', error);
+      setStatus({
+        isConnected: false,
+        connectionStatus: 'Bağlantı hatası',
+        qrCode: null,
+        phoneNumber: null,
+        lastSeen: null
+      });
+    }
+  };
+
+  // QR kod oluştur
+  const generateQR = async () => {
+    setLoading(true);
+    try {
+      const response = await apiService.generateWhatsAppQR();
+      if (response.success) {
+        setStatus(prev => ({
+          ...prev,
+          qrCode: response.data.qrCode,
+          connectionStatus: 'QR kod hazır'
+        }));
+        setShowQR(true);
+      }
+    } catch (error) {
+      console.error('QR kod oluşturulamadı:', error);
+      alert('QR kod oluşturulamadı!');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Bağlantıyı kes
+  const disconnect = async () => {
+    try {
+      await apiService.disconnectWhatsApp();
+      setStatus({
+        isConnected: false,
+        connectionStatus: 'Bağlantı kesildi',
+        qrCode: null,
+        phoneNumber: null,
+        lastSeen: null
+      });
+      setShowQR(false);
+    } catch (error) {
+      console.error('Bağlantı kesilemedi:', error);
     }
   };
 
@@ -78,6 +139,11 @@ export function WhatsAppNotifications() {
 
   // Tek mesaj gönder
   const sendMessage = async () => {
+    if (!status.isConnected) {
+      alert('Önce WhatsApp\'a bağlanın!');
+      return;
+    }
+
     if (!message.trim() || !phoneNumbers.trim()) {
       alert('Mesaj ve telefon numarası gerekli!');
       return;
@@ -86,21 +152,16 @@ export function WhatsAppNotifications() {
     setLoading(true);
     try {
       const numbers = phoneNumbers.split(',').map(n => n.trim());
-      const response = await apiService.request('/whatsapp/send', {
-        method: 'POST',
-        body: JSON.stringify({
-          phoneNumber: numbers[0],
-          message: message
-        })
-      });
+      const response = await apiService.sendWhatsAppMessage(numbers[0], message);
 
       if (response.success) {
         alert('Mesaj başarıyla gönderildi!');
         setMessage('');
       } else {
-        alert('Mesaj gönderilemedi: ' + response.data.error);
+        alert('Mesaj gönderilemedi: ' + response.message);
       }
     } catch (error) {
+      console.error('Mesaj gönderilemedi:', error);
       alert('Mesaj gönderilemedi!');
     } finally {
       setLoading(false);
@@ -109,6 +170,11 @@ export function WhatsAppNotifications() {
 
   // Toplu mesaj gönder
   const sendBulkMessage = async () => {
+    if (!status.isConnected) {
+      alert('Önce WhatsApp\'a bağlanın!');
+      return;
+    }
+
     if (!message.trim() || !phoneNumbers.trim()) {
       alert('Mesaj ve telefon numaraları gerekli!');
       return;
@@ -117,52 +183,60 @@ export function WhatsAppNotifications() {
     setLoading(true);
     try {
       const numbers = phoneNumbers.split(',').map(n => n.trim());
-      const response = await apiService.request('/whatsapp/send-bulk', {
-        method: 'POST',
-        body: JSON.stringify({
-          phoneNumbers: numbers,
-          message: message
-        })
-      });
+      const response = await apiService.sendWhatsAppBulkMessage(numbers, message);
 
       if (response.success) {
-        alert(`Toplu mesaj gönderildi! Başarılı: ${response.data.totalSent}, Başarısız: ${response.data.totalFailed}`);
+        alert(`${response.data.totalSent} numaraya mesaj başarıyla gönderildi!`);
         setMessage('');
+        setPhoneNumbers('');
       } else {
-        alert('Toplu mesaj gönderilemedi: ' + response.data.error);
+        alert('Mesajlar gönderilemedi: ' + response.message);
       }
     } catch (error) {
+      console.error('Toplu mesaj gönderilemedi:', error);
       alert('Toplu mesaj gönderilemedi!');
     } finally {
       setLoading(false);
     }
   };
 
-  // Günlük iş programı bildirimi gönder
+  // Günlük bildirim gönder
   const sendDailyNotification = async () => {
-    if (!phoneNumbers.trim()) {
-      alert('Telefon numaraları gerekli!');
+    if (!status.isConnected) {
+      alert('Önce WhatsApp\'a bağlanın!');
+      return;
+    }
+
+    if (!workData.facility || !workData.location || workData.tasks.length === 0) {
+      alert('Günlük iş programı bilgileri eksik!');
       return;
     }
 
     setLoading(true);
     try {
+      const dailyMessage = `📅 GÜNLÜK İŞ PROGRAMI
+
+🏢 Tesis: ${workData.facility}
+📍 Konum: ${workData.location}
+
+📋 Yapılacak İşler:
+${workData.tasks.map((task, index) => `${index + 1}. ${task}`).join('\n')}
+
+${workData.notes ? `📝 Notlar: ${workData.notes}` : ''}
+
+Bağcılar Belediyesi`;
+
       const numbers = phoneNumbers.split(',').map(n => n.trim());
-      const response = await apiService.request('/whatsapp/send-daily-notification', {
-        method: 'POST',
-        body: JSON.stringify({
-          phoneNumbers: numbers,
-          workData: workData
-        })
-      });
+      const response = await apiService.sendWhatsAppBulkMessage(numbers, dailyMessage);
 
       if (response.success) {
-        alert(`Günlük iş programı bildirimi gönderildi! Başarılı: ${response.data.totalSent}, Başarısız: ${response.data.totalFailed}`);
+        alert('Günlük bildirim başarıyla gönderildi!');
       } else {
-        alert('Bildirim gönderilemedi: ' + response.data.error);
+        alert('Günlük bildirim gönderilemedi: ' + response.message);
       }
     } catch (error) {
-      alert('Bildirim gönderilemedi!');
+      console.error('Günlük bildirim gönderilemedi:', error);
+      alert('Günlük bildirim gönderilemedi!');
     } finally {
       setLoading(false);
     }
@@ -170,29 +244,40 @@ export function WhatsAppNotifications() {
 
   // Acil durum bildirimi gönder
   const sendEmergencyNotification = async () => {
-    if (!phoneNumbers.trim()) {
-      alert('Telefon numaraları gerekli!');
+    if (!status.isConnected) {
+      alert('Önce WhatsApp\'a bağlanın!');
+      return;
+    }
+
+    if (!emergencyData.type || !emergencyData.location || !emergencyData.description) {
+      alert('Acil durum bilgileri eksik!');
       return;
     }
 
     setLoading(true);
     try {
+      const emergencyMessage = `🚨 ACİL DURUM BİLDİRİMİ
+
+⚠️ Tür: ${emergencyData.type}
+📍 Konum: ${emergencyData.location}
+📝 Açıklama: ${emergencyData.description}
+🛠️ Yapılacak: ${emergencyData.action}
+
+⏰ Tarih: ${new Date().toLocaleString('tr-TR')}
+
+Bağcılar Belediyesi`;
+
       const numbers = phoneNumbers.split(',').map(n => n.trim());
-      const response = await apiService.request('/whatsapp/send-emergency', {
-        method: 'POST',
-        body: JSON.stringify({
-          phoneNumbers: numbers,
-          emergencyData: emergencyData
-        })
-      });
+      const response = await apiService.sendWhatsAppBulkMessage(numbers, emergencyMessage);
 
       if (response.success) {
-        alert(`Acil durum bildirimi gönderildi! Başarılı: ${response.data.totalSent}, Başarısız: ${response.data.totalFailed}`);
+        alert('Acil durum bildirimi başarıyla gönderildi!');
       } else {
-        alert('Bildirim gönderilemedi: ' + response.data.error);
+        alert('Acil durum bildirimi gönderilemedi: ' + response.message);
       }
     } catch (error) {
-      alert('Bildirim gönderilemedi!');
+      console.error('Acil durum bildirimi gönderilemedi:', error);
+      alert('Acil durum bildirimi gönderilemedi!');
     } finally {
       setLoading(false);
     }
@@ -226,62 +311,104 @@ export function WhatsAppNotifications() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">WhatsApp Bildirimleri</h1>
-        <div className="flex items-center space-x-2">
-          <Smartphone className="h-6 w-6 text-blue-600" />
-          <span className="text-sm text-gray-600">WhatsApp Entegrasyonu</span>
-        </div>
+        <button
+          onClick={checkStatus}
+          disabled={loading}
+          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+        >
+          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          <span>Yenile</span>
+        </button>
       </div>
 
-      {/* WhatsApp Durumu */}
+      {/* WhatsApp Bağlantı Durumu */}
       <Card>
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">WhatsApp Bağlantı Durumu</h2>
-          <button
-            onClick={checkStatus}
-            className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200"
-          >
-            Yenile
-          </button>
-        </div>
-        
-        <div className="mt-4 space-y-3">
-          <div className="flex items-center space-x-2">
-            {status?.isReady ? (
-              <CheckCircle className="h-5 w-5 text-green-500" />
-            ) : (
-              <XCircle className="h-5 w-5 text-red-500" />
-            )}
-            <span className="text-sm">
-              Durum: {status?.connectionStatus === 'connected' ? 'Bağlı' : 
-                      status?.connectionStatus === 'qr_ready' ? 'QR Kod Bekleniyor' : 
-                      status?.connectionStatus === 'disconnected' ? 'Bağlantı Kesildi' : 
-                      status?.connectionStatus === 'auth_failed' ? 'Kimlik Doğrulama Başarısız' : 'Bilinmiyor'}
-            </span>
-          </div>
-
-          {status?.qrCode && (
-            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-              <div className="flex items-center space-x-2 mb-2">
-                <QrCode className="h-5 w-5 text-blue-600" />
-                <span className="text-sm font-medium">QR Kod</span>
-              </div>
-              <p className="text-sm text-gray-600 mb-2">
-                WhatsApp uygulamanızda QR kodu tarayın:
+          <div className="flex items-center space-x-3">
+            <div className={`p-2 rounded-full ${status.isConnected ? 'bg-green-100' : 'bg-red-100'}`}>
+              {status.isConnected ? (
+                <CheckCircle className="h-6 w-6 text-green-600" />
+              ) : (
+                <XCircle className="h-6 w-6 text-red-600" />
+              )}
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">WhatsApp Bağlantı Durumu</h3>
+              <p className="text-sm text-gray-600">
+                Durum: {status.connectionStatus}
+                {status.phoneNumber && ` | ${status.phoneNumber}`}
               </p>
-              <div className="bg-white p-4 rounded border">
-                <pre className="text-xs overflow-auto">{status.qrCode}</pre>
+              {status.lastSeen && (
+                <p className="text-xs text-gray-500">Son görülme: {status.lastSeen}</p>
+              )}
+            </div>
+          </div>
+          
+          <div className="flex space-x-2">
+            {!status.isConnected && !showQR && (
+              <button
+                onClick={generateQR}
+                disabled={loading}
+                className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+              >
+                <QrCode className="h-4 w-4" />
+                <span>QR Kod Oluştur</span>
+              </button>
+            )}
+            
+            {status.isConnected && (
+              <button
+                onClick={disconnect}
+                className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              >
+                <XCircle className="h-4 w-4" />
+                <span>Bağlantıyı Kes</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* QR Kod Görüntüleme */}
+        {showQR && status.qrCode && (
+          <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-lg font-semibold text-gray-900">QR Kod Okutun</h4>
+              <button
+                onClick={() => setShowQR(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <XCircle className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="flex flex-col items-center space-y-4">
+              <div className="bg-white p-4 rounded-lg border">
+                <img 
+                  src={status.qrCode} 
+                  alt="WhatsApp QR Code" 
+                  className="w-64 h-64 object-contain"
+                />
+              </div>
+              
+              <div className="text-center">
+                <p className="text-sm text-gray-600 mb-2">
+                  WhatsApp uygulamanızda QR kodu okutun
+                </p>
+                <p className="text-xs text-blue-600 mb-4">
+                  QR kod okutulduktan sonra otomatik olarak bağlanacaktır
+                </p>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </Card>
 
-      {/* Mesaj Gönderme */}
+      {/* Mesaj Gönderme Formu */}
       <Card>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Mesaj Gönder</h2>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Mesaj Gönder</h3>
         
         <div className="space-y-4">
-          {/* Şablon Seçimi */}
+          {/* Mesaj Şablonu */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Mesaj Şablonu
@@ -293,7 +420,7 @@ export function WhatsAppNotifications() {
             >
               <option value="custom">Özel Mesaj</option>
               <option value="daily">Günlük İş Programı</option>
-              <option value="emergency">Acil Durum</option>
+              <option value="emergency">Acil Durum Bildirimi</option>
             </select>
           </div>
 
@@ -320,20 +447,19 @@ export function WhatsAppNotifications() {
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                rows={4}
                 placeholder="Göndermek istediğiniz mesajı yazın..."
+                rows={4}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           )}
 
-          {/* Günlük İş Programı Şablonu */}
+          {/* Günlük İş Programı */}
           {selectedTemplate === 'daily' && (
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <Building className="inline h-4 w-4 mr-1" />
                     Tesis
                   </label>
                   <input
@@ -346,7 +472,6 @@ export function WhatsAppNotifications() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <MapPin className="inline h-4 w-4 mr-1" />
                     Konum
                   </label>
                   <input
@@ -361,32 +486,34 @@ export function WhatsAppNotifications() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <FileText className="inline h-4 w-4 mr-1" />
                   Yapılacak İşler
                 </label>
-                {workData.tasks.map((task, index) => (
-                  <div key={index} className="flex space-x-2 mb-2">
-                    <input
-                      type="text"
-                      value={task}
-                      onChange={(e) => updateTask(index, e.target.value)}
-                      placeholder={`${index + 1}. İş açıklaması`}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                    <button
-                      onClick={() => removeTask(index)}
-                      className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg"
-                    >
-                      <XCircle className="h-5 w-5" />
-                    </button>
-                  </div>
-                ))}
-                <button
-                  onClick={addTask}
-                  className="mt-2 px-3 py-2 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200"
-                >
-                  + İş Ekle
-                </button>
+                <div className="space-y-2">
+                  {workData.tasks.map((task, index) => (
+                    <div key={index} className="flex space-x-2">
+                      <input
+                        type="text"
+                        value={task}
+                        onChange={(e) => updateTask(index, e.target.value)}
+                        placeholder={`${index + 1}. İş açıklaması`}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                      <button
+                        onClick={() => removeTask(index)}
+                        className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                      >
+                        <XCircle className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    onClick={addTask}
+                    className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                  >
+                    <CheckCircle className="h-4 w-4" />
+                    <span>İş Ekle</span>
+                  </button>
+                </div>
               </div>
 
               <div>
@@ -396,41 +523,39 @@ export function WhatsAppNotifications() {
                 <textarea
                   value={workData.notes}
                   onChange={(e) => setWorkData(prev => ({ ...prev, notes: e.target.value }))}
-                  rows={3}
                   placeholder="Ek notlar..."
+                  rows={2}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
             </div>
           )}
 
-          {/* Acil Durum Şablonu */}
+          {/* Acil Durum Bildirimi */}
           {selectedTemplate === 'emergency' && (
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <AlertTriangle className="inline h-4 w-4 mr-1" />
                     Acil Durum Türü
                   </label>
                   <input
                     type="text"
                     value={emergencyData.type}
                     onChange={(e) => setEmergencyData(prev => ({ ...prev, type: e.target.value }))}
-                    placeholder="Örn: Su kesintisi, Elektrik arızası"
+                    placeholder="Örn: Su kesintisi, Elektrik kesintisi"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <MapPin className="inline h-4 w-4 mr-1" />
                     Konum
                   </label>
                   <input
                     type="text"
                     value={emergencyData.location}
                     onChange={(e) => setEmergencyData(prev => ({ ...prev, location: e.target.value }))}
-                    placeholder="Acil durum konumu"
+                    placeholder="Konum"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -438,86 +563,54 @@ export function WhatsAppNotifications() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <FileText className="inline h-4 w-4 mr-1" />
                   Açıklama
                 </label>
                 <textarea
                   value={emergencyData.description}
                   onChange={(e) => setEmergencyData(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Acil durum açıklaması..."
                   rows={3}
-                  placeholder="Acil durum detayları..."
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <AlertTriangle className="inline h-4 w-4 mr-1" />
-                  Acil Eylem
+                  Yapılacak İşlem
                 </label>
                 <textarea
                   value={emergencyData.action}
                   onChange={(e) => setEmergencyData(prev => ({ ...prev, action: e.target.value }))}
+                  placeholder="Yapılacak işlem..."
                   rows={2}
-                  placeholder="Yapılması gereken acil eylem..."
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
             </div>
           )}
 
-          {/* Gönder Butonları */}
-          <div className="flex space-x-3">
-            {selectedTemplate === 'custom' && (
-              <>
-                <button
-                  onClick={sendMessage}
-                  disabled={loading || !status?.isReady}
-                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Send className="h-4 w-4" />
-                  <span>Tek Mesaj Gönder</span>
-                </button>
-                <button
-                  onClick={sendBulkMessage}
-                  disabled={loading || !status?.isReady}
-                  className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Users className="h-4 w-4" />
-                  <span>Toplu Mesaj Gönder</span>
-                </button>
-              </>
-            )}
-
-            {selectedTemplate === 'daily' && (
-              <button
-                onClick={sendDailyNotification}
-                disabled={loading || !status?.isReady}
-                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Clock className="h-4 w-4" />
-                <span>Günlük İş Programı Gönder</span>
-              </button>
-            )}
-
-            {selectedTemplate === 'emergency' && (
-              <button
-                onClick={sendEmergencyNotification}
-                disabled={loading || !status?.isReady}
-                className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <AlertTriangle className="h-4 w-4" />
-                <span>Acil Durum Bildirimi Gönder</span>
-              </button>
-            )}
+          {/* Butonlar */}
+          <div className="flex space-x-4 pt-4">
+            <button
+              onClick={sendMessage}
+              disabled={loading || !status.isConnected}
+              className="flex items-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            >
+              <Send className="h-4 w-4" />
+              <span>Tek Mesaj Gönder</span>
+            </button>
+            
+            <button
+              onClick={selectedTemplate === 'custom' ? sendBulkMessage : 
+                       selectedTemplate === 'daily' ? sendDailyNotification : 
+                       sendEmergencyNotification}
+              disabled={loading || !status.isConnected}
+              className="flex items-center space-x-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+            >
+              <Users className="h-4 w-4" />
+              <span>Toplu Mesaj Gönder</span>
+            </button>
           </div>
-
-          {loading && (
-            <div className="flex items-center space-x-2 text-blue-600">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-              <span>Mesaj gönderiliyor...</span>
-            </div>
-          )}
         </div>
       </Card>
     </div>

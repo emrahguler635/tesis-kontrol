@@ -371,9 +371,9 @@ const DailyChecks: React.FC = () => {
       ) : (
         <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/50 overflow-hidden">
           <div className="overflow-auto max-h-[calc(100vh-400px)]">
-            <table className="min-w-full divide-y divide-slate-200">
+            <table className="min-w-full divide-y divide-gray-300 border border-gray-300">
               <thead className="bg-gradient-to-r from-slate-50 to-slate-100 sticky top-0 z-10">
-                <tr>
+                <tr className="border-b-2 border-gray-400">
                   <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
                     Kayıt No
                   </th>
@@ -418,12 +418,12 @@ const DailyChecks: React.FC = () => {
                   </th>
                 </tr>
               </thead>
-                              <tbody className="bg-white/50 divide-y divide-slate-200">
+                              <tbody className="bg-white/50 divide-y divide-gray-300">
                   {allDailyItems
                     .filter(item => item.status === 'Beklemede' || item.status === 'İşlemde')
                     .sort((a, b) => (b.recordNo || 0) - (a.recordNo || 0))
                     .map((item, idx) => (
-                  <tr key={item.id} className="hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-indigo-50/50 transition-all duration-300 group">
+                  <tr key={item.id} className="hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-indigo-50/50 transition-all duration-300 group border-b border-gray-300">
                     <td className="px-6 py-4">
                       <div className="text-sm font-bold text-slate-600">
                         {item.recordNo || idx + 1}

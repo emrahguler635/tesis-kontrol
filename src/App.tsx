@@ -34,55 +34,30 @@ const pagePermissions = {
   '/whatsapp': 'WhatsApp Bildirimleri'
 };
 
-function PrivateRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, user, checkAuth, checkSessionTimeout } = useAuthStore();
-  const location = useLocation();
+// PrivateRoute bileşeni
+const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated, checkAuth } = useAuthStore();
+  const checkAuthResult = checkAuth();
   
-  // Oturum süresi kontrolü
-  const isSessionExpired = checkSessionTimeout();
-  
-  // Oturum kontrolü - daha sıkı kontrol
-  const isLoggedIn = isAuthenticated && user !== null && checkAuth() && user.id && user.username && !isSessionExpired;
-  
-  // Debug için log
-  console.log('🔍 PrivateRoute Debug:', {
-    isAuthenticated,
-    hasUser: user !== null,
-    checkAuthResult: checkAuth(),
-    hasUserId: user?.id,
-    hasUsername: user?.username,
-    isLoggedIn,
-    isSessionExpired,
-    currentPath: location.pathname
-  });
-  
-  if (!isLoggedIn) {
-    console.log('🔒 Oturum yok veya süresi dolmuş - Login sayfasına yönlendiriliyor');
-    return <Navigate to="/login" state={{ from: location }} replace />;
+  // Sadece development'ta debug log
+  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+    console.log('🔍 PrivateRoute Debug:', {
+      isAuthenticated,
+      hasUser: !!useAuthStore.getState().user,
+      checkAuthResult,
+      hasUserId: useAuthStore.getState().user?.id,
+      hasUsername: useAuthStore.getState().user?.username,
+      hasRole: useAuthStore.getState().user?.role,
+      hasPermissions: useAuthStore.getState().user?.permissions?.length || 0
+    });
   }
-
-  // Sayfa yetki kontrolü
-  const currentPath = location.pathname;
-  const requiredPermission = pagePermissions[currentPath];
   
-  if (requiredPermission) {
-    const userPermissions = user?.permissions || [];
-    
-    // Admin kullanıcısı için tüm sayfalara erişim
-    if (user?.role === 'admin') {
-      console.log('✅ Admin erişimi - tüm sayfalar');
-      return <>{children}</>;
-    }
-    
-    if (!userPermissions.includes(requiredPermission)) {
-      console.log('❌ Yetki yok - ana sayfaya yönlendiriliyor');
-      return <Navigate to="/" replace />;
-    }
-    console.log('✅ Yetki var - sayfa gösteriliyor');
+  if (!checkAuthResult) {
+    return <Navigate to="/login" replace />;
   }
-
+  
   return <>{children}</>;
-}
+};
 
 function App() {
   return (
@@ -96,6 +71,7 @@ function App() {
               <Layout>
                 <Routes>
                   <Route path="/" element={<Dashboard />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/facilities" element={<Facilities />} />
                   <Route path="/daily-checks" element={<DailyChecks />} />
                   <Route path="/haftalik" element={<WeeklyChecks />} />

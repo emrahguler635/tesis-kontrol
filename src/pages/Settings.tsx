@@ -184,15 +184,15 @@ export function Settings() {
 
   // Logo'yu temizle
   const handleClearLogo = () => {
-    setLogo('/logo.svg');
+          setLogo('/logo.svg');
     localStorage.removeItem('appLogo');
     sessionStorage.removeItem('appLogo');
     
     // Favicon'u da temizle
-    updateFavicon('/logo.svg');
+          updateFavicon('/logo.svg');
     
     // Tüm bileşenlere logo değişikliği bildirimi gönder
-    window.dispatchEvent(new CustomEvent('logoChanged', { detail: { logo: '/logo.svg' } }));
+          window.dispatchEvent(new CustomEvent('logoChanged', { detail: { logo: '/logo.svg' } }));
     
     setUploadMsg('Logo temizlendi!');
     setTimeout(() => setUploadMsg(''), 3000);

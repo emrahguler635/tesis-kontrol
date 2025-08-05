@@ -104,7 +104,7 @@ const CompletedWorks: React.FC = () => {
   const filteredWorks = getFilteredWorks();
 
   return (
-    <div className="p-6">
+    <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Yapılan İşler</h1>
         <div className="flex items-center gap-2 text-green-600">
