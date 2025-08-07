@@ -53,8 +53,8 @@ const YBSWorkProgram: React.FC = () => {
     requestingDepartment: '',
     responsibleUsers: [] as string[],
     jiraNumber: '',
-    status: 'pending' as const,
-    approvalStatus: 'pending' as const
+    status: 'pending' as 'pending' | 'in_progress' | 'completed' | 'rejected',
+    approvalStatus: 'pending' as 'pending' | 'approved' | 'rejected'
   });
 
   // Filter state
@@ -114,16 +114,12 @@ const YBSWorkProgram: React.FC = () => {
 
              try {
       // Boş completionDate'i null yap
-      const cleanFormData = {
-        ...formData,
-        completionDate: formData.completionDate || null
-      };
-      
       const newItem: YBSWorkItem = {
-        ...cleanFormData,
-        createdBy: user?.username || '',
-        createdAt: new Date().toISOString(),
-        approvalStatus: 'pending'
+        ...formData,
+        completionDate: formData.completionDate || undefined,
+        jiraNumber: formData.jiraNumber || undefined,
+        createdBy: user?.username || 'admin',
+        createdAt: new Date().toISOString()
       };
 
       if (editItem) {
@@ -184,11 +180,11 @@ const YBSWorkProgram: React.FC = () => {
     }
   };
 
-  const handleApproval = async (approved: boolean) => {
+  const handleApproval = async (id: number, approved: boolean) => {
     if (!selectedItem) return;
     
     try {
-      await apiService.updateYBSWorkItemApproval(selectedItem.id!, {
+      await apiService.updateYBSWorkItemApproval(id, {
         approvalStatus: approved ? 'approved' : 'rejected',
         approvedBy: user?.username || '',
         approvedAt: new Date().toISOString()
@@ -222,7 +218,7 @@ const YBSWorkProgram: React.FC = () => {
           title: 'Veritabanı Optimizasyonu',
           description: 'Performans iyileştirmesi için veritabanı optimizasyonu',
           requestDate: '2024-01-10',
-          completionDate: null,
+          completionDate: undefined,
           requestingDepartment: 'Teknoloji Müdürlüğü',
           responsibleUsers: ['Fatma Kaya'],
           jiraNumber: 'CITYPLUS-2024-002',
@@ -234,7 +230,7 @@ const YBSWorkProgram: React.FC = () => {
           title: 'Kullanıcı Eğitimi',
           description: 'Yeni sistem kullanıcı eğitimi programı',
           requestDate: '2024-01-05',
-          completionDate: null,
+          completionDate: undefined,
           requestingDepartment: 'İnsan Kaynakları Müdürlüğü',
           responsibleUsers: ['Ali Özkan', 'Ayşe Yıldız'],
           jiraNumber: 'CITYPLUS-2024-003',
@@ -363,7 +359,7 @@ const YBSWorkProgram: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6">
+      <div className="h-screen overflow-y-auto bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -375,7 +371,7 @@ const YBSWorkProgram: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6">
+      <div className="h-screen overflow-y-auto bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
@@ -398,7 +394,7 @@ const YBSWorkProgram: React.FC = () => {
   }
 
   return (
-    <div className="space-y-8 p-6 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen">
+    <div className="space-y-8 p-6 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 h-screen overflow-y-auto">
       {/* Başlık */}
       <div className="flex items-center justify-between">
         <div className="space-y-2">
@@ -556,10 +552,11 @@ const YBSWorkProgram: React.FC = () => {
            <div className="text-lg text-gray-600">Yükleniyor...</div>
          </div>
        ) : (
-         <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-           <div className="overflow-auto max-h-[calc(100vh-400px)]">
-             <table className="w-full border border-gray-300">
-                               <thead className="sticky top-0 bg-white/90 backdrop-blur-sm z-10">
+         <div className="bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <div className="max-h-[calc(100vh-500px)] min-h-[400px] overflow-y-auto">
+              <table className="w-full border border-gray-300">
+                <thead className="bg-gray-50 sticky top-0 z-10">
                   <tr className="border-b-2 border-gray-400">
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
                       İş Adı
@@ -587,10 +584,10 @@ const YBSWorkProgram: React.FC = () => {
                     </th>
                   </tr>
                 </thead>
-               <tbody className="bg-white divide-y divide-gray-200">
-                 {filteredItems.length > 0 ? (
-                   filteredItems.map((item) => (
-                                           <tr key={item.id} className="hover:bg-gray-50">
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredItems.length > 0 ? (
+                    filteredItems.map((item) => (
+                      <tr key={item.id} className="hover:bg-gray-50 transition-colors duration-200 border-b border-gray-100">
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           <div className="flex items-center">
                             <div className="flex-shrink-0 h-8 w-8">
@@ -608,82 +605,106 @@ const YBSWorkProgram: React.FC = () => {
                             <p className="text-sm text-gray-600 line-clamp-2">{item.description}</p>
                           </div>
                         </td>
-                       <td className="px-6 py-4 whitespace-nowrap">
-                         <div className="flex items-center">
-                           <div className="flex-shrink-0 h-8 w-8">
-                             <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center">
-                               <Building className="h-4 w-4 text-white" />
-                             </div>
-                           </div>
-                           <div className="ml-4">
-                             <div className="text-sm font-medium text-gray-900">{item.requestingDepartment || '-'}</div>
-                           </div>
-                         </div>
-                       </td>
-                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                         <div className="flex flex-wrap gap-1">
-                           {(item.responsibleUsers || []).length > 0 ? (
-                             (item.responsibleUsers || []).map((user, index) => (
-                               <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                 {user}
-                               </span>
-                             ))
-                           ) : (
-                             <span className="text-gray-400 text-xs">-</span>
-                           )}
-                         </div>
-                       </td>
-                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                         <div className="flex items-center">
-                           <div className="flex-shrink-0 h-8 w-8">
-                             <div className="h-8 w-8 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center">
-                               <Hash className="h-4 w-4 text-white" />
-                             </div>
-                           </div>
-                           <div className="ml-4">
-                             <div className="text-sm font-medium text-gray-900">{item.jiraNumber || '-'}</div>
-                           </div>
-                         </div>
-                       </td>
-                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(item.status)}`}>
-                           {getStatusText(item.status)}
-                         </span>
-                       </td>
-                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getApprovalStatusColor(item.approvalStatus)}`}>
-                           {getApprovalStatusText(item.approvalStatus)}
-                         </span>
-                       </td>
-                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                         <button
-                           onClick={() => {
-                             setSelectedItem(item);
-                             setApprovalModalOpen(true);
-                           }}
-                           className="text-indigo-600 hover:text-indigo-900 p-1 rounded hover:bg-indigo-50 transition-colors"
-                           title="Detayları Görüntüle"
-                         >
-                           <Eye className="w-4 h-4" />
-                         </button>
-                         <button
-                           onClick={() => handleEdit(item)}
-                           className="text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-50 transition-colors"
-                           title="Düzenle"
-                         >
-                           <Edit className="w-4 h-4" />
-                         </button>
-                         <button
-                           onClick={() => handleDelete(item.id!)}
-                           className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50 transition-colors"
-                           title="Sil"
-                         >
-                           <Trash2 className="w-4 h-4" />
-                         </button>
-                       </td>
-                     </tr>
-                   ))
-                                   ) : (
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="flex-shrink-0 h-8 w-8">
+                              <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center">
+                                <Building className="h-4 w-4 text-white" />
+                              </div>
+                            </div>
+                            <div className="ml-4">
+                              <div className="text-sm font-medium text-gray-900">{item.requestingDepartment || '-'}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <div className="flex flex-wrap gap-1">
+                            {(item.responsibleUsers || []).length > 0 ? (
+                              (item.responsibleUsers || []).map((user, index) => (
+                                <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                  {user}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-gray-400 text-xs">-</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <div className="flex items-center">
+                            <div className="flex-shrink-0 h-8 w-8">
+                              <div className="h-8 w-8 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center">
+                                <Hash className="h-4 w-4 text-white" />
+                              </div>
+                            </div>
+                            <div className="ml-4">
+                              <div className="text-sm font-medium text-gray-900">{item.jiraNumber || '-'}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(item.status)}`}>
+                            {getStatusText(item.status)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getApprovalStatusColor(item.approvalStatus)}`}>
+                            {getApprovalStatusText(item.approvalStatus)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <div className="flex items-center justify-end space-x-2">
+                            <button
+                              onClick={() => {
+                                setSelectedItem(item);
+                                setApprovalModalOpen(true);
+                              }}
+                              className="text-indigo-600 hover:text-indigo-900 p-2 rounded-lg hover:bg-indigo-50"
+                              title="Detayları Görüntüle"
+                            >
+                              <Eye className="h-5 w-5" />
+                            </button>
+                            
+                            {/* Onayla/Reddet Butonları - Sadece tamamlanmış ve onay bekleyen işler için */}
+                            {item.status === 'completed' && item.approvalStatus === 'pending' && (
+                              <div className="flex items-center gap-1">
+                                <button
+                                  onClick={() => handleApproval(item.id!, true)}
+                                  className="text-green-600 hover:text-green-900 p-2 rounded-lg hover:bg-green-50 transition-colors"
+                                  title="Onayla"
+                                >
+                                  <Check className="h-5 w-5" />
+                                </button>
+                                <button
+                                  onClick={() => handleApproval(item.id!, false)}
+                                  className="text-red-600 hover:text-red-900 p-2 rounded-lg hover:bg-red-50 transition-colors"
+                                  title="Reddet"
+                                >
+                                  <X className="h-5 w-5" />
+                                </button>
+                              </div>
+                            )}
+                            
+                            <button
+                              onClick={() => handleEdit(item)}
+                              className="text-blue-600 hover:text-blue-900 p-2 rounded-lg hover:bg-blue-50"
+                              title="Düzenle"
+                            >
+                              <Edit className="h-5 w-5" />
+                            </button>
+                            
+                            <button
+                              onClick={() => handleDelete(item.id!)}
+                              className="text-red-600 hover:text-red-900 p-2 rounded-lg hover:bg-red-50"
+                              title="Sil"
+                            >
+                              <Trash2 className="h-5 w-5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
                     <tr>
                       <td colSpan={8} className="px-6 py-4 text-center text-gray-500">
                         <div className="flex flex-col items-center py-8">
@@ -694,216 +715,319 @@ const YBSWorkProgram: React.FC = () => {
                       </td>
                     </tr>
                   )}
-               </tbody>
-             </table>
-           </div>
-         </div>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
        )}
 
-      {/* Yeni İş Ekleme Modal */}
+      {/* Yeni İş Ekleme Modal - Modern Tasarım */}
       {modalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">
-                {editItem ? 'İş Düzenle' : 'Yeni İş Ekle'}
-              </h2>
-              <button
-                onClick={() => setModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="h-6 w-6" />
-              </button>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-y-auto">
+            {/* Modern Header */}
+            <div className="bg-gradient-to-r from-purple-600 to-indigo-700 text-white p-6 rounded-t-2xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold">
+                      {editItem ? 'İş Düzenle' : 'Yeni İş Ekle'}
+                    </h2>
+                    <p className="text-purple-100 text-sm">YBS iş programına yeni iş ekleyin veya mevcut işi düzenleyin</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setModalOpen(false)}
+                  className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="p-6 space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* İlk Satır - İş Adı ve Talep Eden Müdürlük */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <span className="text-red-500">*</span> İş Adı
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.title}
+                      onChange={(e) => setFormData({...formData, title: e.target.value})}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white shadow-sm"
+                      placeholder="İş adını girin..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <span className="text-red-500">*</span> Talep Eden Müdürlük
+                    </label>
+                    <select
+                      value={formData.requestingDepartment}
+                      onChange={(e) => setFormData({...formData, requestingDepartment: e.target.value})}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white shadow-sm"
+                    >
+                      <option value="">Müdürlük seçin...</option>
+                      <option value="Cevre Koruma ve Kontrol Mudurlugu">Çevre Koruma ve Kontrol Müdürlüğü</option>
+                      <option value="Isletme ve Istirakler Mudurlugu">İşletme ve İştirakler Müdürlüğü</option>
+                      <option value="Sosyal Yardim Isleri Mudurlugu">Sosyal Yardım İşleri Müdürlüğü</option>
+                      <option value="Saglik Isleri Mudurlugu">Sağlık İşleri Müdürlüğü</option>
+                      <option value="Kultur ve Sosyal Isler Mudurlugu">Kültür ve Sosyal İşler Müdürlüğü</option>
+                      <option value="Ulasim Hizmetleri Mudurlugu">Ulaşım Hizmetleri Müdürlüğü</option>
+                      <option value="Ruhsat ve Denetim Mudurlugu">Ruhsat ve Denetim Müdürlüğü</option>
+                      <option value="Afet Isleri Mudurlugu">Afet İşleri Müdürlüğü</option>
+                      <option value="Plan ve Proje Mudurlugu">Plan ve Proje Müdürlüğü</option>
+                      <option value="Park ve Bahceler Mudurlugu">Park ve Bahçeler Müdürlüğü</option>
+                      <option value="Kentsel Tasarim Mudurlugu">Kentsel Tasarım Müdürlüğü</option>
+                      <option value="Genclik ve Spor Hizmetleri Mudurlugu">Gençlik ve Spor Hizmetleri Müdürlüğü</option>
+                      <option value="Basin ve Yayin Mudurlugu">Basın ve Yayın Müdürlüğü</option>
+                      <option value="Teftis Kurulu Mudurlugu">Teftiş Kurulu Müdürlüğü</option>
+                      <option value="Hukuk Isleri Mudurlugu">Hukuk İşleri Müdürlüğü</option>
+                      <option value="Halkla Iliskiler Mudurlugu">Halkla İlişkiler Müdürlüğü</option>
+                      <option value="Strateji Gelistirme Mudurlugu">Strateji Geliştirme Müdürlüğü</option>
+                      <option value="Insan Kaynaklari ve Egitim Mudurlugu">İnsan Kaynakları ve Eğitim Müdürlüğü</option>
+                      <option value="Destek Hizmetleri Mudurlugu">Destek Hizmetleri Müdürlüğü</option>
+                      <option value="Bilgi Islem Mudurlugu">Bilgi İşlem Müdürlüğü</option>
+                      <option value="Basak A.S.">Başak A.Ş.</option>
+                      <option value="Baskanlik Makami">Başkanlık Makamı</option>
+                      <option value="Dis Birim">Dış Birim</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* İkinci Satır - Tarihler */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <span className="text-red-500">*</span> Talep Tarihi
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="date"
+                        value={formData.requestDate}
+                        onChange={(e) => setFormData({...formData, requestDate: e.target.value})}
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white shadow-sm"
+                      />
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Tamamlanma Tarihi
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="date"
+                        value={formData.completionDate || ''}
+                        onChange={(e) => setFormData({...formData, completionDate: e.target.value || ''})}
+                        onKeyDown={(e) => {
+                          // Boşluk tuşuna basıldığında bugünün tarihini doldur
+                          if (e.key === ' ') {
+                            e.preventDefault();
+                            const today = new Date().toISOString().split('T')[0];
+                            setFormData({...formData, completionDate: today});
+                          }
+                        }}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white shadow-sm"
+                        placeholder="Tarih seçin veya boşluk tuşuna basın"
+                      />
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Boşluk tuşuna basarak bugünün tarihini otomatik doldurabilirsiniz
+                    </p>
+                  </div>
+                </div>
+
+                {/* Üçüncü Satır - JIRA No ve Durum */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      JIRA Kayıt No
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.jiraNumber}
+                      onChange={(e) => setFormData({...formData, jiraNumber: e.target.value})}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white shadow-sm"
+                      placeholder="CITYPLUS-XXXXX"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <span className="text-red-500">*</span> Durum
+                    </label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) => setFormData({...formData, status: e.target.value as any})}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white shadow-sm"
+                    >
+                      <option value="pending">Beklemede</option>
+                      <option value="in_progress">Devam Ediyor</option>
+                      <option value="completed">Tamamlandı</option>
+                      <option value="rejected">Reddedildi</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Dördüncü Satır - Sorumlu Personel */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <span className="text-red-500">*</span> Ana Sorumlu Personel
+                    </label>
+                    <select
+                      value={formData.responsibleUsers[0] || ''}
+                      onChange={(e) => {
+                        const selectedUser = e.target.value;
+                        if (selectedUser && !formData.responsibleUsers.includes(selectedUser)) {
+                          setFormData({
+                            ...formData,
+                            responsibleUsers: [selectedUser, ...formData.responsibleUsers.filter(u => u !== selectedUser)]
+                          });
+                        }
+                      }}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white shadow-sm"
+                    >
+                      <option value="">Ana sorumlu personel seçin...</option>
+                      {users.map((user) => (
+                        <option key={user.id} value={user.username}>
+                          {user.username} - {user.role}
+                        </option>
+                      ))}
+                    </select>
+                    {formData.responsibleUsers.length > 0 && (
+                      <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Seçili: {formData.responsibleUsers[0]}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Ek Sorumlu Personel
+                    </label>
+                    <select
+                      value=""
+                      onChange={(e) => {
+                        const selectedUser = e.target.value;
+                        if (selectedUser && !formData.responsibleUsers.includes(selectedUser)) {
+                          setFormData({
+                            ...formData,
+                            responsibleUsers: [...formData.responsibleUsers, selectedUser]
+                          });
+                          // Dropdown'ı sıfırla
+                          e.target.value = "";
+                        }
+                      }}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white shadow-sm"
+                    >
+                      <option value="">Ek sorumlu personel seçin...</option>
+                      {users.filter(user => !formData.responsibleUsers.includes(user.username)).map((user) => (
+                        <option key={user.id} value={user.username}>
+                          {user.username} - {user.role}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      Seçilen personel: {formData.responsibleUsers.slice(1).join(', ') || 'Yok'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Açıklama */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    İş Adı *
+                    <span className="text-red-500">*</span> Açıklama
                   </label>
-                  <input
-                    type="text"
-                    value={formData.title}
-                    onChange={(e) => setFormData({...formData, title: e.target.value})}
+                  <textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData({...formData, description: e.target.value})}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="İş adını girin..."
+                    rows={4}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white shadow-sm resize-none"
+                    placeholder="İş açıklamasını detaylı olarak girin..."
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Talep Eden Müdürlük *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.requestingDepartment}
-                    onChange={(e) => setFormData({...formData, requestingDepartment: e.target.value})}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="Müdürlük adını girin..."
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Talep Tarihi *
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.requestDate}
-                    onChange={(e) => setFormData({...formData, requestDate: e.target.value})}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Tamamlanma Tarihi
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.completionDate}
-                    onChange={(e) => setFormData({...formData, completionDate: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    JIRA Kayıt No
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.jiraNumber}
-                    onChange={(e) => setFormData({...formData, jiraNumber: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="CITYPLUS-XXXXX"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Durum *
-                  </label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) => setFormData({...formData, status: e.target.value as any})}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                {/* Butonlar */}
+                <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
+                  <button
+                    type="button"
+                    onClick={() => setModalOpen(false)}
+                    className="flex items-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium"
                   >
-                    <option value="pending">Beklemede</option>
-                    <option value="in_progress">Devam Ediyor</option>
-                    <option value="completed">Tamamlandı</option>
-                    <option value="rejected">Reddedildi</option>
-                  </select>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    İptal
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-700 text-white rounded-xl hover:from-purple-700 hover:to-indigo-800 transition-all font-medium shadow-lg"
+                  >
+                    {editItem ? (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                        Güncelle
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Kaydet
+                      </>
+                    )}
+                  </button>
                 </div>
-              </div>
-
-                             <div>
-                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                   Ana Sorumlu Personel *
-                 </label>
-                 <select
-                   value={formData.responsibleUsers[0] || ''}
-                   onChange={(e) => {
-                     const selectedUser = e.target.value;
-                     if (selectedUser && !formData.responsibleUsers.includes(selectedUser)) {
-                       setFormData({
-                         ...formData,
-                         responsibleUsers: [selectedUser, ...formData.responsibleUsers.filter(u => u !== selectedUser)]
-                       });
-                     }
-                   }}
-                   required
-                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                 >
-                   <option value="">Ana sorumlu personel seçin...</option>
-                   {users.map((user) => (
-                     <option key={user.id} value={user.username}>
-                       {user.username} - {user.role}
-                     </option>
-                   ))}
-                 </select>
-                 {formData.responsibleUsers.length > 0 && (
-                   <p className="text-xs text-gray-500 mt-1">
-                     Seçili: {formData.responsibleUsers[0]}
-                   </p>
-                 )}
-               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Ek Sorumlu Personel
-                </label>
-                <select
-                  value=""
-                  onChange={(e) => {
-                    const selectedUser = e.target.value;
-                    if (selectedUser && !formData.responsibleUsers.includes(selectedUser)) {
-                      setFormData({
-                        ...formData,
-                        responsibleUsers: [...formData.responsibleUsers, selectedUser]
-                      });
-                      // Dropdown'ı sıfırla
-                      e.target.value = "";
-                    }
-                  }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                >
-                  <option value="">Ek sorumlu personel seçin...</option>
-                  {users.filter(user => !formData.responsibleUsers.includes(user.username)).map((user) => (
-                    <option key={user.id} value={user.username}>
-                      {user.username} - {user.role}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-xs text-gray-500 mt-1">
-                  Seçilen personel: {formData.responsibleUsers.slice(1).join(', ') || 'Yok'}
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Açıklama *
-                </label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  required
-                  rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  placeholder="İş açıklamasını detaylı olarak girin..."
-                />
-              </div>
-
-              <div className="flex justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={() => setModalOpen(false)}
-                  className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
-                >
-                  İptal
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                >
-                  {editItem ? 'Güncelle' : 'Kaydet'}
-                </button>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
         </div>
       )}
 
       {/* Onay Modal */}
       {approvalModalOpen && selectedItem && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
-            <div className="flex justify-between items-center mb-6">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center p-6 border-b border-gray-200">
               <h2 className="text-2xl font-bold text-gray-900">İş Onayı</h2>
               <button
                 onClick={() => setApprovalModalOpen(false)}
@@ -913,47 +1037,62 @@ const YBSWorkProgram: React.FC = () => {
               </button>
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">{selectedItem.title}</h3>
-                <p className="text-gray-600 mt-1">{selectedItem.description}</p>
-              </div>
+            <div className="flex-1 overflow-y-auto p-6" style={{
+              scrollbarWidth: 'thin',
+              scrollbarColor: '#d1d5db #f3f4f6'
+            }}>
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">{selectedItem.title}</h3>
+                  <p className="text-gray-600 mt-1">{selectedItem.description}</p>
+                </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <span className="text-sm font-medium text-gray-700">Talep Eden:</span>
-                  <p className="text-gray-900">{selectedItem.requestingDepartment}</p>
-                </div>
-                                 <div>
-                   <span className="text-sm font-medium text-gray-700">Sorumlu Personel:</span>
-                   <p className="text-gray-900">{(selectedItem.responsibleUsers || []).join(', ')}</p>
-                 </div>
-                <div>
-                  <span className="text-sm font-medium text-gray-700">JIRA No:</span>
-                  <p className="text-gray-900">{selectedItem.jiraNumber || '-'}</p>
-                </div>
-                <div>
-                  <span className="text-sm font-medium text-gray-700">Durum:</span>
-                  <p className="text-gray-900">{getStatusText(selectedItem.status)}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <span className="text-sm font-medium text-gray-700">Talep Eden:</span>
+                    <p className="text-gray-900">{selectedItem.requestingDepartment}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-700">Sorumlu Personel:</span>
+                    <p className="text-gray-900">{(selectedItem.responsibleUsers || []).join(', ')}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-700">JIRA No:</span>
+                    <p className="text-gray-900">{selectedItem.jiraNumber || '-'}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-700">Durum:</span>
+                    <p className="text-gray-900">{getStatusText(selectedItem.status)}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-700">Talep Tarihi:</span>
+                    <p className="text-gray-900">{new Date(selectedItem.requestDate).toLocaleDateString('tr-TR')}</p>
+                  </div>
+                  {selectedItem.completionDate && (
+                    <div>
+                      <span className="text-sm font-medium text-gray-700">Tamamlanma Tarihi:</span>
+                      <p className="text-gray-900">{new Date(selectedItem.completionDate).toLocaleDateString('tr-TR')}</p>
+                    </div>
+                  )}
                 </div>
               </div>
+            </div>
 
-              <div className="flex justify-end space-x-3 pt-4">
-                <button
-                  onClick={() => handleApproval(false)}
-                  className="px-4 py-2 text-red-700 bg-red-100 rounded-lg hover:bg-red-200 transition-colors"
-                >
-                  <X className="h-4 w-4 inline mr-2" />
-                  Reddet
-                </button>
-                <button
-                  onClick={() => handleApproval(true)}
-                  className="px-4 py-2 text-green-700 bg-green-100 rounded-lg hover:bg-green-200 transition-colors"
-                >
-                  <Check className="h-4 w-4 inline mr-2" />
-                  Onayla
-                </button>
-              </div>
+            <div className="flex justify-end space-x-3 p-6 border-t border-gray-200">
+              <button
+                onClick={() => handleApproval(selectedItem.id!, false)}
+                className="px-4 py-2 text-red-700 bg-red-100 rounded-lg hover:bg-red-200 transition-colors"
+              >
+                <X className="h-4 w-4 inline mr-2" />
+                Reddet
+              </button>
+              <button
+                onClick={() => handleApproval(selectedItem.id!, true)}
+                className="px-4 py-2 text-green-700 bg-green-100 rounded-lg hover:bg-green-200 transition-colors"
+              >
+                <Check className="h-4 w-4 inline mr-2" />
+                Onayla
+              </button>
             </div>
           </div>
         </div>

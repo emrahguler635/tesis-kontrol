@@ -79,7 +79,7 @@ export function Reports() {
   ]
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 h-screen overflow-y-auto">
       <div className="bg-gradient-to-r from-indigo-600 to-purple-700 rounded-2xl p-8 text-white">
         <h1 className="text-3xl font-bold mb-2">📊 Raporlar</h1>
         <p className="text-indigo-100 text-lg">Tesis kontrol raporları ve analizler</p>

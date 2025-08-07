@@ -137,16 +137,18 @@ const UserManagement: React.FC = () => {
     { key: 'Toplam Yapılan İşler', value: 'Toplam Yapılan İşler' },
     { key: 'Raporlar', value: 'Raporlar' },
     { key: 'Mesaj Yönetimi', value: 'Mesaj Yönetimi' },
-    { key: 'BağTV', value: 'BağTV' },
+    { key: 'BağTV Yönetim', value: 'BağTV Yönetim' },
+    { key: 'YBS İş Programı', value: 'YBS İş Programı' },
+    { key: 'YBS Onay Ekranları', value: 'YBS Onay Ekranları' },
     { key: 'Veri Kontrol', value: 'Veri Kontrol' },
     { key: 'Onay Yönetimi', value: 'Onay Yönetimi' },
     { key: 'Yapılan İşler', value: 'Yapılan İşler' },
-    { key: 'Ayarlar', value: 'Ayarlar' },
-    { key: 'Kullanıcı Yönetimi', value: 'Kullanıcı Yönetimi' }
+    { key: 'Kullanıcı Yönetimi', value: 'Kullanıcı Yönetimi' },
+    { key: 'Ayarlar', value: 'Ayarlar' }
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 h-screen overflow-y-auto">
       <div className="flex items-center gap-4 mb-6">
         <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl shadow-lg">
           <Users className="h-8 w-8 text-white" />

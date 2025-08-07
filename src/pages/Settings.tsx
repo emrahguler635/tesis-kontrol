@@ -83,7 +83,9 @@ export function Settings() {
       { id: 'weekly', label: 'Toplam Yapılan İşler', icon: '⏰', to: '/haftalik', enabled: true },
       { id: 'reports', label: 'Raporlar', icon: '📊', to: '/reports', enabled: true },
       { id: 'messages', label: 'Mesaj Yönetimi', icon: '💬', to: '/messages', enabled: true },
-      { id: 'bagtv', label: 'BağTV', icon: '📺', to: '/bagtv', enabled: true },
+      { id: 'bagtv', label: 'BağTV Yönetim', icon: '📺', to: '/bagtv', enabled: true },
+      { id: 'ybs-work-program', label: 'YBS İş Programı', icon: '📋', to: '/ybs-work-program', enabled: true },
+      { id: 'ybs-approvals', label: 'YBS Onay Ekranları', icon: '✅', to: '/ybs-approvals', enabled: true },
       { id: 'data-control', label: 'Veri Kontrol', icon: '🗄️', to: '/data-control', enabled: true },
       { id: 'approvals', label: 'Onay Yönetimi', icon: '✅', to: '/approvals', enabled: true },
       { id: 'completed-works', label: 'Yapılan İşler', icon: '✅', to: '/completed-works', enabled: true },
@@ -110,7 +112,9 @@ export function Settings() {
       { id: 'weekly', label: 'Toplam Yapılan İşler', icon: '⏰', to: '/haftalik', enabled: true },
       { id: 'reports', label: 'Raporlar', icon: '📊', to: '/reports', enabled: true },
       { id: 'messages', label: 'Mesaj Yönetimi', icon: '💬', to: '/messages', enabled: true },
-      { id: 'bagtv', label: 'BağTV', icon: '📺', to: '/bagtv', enabled: true },
+      { id: 'bagtv', label: 'BağTV Yönetim', icon: '📺', to: '/bagtv', enabled: true },
+      { id: 'ybs-work-program', label: 'YBS İş Programı', icon: '📋', to: '/ybs-work-program', enabled: true },
+      { id: 'ybs-approvals', label: 'YBS Onay Ekranları', icon: '✅', to: '/ybs-approvals', enabled: true },
       { id: 'data-control', label: 'Veri Kontrol', icon: '🗄️', to: '/data-control', enabled: true },
       { id: 'approvals', label: 'Onay Yönetimi', icon: '✅', to: '/approvals', enabled: true },
       { id: 'completed-works', label: 'Yapılan İşler', icon: '✅', to: '/completed-works', enabled: true },
@@ -262,7 +266,7 @@ export function Settings() {
   };
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 p-6 h-screen overflow-y-auto">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Ayarlar</h1>
       </div>

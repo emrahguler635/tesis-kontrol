@@ -60,8 +60,8 @@ export function Dashboard() {
           
           // Mesaj verilerinden istatistikleri hesapla
           const totalMessages = messages.length;
-          const totalCount = messages.reduce((sum, msg) => sum + (msg.totalCount || msg.total_count || 0), 0);
-          const pulledCount = messages.reduce((sum, msg) => sum + (msg.pulledCount || msg.pulled_count || 0), 0);
+          const totalCount = messages.reduce((sum, msg) => sum + (msg.totalCount || 0), 0);
+          const pulledCount = messages.reduce((sum, msg) => sum + (msg.pulledCount || 0), 0);
           const successRate = totalCount > 0 ? parseFloat(((pulledCount / totalCount) * 100).toFixed(1)) : 0;
           
           console.log('Dashboard - Hesaplanan istatistikler:', {
@@ -112,10 +112,24 @@ export function Dashboard() {
     // Mobil
     if (width < 768) {
       return {
+        container: "space-y-2",
+        title: "text-lg",
+        subtitle: "text-sm",
+        statsGrid: "grid grid-cols-2 gap-3",
+        cardHeight: "h-20",
+        textSize: "text-base",
+        iconSize: "h-5 w-5",
+        padding: "p-2"
+      };
+    }
+    
+    // Tablet
+    if (width < 1024) {
+      return {
         container: "space-y-3",
         title: "text-xl",
         subtitle: "text-sm",
-        statsGrid: "grid grid-cols-2 gap-3",
+        statsGrid: "grid grid-cols-2 lg:grid-cols-4 gap-3",
         cardHeight: "h-24",
         textSize: "text-lg",
         iconSize: "h-6 w-6",
@@ -123,44 +137,30 @@ export function Dashboard() {
       };
     }
     
-    // Tablet
-    if (width < 1024) {
-      return {
-        container: "space-y-4",
-        title: "text-2xl",
-        subtitle: "text-sm",
-        statsGrid: "grid grid-cols-2 lg:grid-cols-4 gap-4",
-        cardHeight: "h-28",
-        textSize: "text-xl",
-        iconSize: "h-7 w-7",
-        padding: "p-4"
-      };
-    }
-    
     // Desktop
     if (width < 1440) {
       return {
-        container: "space-y-4",
-        title: "text-2xl",
-        subtitle: "text-base",
-        statsGrid: "grid grid-cols-2 lg:grid-cols-4 gap-4",
-        cardHeight: "h-32",
-        textSize: "text-3xl",
-        iconSize: "h-8 w-8",
-        padding: "p-4"
+        container: "space-y-3",
+        title: "text-xl",
+        subtitle: "text-sm",
+        statsGrid: "grid grid-cols-2 lg:grid-cols-4 gap-3",
+        cardHeight: "h-28",
+        textSize: "text-xl",
+        iconSize: "h-6 w-6",
+        padding: "p-3"
       };
     }
     
     // Büyük ekranlar
     return {
-      container: "space-y-6",
-      title: "text-3xl",
-      subtitle: "text-lg",
-      statsGrid: "grid grid-cols-2 lg:grid-cols-4 gap-6",
-      cardHeight: "h-36",
-      textSize: "text-4xl",
-      iconSize: "h-10 w-10",
-      padding: "p-6"
+      container: "space-y-4",
+      title: "text-2xl",
+      subtitle: "text-base",
+      statsGrid: "grid grid-cols-2 lg:grid-cols-4 gap-4",
+      cardHeight: "h-32",
+      textSize: "text-2xl",
+      iconSize: "h-7 w-7",
+      padding: "p-4"
     };
   };
 
@@ -196,25 +196,9 @@ export function Dashboard() {
 
   return (
     <div className={`${classes.container} overflow-y-auto h-full`}>
-      <div className="flex items-center mb-6">
-        <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl mr-4">
-          <div className="flex items-center justify-center">
-            <Activity className="text-white h-6 w-6 mr-2" />
-            <Plus className="text-white h-4 w-4" />
-            <Plus className="text-white h-4 w-4" />
-          </div>
-        </div>
-        <div>
-          <h1 className={`font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent ${classes.title}`}>
-            Dashboard
-          </h1>
-          <p className={`text-gray-600 ${classes.subtitle}`}>Tesis kontrol sisteminin genel durumu</p>
-        </div>
-      </div>
-
       {/* İş Programı Özet Raporu */}
       <div>
-        <div className="flex items-center mb-4">
+        <div className="flex items-center mb-3">
           <div className="p-2 bg-gradient-to-r from-green-500 to-green-600 rounded-lg mr-3">
             <BarChart3 className={`text-white ${classes.iconSize}`} />
           </div>
@@ -255,7 +239,7 @@ export function Dashboard() {
 
       {/* Mesaj Yönetimi Özeti */}
       <div>
-        <div className="flex items-center mb-4">
+        <div className="flex items-center mb-3">
           <div className="p-2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg mr-3">
             <MessageSquare className={`text-white ${classes.iconSize}`} />
           </div>
@@ -323,7 +307,7 @@ export function Dashboard() {
 
       {/* BağTV İstatistikleri */}
       <div>
-        <div className="flex items-center mb-4">
+        <div className="flex items-center mb-3">
           <div className="p-2 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg mr-3">
             <Monitor className={`text-white ${classes.iconSize}`} />
           </div>
@@ -391,7 +375,7 @@ export function Dashboard() {
 
       {/* Hızlı İşlemler */}
       <div>
-        <div className="flex items-center mb-4">
+        <div className="flex items-center mb-3">
           <div className="p-2 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg mr-3">
             <Zap className={`text-white ${classes.iconSize}`} />
           </div>
@@ -402,83 +386,141 @@ export function Dashboard() {
             <p className={`text-gray-600 ${classes.subtitle}`}>Sık kullanılan işlemler</p>
           </div>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
           <Card 
-            className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200"
+            className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 hover:border-blue-300"
             onClick={() => navigate('/daily-checks')}
           >
-            <div className="p-3">
-              <div className="flex flex-col items-center text-center">
-                <div className="p-2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg mb-2">
-                  <Calendar className="h-5 w-5 text-white" />
+            <div className="p-2 text-center">
+              <div className="flex flex-col items-center">
+                <div className="p-1.5 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg mb-1.5 shadow-md">
+                  <Calendar className="h-4 w-4 text-white" />
                 </div>
-                <h3 className="font-semibold text-gray-900 text-sm">Günlük İş</h3>
+                <h3 className="font-semibold text-gray-900 text-xs mb-0.5">Günlük İş</h3>
                 <p className="text-xs text-gray-600">Programı</p>
               </div>
             </div>
           </Card>
 
           <Card 
-            className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer bg-gradient-to-br from-green-50 to-green-100 border-green-200"
-            onClick={() => navigate('/haftalik')}
+            className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer bg-gradient-to-br from-green-50 to-green-100 border border-green-200 hover:border-green-300"
+            onClick={() => navigate('/completed-works')}
           >
-            <div className="p-3">
-              <div className="flex flex-col items-center text-center">
-                <div className="p-2 bg-gradient-to-r from-green-500 to-green-600 rounded-lg mb-2">
-                  <Activity className="h-5 w-5 text-white" />
+            <div className="p-2 text-center">
+              <div className="flex flex-col items-center">
+                <div className="p-1.5 bg-gradient-to-r from-green-500 to-green-600 rounded-lg mb-1.5 shadow-md">
+                  <Activity className="h-4 w-4 text-white" />
                 </div>
-                <h3 className="font-semibold text-gray-900 text-sm">Toplam Yapılan</h3>
+                <h3 className="font-semibold text-gray-900 text-xs mb-0.5">Toplam Yapılan</h3>
                 <p className="text-xs text-gray-600">İşler</p>
               </div>
             </div>
           </Card>
 
           <Card 
-            className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200"
+            className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 hover:border-purple-300"
             onClick={() => navigate('/messages')}
           >
-            <div className="p-3">
-              <div className="flex flex-col items-center text-center">
-                <div className="p-2 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg mb-2">
-                  <MessageSquare className="h-5 w-5 text-white" />
+            <div className="p-2 text-center">
+              <div className="flex flex-col items-center">
+                <div className="p-1.5 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg mb-1.5 shadow-md">
+                  <MessageSquare className="h-4 w-4 text-white" />
                 </div>
-                <h3 className="font-semibold text-gray-900 text-sm">Mesaj</h3>
+                <h3 className="font-semibold text-gray-900 text-xs mb-0.5">Mesaj</h3>
                 <p className="text-xs text-gray-600">Yönetimi</p>
               </div>
             </div>
           </Card>
 
           <Card 
-            className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200"
+            className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 hover:border-orange-300"
             onClick={() => navigate('/bagtv')}
           >
-            <div className="p-3">
-              <div className="flex flex-col items-center text-center">
-                <div className="p-2 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg mb-2">
-                  <Monitor className="h-5 w-5 text-white" />
+            <div className="p-2 text-center">
+              <div className="flex flex-col items-center">
+                <div className="p-1.5 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg mb-1.5 shadow-md">
+                  <Monitor className="h-4 w-4 text-white" />
                 </div>
-                <h3 className="font-semibold text-gray-900 text-sm">BağTV</h3>
+                <h3 className="font-semibold text-gray-900 text-xs mb-0.5">BağTV</h3>
                 <p className="text-xs text-gray-600">Sistemleri</p>
               </div>
             </div>
           </Card>
 
           <Card 
-            className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer bg-gradient-to-br from-indigo-50 to-indigo-100 border-indigo-200"
+            className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer bg-gradient-to-br from-indigo-50 to-indigo-100 border border-indigo-200 hover:border-indigo-300"
             onClick={() => navigate('/facilities')}
           >
-            <div className="p-3">
-              <div className="flex flex-col items-center text-center">
-                <div className="p-2 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg mb-2">
-                  <Building className="h-5 w-5 text-white" />
+            <div className="p-2 text-center">
+              <div className="flex flex-col items-center">
+                <div className="p-1.5 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg mb-1.5 shadow-md">
+                  <Building className="h-4 w-4 text-white" />
                 </div>
-                <h3 className="font-semibold text-gray-900 text-sm">Tesisler</h3>
+                <h3 className="font-semibold text-gray-900 text-xs mb-0.5">Tesisler</h3>
                 <p className="text-xs text-gray-600">Bilgileri</p>
               </div>
             </div>
           </Card>
 
+          <Card 
+            className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer bg-gradient-to-br from-red-50 to-red-100 border border-red-200 hover:border-red-300"
+            onClick={() => navigate('/ybs-work-program')}
+          >
+            <div className="p-2 text-center">
+              <div className="flex flex-col items-center">
+                <div className="p-1.5 bg-gradient-to-r from-red-500 to-red-600 rounded-lg mb-1.5 shadow-md">
+                  <CheckCircle className="h-4 w-4 text-white" />
+                </div>
+                <h3 className="font-semibold text-gray-900 text-xs mb-0.5">YBS İş</h3>
+                <p className="text-xs text-gray-600">Programı</p>
+              </div>
+            </div>
+          </Card>
 
+          <Card 
+            className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer bg-gradient-to-br from-teal-50 to-teal-100 border border-teal-200 hover:border-teal-300"
+            onClick={() => navigate('/ybs-approvals')}
+          >
+            <div className="p-2 text-center">
+              <div className="flex flex-col items-center">
+                <div className="p-1.5 bg-gradient-to-r from-teal-500 to-teal-600 rounded-lg mb-1.5 shadow-md">
+                  <CheckCircle className="h-4 w-4 text-white" />
+                </div>
+                <h3 className="font-semibold text-gray-900 text-xs mb-0.5">YBS Onay</h3>
+                <p className="text-xs text-gray-600">Ekranı</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card 
+            className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer bg-gradient-to-br from-pink-50 to-pink-100 border border-pink-200 hover:border-pink-300"
+            onClick={() => navigate('/reports')}
+          >
+            <div className="p-2 text-center">
+              <div className="flex flex-col items-center">
+                <div className="p-1.5 bg-gradient-to-r from-pink-500 to-pink-600 rounded-lg mb-1.5 shadow-md">
+                  <BarChart3 className="h-4 w-4 text-white" />
+                </div>
+                <h3 className="font-semibold text-gray-900 text-xs mb-0.5">Raporlar</h3>
+                <p className="text-xs text-gray-600">Analiz</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card 
+            className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer bg-gradient-to-br from-yellow-50 to-yellow-100 border border-yellow-200 hover:border-yellow-300"
+            onClick={() => navigate('/user-management')}
+          >
+            <div className="p-2 text-center">
+              <div className="flex flex-col items-center">
+                <div className="p-1.5 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-lg mb-1.5 shadow-md">
+                  <Users className="h-4 w-4 text-white" />
+                </div>
+                <h3 className="font-semibold text-gray-900 text-xs mb-0.5">Kullanıcı</h3>
+                <p className="text-xs text-gray-600">Yönetimi</p>
+              </div>
+            </div>
+          </Card>
         </div>
       </div>
     </div>

@@ -5,31 +5,71 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// CORS ayarları - Frontend domain'lerini ekle
+// CORS ayarları - Tüm domain'leri ekle
 const corsOptions = {
   origin: [
     'http://localhost:5173',
     'http://localhost:3000',
+    'http://localhost:4173',
     'https://tesis-kontrol.vercel.app',
     'https://tesis-kontrol-p2ig88ats-emrahs-projects-7d7ccaf2.vercel.app',
     'https://tesis-kontrol-aob4vd5yz-emrahs-projects-7d7ccaf2.vercel.app',
-    'https://tesis-kontrol-alyk5p34i-emrahs-projects-7d7ccaf2.vercel.app'
+    'https://tesis-kontrol-alyk5p34i-emrahs-projects-7d7ccaf2.vercel.app',
+    'https://tesis-kontrol-iz1nmkiy5-emrahs-projects-7d7ccaf2.vercel.app',
+    'https://tesis-kontrol-l75x0nhat-emrahs-projects-7d7ccaf2.vercel.app',
+    'https://tesis-kontrol-ige7r8252-emrahs-projects-7d7ccaf2.vercel.app',
+    'https://tesis-kontrol-ad6gldqkn-emrahs-projects-7d7ccaf2.vercel.app',
+    'https://tesis-kontrol-91j5k4dm8-emrahs-projects-7d7ccaf2.vercel.app',
+    'https://tesis-kontrol-2jikuppge-emrahs-projects-7d7ccaf2.vercel.app',
+    'https://tesis-kontrol-9lcbptk5z-emrahs-projects-7d7ccaf2.vercel.app',
+    'https://tesis-kontrol-jp8bmjt9r-emrahs-projects-7d7ccaf2.vercel.app',
+    'https://tesis-kontrol-8ql7wlog0-emrahs-projects-7d7ccaf2.vercel.app',
+    'https://tesis-kontrol-puhvga66y-emrahs-projects-7d7ccaf2.vercel.app',
+    'https://tesis-kontrol-ljhkiznrw-emrahs-projects-7d7ccaf2.vercel.app',
+    'https://tesis-kontrol-j9apw032c-emrahs-projects-7d7ccaf2.vercel.app',
+    'https://tesis-kontrol-31eh0kjyu-emrahs-projects-7d7ccaf2.vercel.app',
+    'https://tesis-kontrol-hp8pysxiu-emrahs-projects-7d7ccaf2.vercel.app',
+    'https://tesis-kontrol-a0sm9mvfa-emrahs-projects-7d7ccaf2.vercel.app',
+    'https://tesis-kontrol-iazofcnat-emrahs-projects-7d7ccaf2.vercel.app',
+    'https://tesis-kontrol-6g6i9640f-emrahs-projects-7d7ccaf2.vercel.app',
+    'https://tesis-kontrol-43wz0q08f-emrahs-projects-7d7ccaf2.vercel.app',
+    'https://backend-hn9f3hqhw-emrahs-projects-7d7ccaf2.vercel.app'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 };
 
 // Middleware
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// PostgreSQL bağlantısı
+// PostgreSQL bağlantısı - Neon.tech için optimize edilmiş
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
     rejectUnauthorized: false
-  }
+  },
+  // Neon.tech için optimize edilmiş pool ayarları
+  max: 5, // Daha az bağlantı
+  min: 1,  // Minimum bağlantı
+  idleTimeoutMillis: 60000, // 60 saniye
+  connectionTimeoutMillis: 10000, // 10 saniye
+  maxUses: 1000, // Daha az kullanım
+  allowExitOnIdle: true
+});
+
+// Pool event handlers
+pool.on('connect', (client) => {
+  console.log('Yeni database bağlantısı oluşturuldu');
+});
+
+pool.on('error', (err, client) => {
+  console.error('Database pool hatası:', err);
+});
+
+pool.on('remove', (client) => {
+  console.log('Database bağlantısı kaldırıldı');
 });
 
 // Test endpoint'i
@@ -257,14 +297,13 @@ app.post('/api/add-test-data', async (req, res) => {
 
 
 
-// Tüm tabloları oluştur ve admin kullanıcısını ekle
+// Tüm tabloları oluştur ve admin kullanıcısını ekle - Basitleştirilmiş
 async function initializeDatabase() {
   try {
+    console.log('Database başlatılıyor...');
     const client = await pool.connect();
     
-    // Tabloları kontrol et ve yoksa oluştur
-    
-    // Users tablosu
+    // Basit tablo kontrolü
     await client.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
@@ -272,125 +311,9 @@ async function initializeDatabase() {
         email VARCHAR(100) UNIQUE NOT NULL,
         password VARCHAR(100) NOT NULL,
         role VARCHAR(20) DEFAULT 'user',
-        permissions JSONB DEFAULT '[]',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    
-    // Facilities tablosu
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS facilities (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(100) NOT NULL,
-        location VARCHAR(200),
-        description TEXT,
-        status VARCHAR(20) DEFAULT 'Aktif',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-    
-    // BagTV Facilities tablosu
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS bagtv_facilities (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(100) NOT NULL,
-        tv_count INTEGER DEFAULT 1,
-        description TEXT,
-        status VARCHAR(20) DEFAULT 'Aktif',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-    
-    // Control Items tablosu
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS control_items (
-        id SERIAL PRIMARY KEY,
-        facility_id INTEGER REFERENCES facilities(id),
-        title VARCHAR(100) NOT NULL,
-        description TEXT,
-        period VARCHAR(20) DEFAULT 'Günlük',
-        date DATE,
-        work_done TEXT,
-        user_name VARCHAR(100),
-        status VARCHAR(20) DEFAULT 'Aktif',
-        completion_date DATE,
-        approval_status VARCHAR(20) DEFAULT 'pending',
-        approved_by VARCHAR(100),
-        approved_at TIMESTAMP,
-        rejection_reason TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-    
-    // Messages tablosu
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS messages (
-        id SERIAL PRIMARY KEY,
-        date DATE NOT NULL,
-        total_count INTEGER NOT NULL,
-        pulled_count INTEGER NOT NULL,
-        account VARCHAR(100) NOT NULL,
-        description TEXT NOT NULL,
-        sender VARCHAR(100) DEFAULT 'admin',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-    
-    // YBS Work Items tablosu
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS ybs_work_items (
-        id SERIAL PRIMARY KEY,
-        title VARCHAR(200) NOT NULL,
-        description TEXT,
-        request_date DATE NOT NULL,
-        completion_date DATE,
-        requesting_department VARCHAR(100) NOT NULL,
-        responsible_users JSONB DEFAULT '[]',
-        jira_number VARCHAR(50),
-        status VARCHAR(20) DEFAULT 'pending',
-        approval_status VARCHAR(20) DEFAULT 'pending',
-        approved_by VARCHAR(100),
-        approved_at TIMESTAMP,
-        created_by VARCHAR(100) NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-    
-    // Eğer messages tablosu varsa ve sender kolonu yoksa ekle
-    try {
-      await client.query('ALTER TABLE messages ADD COLUMN IF NOT EXISTS sender VARCHAR(100) DEFAULT \'admin\'');
-    } catch (error) {
-      console.log('Sender kolonu zaten mevcut veya eklenemedi:', error.message);
-    }
-    
-    // Eğer control_items tablosu varsa ve rejection_reason kolonu yoksa ekle
-    try {
-      await client.query('ALTER TABLE control_items ADD COLUMN IF NOT EXISTS rejection_reason TEXT');
-    } catch (error) {
-      console.log('Rejection_reason kolonu zaten mevcut veya eklenemedi:', error.message);
-    }
-    
-    // Eğer control_items tablosu varsa ve completion_date kolonu yoksa ekle
-    try {
-      await client.query('ALTER TABLE control_items ADD COLUMN IF NOT EXISTS completion_date DATE');
-    } catch (error) {
-      console.log('Completion_date kolonu zaten mevcut veya eklenemedi:', error.message);
-    }
-    
-    // Eğer control_items tablosu varsa ve approved_by kolonu yoksa ekle
-    try {
-      await client.query('ALTER TABLE control_items ADD COLUMN IF NOT EXISTS approved_by VARCHAR(100)');
-    } catch (error) {
-      console.log('Approved_by kolonu zaten mevcut veya eklenemedi:', error.message);
-    }
-    
-    // Eğer control_items tablosu varsa ve approved_at kolonu yoksa ekle
-    try {
-      await client.query('ALTER TABLE control_items ADD COLUMN IF NOT EXISTS approved_at TIMESTAMP');
-    } catch (error) {
-      console.log('Approved_at kolonu zaten mevcut veya eklenemedi:', error.message);
-    }
     
     // Admin kullanıcısını kontrol et ve ekle
     const userResult = await client.query('SELECT COUNT(*) FROM users WHERE username = $1', ['admin']);
@@ -403,9 +326,11 @@ async function initializeDatabase() {
     }
     
     client.release();
-    console.log('Tüm tablolar başarıyla oluşturuldu');
+    console.log('Database başarıyla başlatıldı');
+    
   } catch (error) {
-    console.error('Veritabanı başlatma hatası:', error);
+    console.error('Database başlatma hatası:', error.message);
+    // Hata olsa bile server çalışmaya devam etsin
   }
 }
 

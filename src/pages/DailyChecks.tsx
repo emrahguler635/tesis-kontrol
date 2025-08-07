@@ -104,29 +104,58 @@ const DailyChecks: React.FC = () => {
       status: formData.status,
       ...(formData.completionDate && { completionDate: formData.completionDate })
     };
-    if (editIndex !== null) {
-      const updated = await apiService.updateControlItem(items[editIndex].id, newItem);
-      const newItems = [...items];
-      newItems[editIndex] = updated;
-      setItems(newItems);
-      setEditIndex(null);
-    } else {
-      const saved = await apiService.createControlItem(newItem);
-      setItems([...items, saved]);
+    
+    try {
+      if (editIndex !== null) {
+        const updated = await apiService.updateControlItem(items[editIndex].id, newItem);
+        const newItems = [...items];
+        newItems[editIndex] = updated;
+        setItems(newItems);
+        
+        // allDailyItems'ı da güncelle
+        const newAllDailyItems = [...allDailyItems];
+        const allIndex = newAllDailyItems.findIndex(item => item.id === updated.id);
+        if (allIndex !== -1) {
+          newAllDailyItems[allIndex] = updated;
+          setAllDailyItems(newAllDailyItems);
+        }
+        
+        setEditIndex(null);
+      } else {
+        const saved = await apiService.createControlItem(newItem);
+        
+        // Aktif işleri güncelle (Beklemede ve İşlemde olanlar)
+        const updatedItems = [...items, saved];
+        setItems(updatedItems);
+        
+        // Tüm günlük işleri de güncelle
+        const updatedAllDailyItems = [...allDailyItems, saved];
+        setAllDailyItems(updatedAllDailyItems);
+      }
+      
+      // Form'u temizle
+      setFormData({
+        title: '',
+        workDone: '',
+        plannedDate: '',
+        completedDate: '',
+        completionDate: '',
+        description: '',
+        user: user?.username || '',
+        facilityId: '',
+        status: ''
+      });
+      
+      setModalOpen(false);
+      setCompleteModalOpen(false);
+      
+      // Başarı mesajı göster
+      alert(editIndex !== null ? 'İş başarıyla güncellendi!' : 'İş başarıyla eklendi!');
+      
+    } catch (error) {
+      console.error('Kaydetme hatası:', error);
+      alert('Kaydetme işlemi başarısız oldu! Lütfen tekrar deneyin.');
     }
-    setFormData({
-      title: '',
-      workDone: '',
-      plannedDate: '',
-      completedDate: '',
-      completionDate: '',
-      description: '',
-      user: user?.username || '',
-      facilityId: '',
-      status: ''
-    });
-    setModalOpen(false);
-    setCompleteModalOpen(false);
   };
 
   const getStatusIcon = (status: string | undefined) => {
@@ -200,7 +229,7 @@ const DailyChecks: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8 p-6 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 min-h-screen">
+    <div className="space-y-8 p-6 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 h-screen overflow-y-auto">
       {/* Günlük İş Programı Başlığı */}
       <div className="flex items-center justify-between">
         <div className="space-y-2">

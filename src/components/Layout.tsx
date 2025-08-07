@@ -32,8 +32,8 @@ export function Layout({ children }: LayoutProps) {
     if (width < 768) {
       return {
         container: "h-screen w-screen bg-gray-50 flex flex-col relative overflow-hidden",
-        main: "flex-1 overflow-y-auto overflow-x-hidden relative z-10",
-        content: "p-2 h-full overflow-y-auto"
+        main: "flex-1 relative z-10",
+        content: "p-2"
       };
     }
     
@@ -41,8 +41,8 @@ export function Layout({ children }: LayoutProps) {
     if (width < 1024) {
       return {
         container: "h-screen w-screen bg-gray-50 flex flex-col relative overflow-hidden",
-        main: "flex-1 overflow-y-auto overflow-x-hidden relative z-10",
-        content: "p-4 h-full overflow-y-auto"
+        main: "flex-1 relative z-10",
+        content: "p-4"
       };
     }
     
@@ -50,16 +50,16 @@ export function Layout({ children }: LayoutProps) {
     if (width < 1440) {
       return {
         container: "h-screen w-screen bg-gray-50 flex flex-col relative overflow-hidden",
-        main: "flex-1 overflow-y-auto overflow-x-hidden relative z-10",
-        content: "p-6 h-full overflow-y-auto"
+        main: "flex-1 relative z-10",
+        content: "p-6"
       };
     }
     
     // Çok büyük ekranlar (4K+)
     return {
       container: "h-screen w-screen bg-gray-50 flex flex-col relative overflow-hidden",
-      main: "flex-1 overflow-y-auto overflow-x-hidden relative z-10",
-      content: "p-8 h-full overflow-y-auto"
+      main: "flex-1 relative z-10",
+      content: "p-8"
     };
   };
 

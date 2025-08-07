@@ -150,7 +150,7 @@ export const MonthlyChecks: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 h-screen overflow-y-auto">
       <div className="mb-6">
         <div className="flex items-center gap-4">
           <div className="p-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl shadow-lg">

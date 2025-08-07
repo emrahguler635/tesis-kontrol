@@ -138,7 +138,7 @@ const Approvals: React.FC = () => {
   }
 
   return (
-    <div>
+    <div className="space-y-8 p-6 bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 h-screen overflow-y-auto">
       {/* Modern Başlık */}
       <div className="flex items-center mb-6">
         <div className="p-3 bg-gradient-to-r from-orange-500 to-red-600 rounded-xl mr-4">

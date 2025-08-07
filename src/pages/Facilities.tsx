@@ -1,15 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { apiService, Facility } from '../services/api';
 import { Card } from '../components/Card';
-import { Building2, Plus, Trash2, Edit, Search, Upload } from 'lucide-react';
-import { BulkUploadModal } from '../components/BulkUploadModal';
+import { Building2, Plus, Trash2, Edit, Search, Tv } from 'lucide-react';
 
 const Facilities: React.FC = () => {
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [showBulkUpload, setShowBulkUpload] = useState(false);
 
   useEffect(() => {
     const fetchFacilities = async () => {
@@ -40,36 +38,37 @@ const Facilities: React.FC = () => {
     }
   };
 
-  const handleBulkUploadSuccess = () => {
-    // Tesisleri yeniden yükle
-    const fetchFacilities = async () => {
-      setLoading(true);
-      try {
-        const data = await apiService.getFacilities();
-        setFacilities(data);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchFacilities();
-  };
-
   // Filter facilities based on search term
   const filteredFacilities = facilities.filter(facility =>
     facility.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4 mb-6">
-        <div className="p-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl shadow-lg">
-          <Building2 className="h-8 w-8 text-white" />
+    <div className="h-screen overflow-y-auto p-6 space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl shadow-lg">
+            <Building2 className="h-8 w-8 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              Tesis Yönetimi
+            </h1>
+            <p className="text-gray-600 text-sm">Tesis takip ve yönetim sistemi</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            Tesisler
-          </h1>
-          <p className="text-gray-600 mt-1">Tesis yönetimi ve kontrol sistemi</p>
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Tesis ara..."
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64"
+            />
+          </div>
         </div>
       </div>
 
@@ -99,101 +98,96 @@ const Facilities: React.FC = () => {
               </button>
             </form>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowBulkUpload(true)}
-              className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 flex items-center gap-2"
-            >
-              <Upload className="h-4 w-4" />
-              Veri Yükle
-            </button>
-          </div>
         </div>
       </Card>
 
-      {/* Search Bar */}
-      <Card>
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-gray-100 rounded-lg">
-            <Search className="h-5 w-5 text-gray-600" />
-          </div>
-          <div className="flex-1">
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Tesis ara..."
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-          {searchTerm && (
-            <button
-              onClick={() => setSearchTerm('')}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
-              title="Aramayı temizle"
-            >
-              ×
-            </button>
-          )}
-        </div>
-        {searchTerm && (
-          <div className="mt-3 text-sm text-gray-600">
-            "{searchTerm}" için {filteredFacilities.length} sonuç bulundu
-          </div>
-        )}
-      </Card>
-
-      {/* Facilities List */}
+      {/* Facilities Table */}
       {loading ? (
-        <div className="flex justify-center items-center h-64">
+        <div className="flex justify-center items-center h-32">
           <div className="text-lg text-gray-600">Yükleniyor...</div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredFacilities.map(facility => (
-            <Card key={facility.id} className="hover:shadow-lg transition-shadow duration-200">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3 flex-1">
-                  <div className="p-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg">
-                    <Building2 className="h-6 w-6 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                      {facility.name}
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                      Tesis ID: {facility.id}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <button 
-                    className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                    title="Düzenle"
-                  >
-                    <Edit className="h-4 w-4" />
-                  </button>
-                  <button 
-                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                    onClick={() => handleDelete(facility.id)}
-                    title="Sil"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-              
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">Durum</span>
-                  <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                    Aktif
-                  </span>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
+        <Card>
+          <div className="overflow-x-auto">
+            <div className="max-h-[calc(100vh-300px)] overflow-y-auto">
+              <table className="w-full border border-gray-300">
+                <thead className="bg-gray-50 sticky top-0 z-10">
+                  <tr className="border-b-2 border-gray-400">
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 border-r border-gray-300">
+                      TESİS
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 border-r border-gray-300">
+                      TV ADETİ
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 border-r border-gray-300">
+                      AÇIKLAMA
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 border-r border-gray-300">
+                      DURUM
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
+                      İŞLEMLER
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredFacilities.map(facility => (
+                    <tr key={facility.id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors duration-200">
+                      <td className="px-4 py-3 border-r border-gray-300">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full">
+                            <Building2 className="h-4 w-4 text-white" />
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-900">{facility.id}</span>
+                            <div className="text-sm text-gray-500">{facility.name}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 border-r border-gray-300">
+                        <div className="flex items-center gap-2">
+                          <Tv className="h-4 w-4 text-gray-500" />
+                          <span className="text-gray-900">{facility.tvCount || 0}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 border-r border-gray-300">
+                        <span className="text-gray-500">{facility.description || '-'}</span>
+                      </td>
+                      <td className="px-4 py-3 border-r border-gray-300">
+                        <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                          Aktif
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-2">
+                          <button 
+                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Düzenle"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </button>
+                          <button 
+                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            onClick={() => handleDelete(facility.id)}
+                            title="Sil"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                          <button 
+                            className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                            title="Onayla"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </Card>
       )}
 
       {!loading && facilities.length === 0 && (
@@ -215,14 +209,6 @@ const Facilities: React.FC = () => {
           </div>
         </Card>
       )}
-
-      {/* Bulk Upload Modal */}
-      <BulkUploadModal
-        isOpen={showBulkUpload}
-        onClose={() => setShowBulkUpload(false)}
-        type="facilities"
-        onSuccess={handleBulkUploadSuccess}
-      />
     </div>
   );
 };

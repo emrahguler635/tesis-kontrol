@@ -102,7 +102,7 @@ const BagTV: React.FC = () => {
       return {
         container: "h-screen flex flex-col overflow-hidden",
         header: "flex-shrink-0 p-2",
-        title: "text-xl",
+        title: "text-lg",
         subtitle: "text-sm",
         statsGrid: "grid grid-cols-2 gap-2 mb-2",
         tableContainer: "flex-1 min-h-0 overflow-hidden",
@@ -116,7 +116,7 @@ const BagTV: React.FC = () => {
       return {
         container: "h-screen flex flex-col overflow-hidden",
         header: "flex-shrink-0 p-3",
-        title: "text-2xl",
+        title: "text-xl",
         subtitle: "text-sm",
         statsGrid: "grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3",
         tableContainer: "flex-1 min-h-0 overflow-hidden",
@@ -130,7 +130,7 @@ const BagTV: React.FC = () => {
       return {
         container: "h-screen flex flex-col overflow-hidden",
         header: "flex-shrink-0 p-4",
-        title: "text-3xl",
+        title: "text-2xl",
         subtitle: "text-base",
         statsGrid: "grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4",
         tableContainer: "flex-1 min-h-0 overflow-hidden",
@@ -142,10 +142,10 @@ const BagTV: React.FC = () => {
     // Büyük ekranlar
     return {
       container: "h-screen flex flex-col overflow-hidden",
-      header: "flex-shrink-0 p-6",
-      title: "text-4xl",
+      header: "flex-shrink-0 p-5",
+      title: "text-3xl",
       subtitle: "text-lg",
-      statsGrid: "grid grid-cols-2 lg:grid-cols-4 gap-6 mb-6",
+      statsGrid: "grid grid-cols-2 lg:grid-cols-4 gap-5 mb-5",
       tableContainer: "flex-1 min-h-0 overflow-hidden",
       table: "h-full overflow-auto",
       buttonSize: "text-base px-4 py-2"
@@ -363,11 +363,11 @@ const BagTV: React.FC = () => {
   }
 
   return (
-    <div className={classes.container}>
+    <div className={`${classes.container} h-screen overflow-y-auto`}>
       {/* Sabit Başlık ve İstatistikler */}
       <div className={classes.header}>
         {/* Başlık */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">
             <div className="p-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg mr-4">
               <Tv className="h-6 w-6 text-white" />
@@ -401,59 +401,59 @@ const BagTV: React.FC = () => {
         </div>
 
         {/* İstatistik Kartları */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {/* Toplam TV */}
           <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-            <div className="flex items-center justify-between h-40 p-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl">
+            <div className="flex items-center justify-between h-32 p-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl">
               <div className="flex-1">
-                <p className="text-base font-medium text-blue-100 mb-3">Toplam TV</p>
-                <p className="text-4xl font-bold text-white mb-2">{totalTV}</p>
-                <p className="text-sm text-blue-200">Aktif TV</p>
+                <p className="text-sm font-medium text-blue-100 mb-2">Toplam TV</p>
+                <p className="text-3xl font-bold text-white mb-1">{totalTV}</p>
+                <p className="text-xs text-blue-200">Aktif TV</p>
               </div>
-              <div className="p-5 bg-white/20 rounded-xl backdrop-blur-sm">
-                <Tv className="h-12 w-12 text-white" />
+              <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                <Tv className="h-8 w-8 text-white" />
               </div>
             </div>
           </div>
 
           {/* Aktif Tesis */}
           <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-            <div className="flex items-center justify-between h-40 p-6 bg-gradient-to-br from-green-500 to-green-600 rounded-xl">
+            <div className="flex items-center justify-between h-32 p-4 bg-gradient-to-br from-green-500 to-green-600 rounded-xl">
               <div className="flex-1">
-                <p className="text-base font-medium text-green-100 mb-3">Aktif Tesis</p>
-                <p className="text-4xl font-bold text-white mb-2">{facilities.filter(f => f.status === 'Aktif').length}</p>
-                <p className="text-sm text-green-200">Çalışan Tesis</p>
+                <p className="text-sm font-medium text-green-100 mb-2">Aktif Tesis</p>
+                <p className="text-3xl font-bold text-white mb-1">{facilities.filter(f => f.status === 'Aktif').length}</p>
+                <p className="text-xs text-green-200">Çalışan Tesis</p>
               </div>
-              <div className="p-5 bg-white/20 rounded-xl backdrop-blur-sm">
-                <Building2 className="h-12 w-12 text-white" />
+              <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                <Building2 className="h-8 w-8 text-white" />
               </div>
             </div>
           </div>
 
           {/* Toplam Tesis */}
           <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-            <div className="flex items-center justify-between h-40 p-6 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl">
+            <div className="flex items-center justify-between h-32 p-4 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl">
               <div className="flex-1">
-                <p className="text-base font-medium text-purple-100 mb-3">Toplam Tesis</p>
-                <p className="text-4xl font-bold text-white mb-2">{facilities.length}</p>
-                <p className="text-sm text-purple-200">Tüm Tesisler</p>
+                <p className="text-sm font-medium text-purple-100 mb-2">Toplam Tesis</p>
+                <p className="text-3xl font-bold text-white mb-1">{facilities.length}</p>
+                <p className="text-xs text-purple-200">Tüm Tesisler</p>
               </div>
-              <div className="p-5 bg-white/20 rounded-xl backdrop-blur-sm">
-                <Calendar className="h-12 w-12 text-white" />
+              <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                <Calendar className="h-8 w-8 text-white" />
               </div>
             </div>
           </div>
 
           {/* Ortalama TV */}
           <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-            <div className="flex items-center justify-between h-40 p-6 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl">
+            <div className="flex items-center justify-between h-32 p-4 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl">
               <div className="flex-1">
-                <p className="text-base font-medium text-orange-100 mb-3">Ortalama TV</p>
-                <p className="text-4xl font-bold text-white mb-2">{facilities.length > 0 ? (totalTV / facilities.length).toFixed(1) : '0.0'}</p>
-                <p className="text-sm text-orange-200">Tesis Başına</p>
+                <p className="text-sm font-medium text-orange-100 mb-2">Ortalama TV</p>
+                <p className="text-3xl font-bold text-white mb-1">{facilities.length > 0 ? (totalTV / facilities.length).toFixed(1) : '0'}</p>
+                <p className="text-xs text-orange-200">Tesis Başına</p>
               </div>
-              <div className="p-5 bg-white/20 rounded-xl backdrop-blur-sm">
-                <Tv className="h-12 w-12 text-white" />
+              <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                <Tv className="h-8 w-8 text-white" />
               </div>
             </div>
           </div>
@@ -708,119 +708,264 @@ const BagTV: React.FC = () => {
         </div>
       )}
 
-      {/* Detay Paneli */}
+      {/* Detay Paneli - Modern Kontrol Geçmişi */}
       {selectedFacility && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-4xl shadow-lg max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold">{selectedFacility.name} - Kontrol Geçmişi</h2>
-              <button onClick={closeDetailPanel} className="text-gray-400 hover:text-gray-600">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="mb-4">
-              <div className="flex flex-col sm:flex-row gap-2 items-center">
-                <input type="date" value={filterStart} onChange={e => setFilterStart(e.target.value)} className="border rounded px-2 py-1" />
-                <span>-</span>
-                <input type="date" value={filterEnd} onChange={e => setFilterEnd(e.target.value)} className="border rounded px-2 py-1" />
-                <button onClick={handleFilter} className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs">Filtrele</button>
-                <button onClick={handleExportExcel} className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-xs">Excel'e Aktar</button>
-              </div>
-            </div>
-            <form onSubmit={handleControlSubmit} className="mb-4 p-6 bg-gray-50 rounded-lg">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Tarih</label>
-                  <input 
-                    type="date" 
-                    name="date" 
-                    value={controlForm.date} 
-                    onChange={handleControlFormChange} 
-                    required 
-                    className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                  />
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-y-auto">
+            {/* Modern Header */}
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 rounded-t-2xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold">{selectedFacility.name} - Kontrol Geçmişi</h2>
+                    <p className="text-blue-100 text-sm">Tesis kontrol geçmişini görüntüleyin ve yönetin</p>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Kontrol Eden</label>
-                  <select 
-                    name="checkedBy" 
-                    value={controlForm.checkedBy} 
-                    onChange={handleControlFormChange} 
-                    required 
-                    className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">Kullanıcı seçin...</option>
-                    {users.map((user: any) => (
-                      <option key={user.id || user._id} value={user.username}>
-                        {user.username} - {user.role}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="lg:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Ne Yapıldı</label>
-                  <input 
-                    type="text" 
-                    name="action" 
-                    value={controlForm.action} 
-                    onChange={handleControlFormChange} 
-                    placeholder="Yapılan işlemi açıklayın..." 
-                    required 
-                    className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                  />
-                </div>
-                <div className="lg:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Açıklama</label>
-                  <textarea 
-                    name="description" 
-                    value={controlForm.description} 
-                    onChange={handleControlFormChange} 
-                    placeholder="Detaylı açıklama ekleyin..." 
-                    rows={3}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end mt-4">
                 <button 
-                  type="submit" 
-                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium" 
-                  disabled={controlSaving}
+                  onClick={closeDetailPanel} 
+                  className="p-2 hover:bg-white/20 rounded-lg transition-colors"
                 >
-                  {controlSaving ? 'Kaydediliyor...' : 'Ekle'}
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                 </button>
               </div>
-            </form>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase">Tarih</th>
-                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase">Ne Yapıldı</th>
-                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase">Açıklama</th>
-                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase">Kontrol Eden</th>
-                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase">İşlem</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredControls.map((control: any) => (
-                    <tr key={control._id}>
-                      <td className="px-2 py-1">{control.date ? new Date(control.date).toLocaleDateString('tr-TR') : ''}</td>
-                      <td className="px-2 py-1">{control.action}</td>
-                      <td className="px-2 py-1">{control.description}</td>
-                      <td className="px-2 py-1">{control.checkedBy}</td>
-                      <td className="px-2 py-1">
-                        <button className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs" onClick={() => handleDeleteControl(control._id)}>Sil</button>
-                      </td>
-                    </tr>
-                  ))}
-                  {filteredControls.length === 0 && (
-                    <tr><td colSpan={5} className="text-center text-gray-400 py-2">Kayıt yok</td></tr>
-                  )}
-                </tbody>
-              </table>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Filtre Bölümü */}
+              <div className="bg-gray-50 rounded-xl p-4">
+                <div className="flex flex-col sm:flex-row gap-4 items-center">
+                  <div className="flex items-center gap-2">
+                    <input 
+                      type="date" 
+                      value={filterStart} 
+                      onChange={e => setFilterStart(e.target.value)} 
+                      className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                    />
+                    <span className="text-gray-500">-</span>
+                    <input 
+                      type="date" 
+                      value={filterEnd} 
+                      onChange={e => setFilterEnd(e.target.value)} 
+                      className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={handleFilter} 
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z" />
+                      </svg>
+                      Filtrele
+                    </button>
+                    <button 
+                      onClick={handleExportExcel} 
+                      className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Excel'e Aktar
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Yeni Kontrol Ekleme Formu */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900">Yeni Kontrol Ekle</h3>
+                </div>
+                
+                <form onSubmit={handleControlSubmit} className="space-y-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Tarih</label>
+                      <input 
+                        type="date" 
+                        name="date" 
+                        value={controlForm.date} 
+                        onChange={handleControlFormChange} 
+                        required 
+                        className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white" 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Kontrol Eden</label>
+                      <select 
+                        name="checkedBy" 
+                        value={controlForm.checkedBy} 
+                        onChange={handleControlFormChange} 
+                        required 
+                        className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                      >
+                        <option value="">Kullanıcı seçin...</option>
+                        {users.map((user: any) => (
+                          <option key={user.id || user._id} value={user.username}>
+                            {user.username} - {user.role}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="lg:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Ne Yapıldı</label>
+                      <input 
+                        type="text" 
+                        name="action" 
+                        value={controlForm.action} 
+                        onChange={handleControlFormChange} 
+                        placeholder="Yapılan işlemi açıklayın..." 
+                        required 
+                        className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white" 
+                      />
+                    </div>
+                    <div className="lg:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Açıklama</label>
+                      <textarea 
+                        name="description" 
+                        value={controlForm.description} 
+                        onChange={handleControlFormChange} 
+                        placeholder="Detaylı açıklama ekleyin..." 
+                        rows={3}
+                        className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white resize-none" 
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end">
+                    <button 
+                      type="submit" 
+                      className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all font-medium shadow-lg" 
+                      disabled={controlSaving}
+                    >
+                      {controlSaving ? (
+                        <>
+                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Kaydediliyor...
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                          </svg>
+                          Ekle
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Kontrol Geçmişi Tablosu */}
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                  <h3 className="text-lg font-bold text-gray-900">Kontrol Geçmişi</h3>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50 sticky top-0 z-10">
+                      <tr>
+                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <div className="flex items-center gap-2">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            Tarih
+                          </div>
+                        </th>
+                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <div className="flex items-center gap-2">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            Ne Yapıldı
+                          </div>
+                        </th>
+                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <div className="flex items-center gap-2">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                            </svg>
+                            Açıklama
+                          </div>
+                        </th>
+                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <div className="flex items-center gap-2">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            Kontrol Eden
+                          </div>
+                        </th>
+                        <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          İşlem
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {filteredControls.map((control: any) => (
+                        <tr key={control._id} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-6 py-4">
+                            <div className="text-sm font-medium text-gray-900">
+                              {control.date ? new Date(control.date).toLocaleDateString('tr-TR') : ''}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="text-sm text-gray-900">{control.action}</div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="text-sm text-gray-600 max-w-xs truncate" title={control.description}>
+                              {control.description}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="text-sm text-gray-900">{control.checkedBy}</div>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <button 
+                              className="flex items-center gap-2 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors font-medium text-sm"
+                              onClick={() => handleDeleteControl(control._id)}
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                              Sil
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                      {filteredControls.length === 0 && (
+                        <tr>
+                          <td colSpan={5} className="text-center py-12">
+                            <div className="flex flex-col items-center gap-3">
+                              <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              </svg>
+                              <h3 className="text-lg font-medium text-gray-900">Kontrol Geçmişi Yok</h3>
+                              <p className="text-gray-500">Bu tesis için henüz kontrol kaydı bulunmuyor.</p>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
         </div>

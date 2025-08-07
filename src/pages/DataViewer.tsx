@@ -97,7 +97,7 @@ const DataViewer: React.FC<DataViewerProps> = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-100 p-6">
+      <div className="h-screen overflow-y-auto bg-gray-100 p-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
@@ -109,7 +109,7 @@ const DataViewer: React.FC<DataViewerProps> = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className="h-screen overflow-y-auto bg-gray-100 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="bg-white rounded-lg shadow-lg p-6">
           <div className="flex justify-between items-center mb-6">

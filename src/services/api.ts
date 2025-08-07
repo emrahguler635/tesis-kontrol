@@ -6,6 +6,7 @@ export interface Facility {
   name: string;
   description?: string;
   status?: string;
+  tvCount?: number;
   created_at?: string;
   updated_at?: string;
 }
@@ -30,33 +31,20 @@ export interface ControlItem {
   created_at?: string;
 }
 
-// User type definition
-export interface User {
-  id: number;
-  username: string;
-  email: string;
-  role: string;
-  permissions?: string[];
-  created_at?: string;
-}
-
-// Message type definition
 export interface Message {
-  id: number;
+  id?: number;
   date: string;
-  totalCount?: number;
-  total_count?: number;
-  pulledCount?: number;
-  pulled_count?: number;
+  totalCount: number;
+  pulledCount: number;
+  returnCount: number;
+  description?: string;
   account: string;
-  sender?: string;
-  description: string;
-  created_at?: string;
+  sender: string;
 }
 
 class ApiService {
   // Güvenlik seviyesi kontrolü
-  private isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  private isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.includes('localhost');
   private isProduction = !this.isDevelopment;
 
   // Güvenli log fonksiyonu
@@ -174,23 +162,117 @@ class ApiService {
     });
   }
 
-  // User endpoints
-  async getUsers(): Promise<User[]> {
-    this.log('debug', 'Users requested');
-    return this.request<User[]>('/users');
+
+
+  // Message endpoints
+  async getMessages(): Promise<Message[]> {
+    this.log('debug', 'Getting messages');
+    const messages = await this.request<any[]>('/messages');
+    this.log('debug', 'Messages response:', messages);
+    
+    // Backend'den gelen snake_case formatını frontend'in camelCase formatına çevir
+    return messages.map(message => ({
+      id: message.id,
+      date: message.date,
+      totalCount: message.total_count || 0,
+      pulledCount: message.pulled_count || 0,
+      returnCount: message.return_count || 0,
+      description: message.description,
+      account: message.account,
+      sender: message.sender
+    }));
   }
 
-  async createUser(user: { username: string; email: string; password: string; role: string; permissions?: string[] }): Promise<User> {
-    this.log('info', 'Creating user', { ...user, password: '***' });
-    return this.request<User>('/users', {
+  async createMessage(message: Omit<Message, 'id'>): Promise<Message> {
+    this.log('debug', 'Creating message:', message);
+    
+    // Frontend'den gelen camelCase formatını backend'in snake_case formatına çevir
+    const backendMessage = {
+      date: message.date,
+      total_count: message.totalCount ? parseInt(message.totalCount.toString()) : 0,
+      pulled_count: message.pulledCount ? parseInt(message.pulledCount.toString()) : 0,
+      return_count: message.returnCount ? parseInt(message.returnCount.toString()) : 0,
+      description: message.description,
+      account: message.account,
+      sender: message.sender
+    };
+    
+    const response = await this.request<any>('/messages', {
+      method: 'POST',
+      body: JSON.stringify(backendMessage),
+    });
+    this.log('debug', 'Message created:', response);
+    
+    // Backend'den gelen response'u frontend formatına çevir
+    return {
+      id: response.id,
+      date: response.date,
+      totalCount: response.total_count || 0,
+      pulledCount: response.pulled_count || 0,
+      returnCount: response.return_count || 0,
+      description: response.description,
+      account: response.account,
+      sender: response.sender
+    };
+  }
+
+  async updateMessage(id: number, message: Omit<Message, 'id'>): Promise<Message> {
+    this.log('debug', `Updating message ${id}:`, message);
+    
+    // Frontend'den gelen camelCase formatını backend'in snake_case formatına çevir
+    const backendMessage = {
+      date: message.date,
+      total_count: message.totalCount ? parseInt(message.totalCount.toString()) : 0,
+      pulled_count: message.pulledCount ? parseInt(message.pulledCount.toString()) : 0,
+      return_count: message.returnCount ? parseInt(message.returnCount.toString()) : 0,
+      description: message.description,
+      account: message.account,
+      sender: message.sender
+    };
+    
+    const response = await this.request<any>(`/messages/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(backendMessage),
+    });
+    this.log('debug', 'Message updated:', response);
+    
+    // Backend'den gelen response'u frontend formatına çevir
+    return {
+      id: response.id,
+      date: response.date,
+      totalCount: response.total_count || 0,
+      pulledCount: response.pulled_count || 0,
+      returnCount: response.return_count || 0,
+      description: response.description,
+      account: response.account,
+      sender: response.sender
+    };
+  }
+
+  async deleteMessage(id: number): Promise<any> {
+    this.log('warn', `Deleting message ${id}`);
+    return this.request<any>(`/messages/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Users endpoints
+  async getUsers(): Promise<any[]> {
+    this.log('debug', 'Users requested');
+    return this.request<any[]>('/users');
+  }
+
+  async createUser(user: { username: string; email: string; password: string; role?: string; permissions?: string[] }): Promise<any> {
+    this.log('info', 'Creating user', user);
+    return this.request<any>('/users', {
       method: 'POST',
       body: JSON.stringify(user),
     });
   }
 
-  async updateUser(id: number, user: { username: string; email: string; password?: string; role: string; permissions?: string[] }): Promise<User> {
-    this.log('info', `Updating user ${id}`, { ...user, password: user.password ? '***' : undefined });
-    return this.request<User>(`/users/${id}`, {
+  async updateUser(id: number, user: { username: string; email: string; password?: string; role: string; permissions?: string[] }): Promise<any> {
+    this.log('info', `Updating user ${id}`, user);
+    return this.request<any>(`/users/${id}`, {
       method: 'PUT',
       body: JSON.stringify(user),
     });
@@ -199,35 +281,6 @@ class ApiService {
   async deleteUser(id: number): Promise<any> {
     this.log('warn', `Deleting user ${id}`);
     return this.request<any>(`/users/${id}`, {
-      method: 'DELETE',
-    });
-  }
-
-  // Message endpoints
-  async getMessages(): Promise<Message[]> {
-    this.log('debug', 'Messages requested');
-    return this.request<Message[]>('/messages');
-  }
-
-  async createMessage(message: { date: string; totalCount: number; pulledCount: number; account: string; sender?: string; description: string }): Promise<Message> {
-    this.log('info', 'Creating message', message);
-    return this.request<Message>('/messages', {
-      method: 'POST',
-      body: JSON.stringify(message),
-    });
-  }
-
-  async updateMessage(id: number, message: { date: string; totalCount: number; pulledCount: number; account: string; sender?: string; description: string }): Promise<Message> {
-    this.log('info', `Updating message ${id}`, message);
-    return this.request<Message>(`/messages/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(message),
-    });
-  }
-
-  async deleteMessage(id: number): Promise<any> {
-    this.log('warn', `Deleting message ${id}`);
-    return this.request<any>(`/messages/${id}`, {
       method: 'DELETE',
     });
   }
@@ -409,63 +462,11 @@ class ApiService {
   }
 
   async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
-    // Production'da mock API kullan, development'ta gerçek API kullan
-    const baseUrl = this.isDevelopment ? 'http://localhost:3001' : '';
+    // Aynı domain'i kullan
+    const baseUrl = window.location.origin;
     const url = `${baseUrl}/api${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
     
     this.log('debug', `API Request: ${options?.method || 'GET'} ${url}`);
-    
-    // Development'ta gerçek API kullan
-    if (this.isDevelopment) {
-      const response = await fetch(url, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...options?.headers,
-        },
-        ...options,
-      });
-  
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({ error: 'Network error' }));
-        this.log('error', `API Error: ${response.status}`, error);
-        throw new Error(error.error || `HTTP error! status: ${response.status}`);
-      }
-  
-      const data = await response.json();
-      this.log('debug', `API Response: ${options?.method || 'GET'} ${url}`, data);
-      return data;
-    }
-    
-    // Production'da mock API kullan
-    if (endpoint.includes('/whatsapp/')) {
-      return this.mockWhatsAppAPI(endpoint, options);
-    }
-    
-    // YBS endpoint'leri için gerçek API kullan (hem development hem production'da)
-    if (endpoint.includes('/ybs-work-items')) {
-      return this.realYBSAPI(endpoint, options);
-    }
-    
-    // BağTV kontrolleri için gerçek API kullan (development ve production'da)
-    if (endpoint.includes('/bagtv-controls')) {
-      const response = await fetch(url, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...options?.headers,
-        },
-        ...options,
-      });
-  
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({ error: 'Network error' }));
-        this.log('error', `API Error: ${response.status}`, error);
-        throw new Error(error.error || `HTTP error! status: ${response.status}`);
-      }
-  
-      const data = await response.json();
-      this.log('debug', `API Response: ${options?.method || 'GET'} ${url}`, data);
-      return data;
-    }
     
     const response = await fetch(url, {
       headers: {
@@ -576,10 +577,10 @@ class ApiService {
   async realYBSAPI(endpoint: string, options?: RequestInit): Promise<any> {
     this.log('debug', `Real YBS API: ${endpoint}`, options);
     
-    // Gerçek API endpoint'ine istek at
+    // Aynı domain'i kullan
     const apiUrl = this.isDevelopment 
       ? `http://localhost:3001/api${endpoint}`
-      : `https://backend-bskpouo60-emrahs-projects-7d7ccaf2.vercel.app/api${endpoint}`;
+      : `${window.location.origin}/api${endpoint}`;
     
     const response = await fetch(apiUrl, {
       ...options,
