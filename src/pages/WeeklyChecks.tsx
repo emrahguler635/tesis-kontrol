@@ -5,7 +5,7 @@ import { apiService } from '../services/api';
 import { useAuthStore } from '../store';
 import { 
   TrendingUp, Target, CheckCircle, Clock, Activity, 
-  Edit, Trash2, Copy, Filter, Calendar, User, Search, Building2, Eye
+  Edit, Trash2, Copy, Filter, Calendar, User, Search, Building2, Eye, Pencil
 } from 'lucide-react';
 
 interface ControlItem {
@@ -51,6 +51,7 @@ export const WeeklyChecks: React.FC = () => {
     width: window.innerWidth,
     height: window.innerHeight
   });
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -372,9 +373,9 @@ export const WeeklyChecks: React.FC = () => {
 
   return (
     <div className={classes.container}>
-      {/* Başlık ve İstatistikler */}
+      {/* Başlık ve Filtre Tuşu */}
       <div className={classes.header}>
-        <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg">
               <TrendingUp className="h-5 w-5 text-white" />
@@ -386,109 +387,71 @@ export const WeeklyChecks: React.FC = () => {
               <p className={`text-gray-600 ${classes.subtitle}`}>Haftalık iş programı ve tamamlanan işlerin genel görünümü</p>
             </div>
           </div>
+          
+          {/* Filtre Tuşu */}
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-lg hover:from-purple-600 hover:to-pink-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z" />
+            </svg>
+            {showFilters ? 'Filtreleri Gizle' : 'Filtreleri Göster'}
+          </button>
         </div>
 
-        {/* İstatistik Kartları */}
-        <div className={classes.statsGrid}>
-          <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-1">
-            <div className="flex items-center gap-1">
-              <div className="p-1 bg-white/20 rounded">
-                <Target className="h-4 w-4" />
+        {/* Filtreler (Gizli/Görünür) */}
+        {showFilters && (
+          <Card className="backdrop-blur-sm bg-white/80 border border-white/20 shadow-xl mb-4">
+            <div className={classes.filtersGrid}>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Başlangıç Tarihi</label>
+                <input
+                  type="date"
+                  value={filterStartDate}
+                  onChange={(e) => setFilterStartDate(e.target.value)}
+                  className="w-full px-2 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
               </div>
               <div>
-                <p className="text-xs opacity-90">Toplam İş</p>
-                <p className="text-lg font-bold">{totalItems}</p>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Bitiş Tarihi</label>
+                <input
+                  type="date"
+                  value={filterEndDate}
+                  onChange={(e) => setFilterEndDate(e.target.value)}
+                  className="w-full px-2 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Kullanıcı</label>
+                <select
+                  value={filterUser}
+                  onChange={(e) => setFilterUser(e.target.value)}
+                  className="w-full px-2 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                >
+                  <option value="all">Tüm Kullanıcılar</option>
+                  {Array.from(new Set(items.map(item => item.user_name || item.user))).map(user => (
+                    <option key={user} value={user}>{user}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-end">
+                <button
+                  onClick={() => setCopyModalOpen(true)}
+                  className="w-full bg-gradient-to-r from-purple-500 to-pink-600 text-white px-2 py-1 text-xs rounded-lg hover:from-purple-600 hover:to-pink-700 transition-all duration-200 flex items-center justify-center gap-1"
+                >
+                  <Copy className="h-3 w-3" />
+                  Günlük İşleri Kopyala
+                </button>
               </div>
             </div>
           </Card>
-
-          <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white p-1">
-            <div className="flex items-center gap-1">
-              <div className="p-1 bg-white/20 rounded">
-                <CheckCircle className="h-4 w-4" />
-              </div>
-              <div>
-                <p className="text-xs opacity-90">Tamamlanan</p>
-                <p className="text-lg font-bold">{completedItems}</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="bg-gradient-to-r from-yellow-500 to-orange-600 text-white p-1">
-            <div className="flex items-center gap-1">
-              <div className="p-1 bg-white/20 rounded">
-                <Clock className="h-4 w-4" />
-              </div>
-              <div>
-                <p className="text-xs opacity-90">Bekleyen</p>
-                <p className="text-lg font-bold">{pendingItems}</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white p-1">
-            <div className="flex items-center gap-1">
-              <div className="p-1 bg-white/20 rounded">
-                <Activity className="h-4 w-4" />
-              </div>
-              <div>
-                <p className="text-xs opacity-90">İşlemde</p>
-                <p className="text-lg font-bold">{inProgressItems}</p>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Filtreler ve Kontroller */}
-        <Card className="backdrop-blur-sm bg-white/80 border border-white/20 shadow-xl mb-1">
-          <div className={classes.filtersGrid}>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Başlangıç Tarihi</label>
-              <input
-                type="date"
-                value={filterStartDate}
-                onChange={(e) => setFilterStartDate(e.target.value)}
-                className="w-full px-2 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Bitiş Tarihi</label>
-              <input
-                type="date"
-                value={filterEndDate}
-                onChange={(e) => setFilterEndDate(e.target.value)}
-                className="w-full px-2 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Kullanıcı</label>
-              <select
-                value={filterUser}
-                onChange={(e) => setFilterUser(e.target.value)}
-                className="w-full px-2 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              >
-                <option value="all">Tüm Kullanıcılar</option>
-                {Array.from(new Set(items.map(item => item.user_name || item.user))).map(user => (
-                  <option key={user} value={user}>{user}</option>
-                ))}
-              </select>
-            </div>
-            <div className="flex items-end">
-              <button
-                onClick={() => setCopyModalOpen(true)}
-                className="w-full bg-gradient-to-r from-purple-500 to-pink-600 text-white px-2 py-1 text-xs rounded-lg hover:from-purple-600 hover:to-pink-700 transition-all duration-200 flex items-center justify-center gap-1"
-              >
-                <Copy className="h-3 w-3" />
-                Günlük İşleri Kopyala
-              </button>
-            </div>
-          </div>
-        </Card>
+        )}
       </div>
 
       {/* Tablo Bölümü */}
       <div className={classes.tableContainer}>
-        <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-auto max-h-[calc(100vh-100px)]">
+        <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-auto max-h-[calc(100vh-200px)]">
           <div className={classes.table}>
             <table className="w-full border border-gray-300">
               <thead className="sticky top-0 bg-white/90 backdrop-blur-sm z-10">
@@ -553,21 +516,21 @@ export const WeeklyChecks: React.FC = () => {
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => handleViewDetails(item)}
-                          className="p-1 text-blue-600 hover:text-blue-800 transition-colors"
+                          className="p-1 text-blue-600 hover:text-blue-900 transition-colors"
                           title="Detayları Görüntüle"
                         >
                           <Eye className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => handleEdit(item)}
-                          className="p-1 text-green-600 hover:text-green-800 transition-colors"
+                          className="p-1 text-green-600 hover:text-green-900 transition-colors"
                           title="Düzenle"
                         >
-                          <Edit className="h-4 w-4" />
+                          <Pencil className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(item.id.toString())}
-                          className="p-1 text-red-600 hover:text-red-800 transition-colors"
+                          className="p-1 text-red-600 hover:text-red-900 transition-colors"
                           title="Sil"
                         >
                           <Trash2 className="h-4 w-4" />
