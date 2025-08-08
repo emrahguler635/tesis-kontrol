@@ -8,19 +8,25 @@ const Facilities: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [showControlCounts, setShowControlCounts] = useState(false);
 
   useEffect(() => {
     const fetchFacilities = async () => {
       setLoading(true);
       try {
-        const data = await apiService.getFacilities();
-        setFacilities(data);
+        if (showControlCounts) {
+          const data = await apiService.getFacilitiesWithControlCounts();
+          setFacilities(data);
+        } else {
+          const data = await apiService.getFacilities();
+          setFacilities(data);
+        }
       } finally {
         setLoading(false);
       }
     };
     fetchFacilities();
-  }, []);
+  }, [showControlCounts]);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,8 +36,13 @@ const Facilities: React.FC = () => {
     const fetchFacilities = async () => {
       setLoading(true);
       try {
-        const data = await apiService.getFacilities();
-        setFacilities(data);
+        if (showControlCounts) {
+          const data = await apiService.getFacilitiesWithControlCounts();
+          setFacilities(data);
+        } else {
+          const data = await apiService.getFacilities();
+          setFacilities(data);
+        }
       } finally {
         setLoading(false);
       }
@@ -44,7 +55,23 @@ const Facilities: React.FC = () => {
   const handleDelete = async (id: number) => {
     try {
       await apiService.deleteFacility(id);
-      setFacilities(facilities.filter(f => f.id !== id));
+      // Verileri otomatik yenile
+      const fetchFacilities = async () => {
+        setLoading(true);
+        try {
+          if (showControlCounts) {
+            const data = await apiService.getFacilitiesWithControlCounts();
+            setFacilities(data);
+          } else {
+            const data = await apiService.getFacilities();
+            setFacilities(data);
+          }
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      await fetchFacilities();
     } catch (error) {
       console.error('Tesis silinirken hata oluştu:', error);
     }
@@ -71,6 +98,17 @@ const Facilities: React.FC = () => {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowControlCounts(!showControlCounts)}
+            className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
+              showControlCounts
+                ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            <div className="w-4 h-4 rounded-full border-2 border-current"></div>
+            {showControlCounts ? 'Kontrol Sayıları Gizle' : 'Kontrol Sayılarını Göster'}
+          </button>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
@@ -131,6 +169,11 @@ const Facilities: React.FC = () => {
                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 border-r border-gray-300">
                       TV ADETİ
                     </th>
+                    {showControlCounts && (
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 border-r border-gray-300">
+                        KONTROL SAYISI
+                      </th>
+                    )}
                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 border-r border-gray-300">
                       AÇIKLAMA
                     </th>
@@ -162,6 +205,16 @@ const Facilities: React.FC = () => {
                           <span className="text-gray-900">{facility.tvCount || 0}</span>
                         </div>
                       </td>
+                      {showControlCounts && (
+                        <td className="px-4 py-3 border-r border-gray-300">
+                          <div className="flex items-center gap-2">
+                            <div className="p-1 bg-blue-100 rounded-full">
+                              <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                            </div>
+                            <span className="text-gray-900 font-medium">{facility.control_count || 0}</span>
+                          </div>
+                        </td>
+                      )}
                       <td className="px-4 py-3 border-r border-gray-300">
                         <span className="text-gray-500">{facility.description || '-'}</span>
                       </td>

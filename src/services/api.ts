@@ -7,6 +7,7 @@ export interface Facility {
   description?: string;
   status?: string;
   tvCount?: number;
+  control_count?: number;
   created_at?: string;
   updated_at?: string;
 }
@@ -73,6 +74,11 @@ class ApiService {
   async getFacilities(): Promise<Facility[]> {
     this.log('debug', 'Facilities requested');
     return this.request<Facility[]>('/facilities');
+  }
+
+  async getFacilitiesWithControlCounts(): Promise<(Facility & { control_count: number })[]> {
+    this.log('debug', 'Facilities with control counts requested');
+    return this.request<(Facility & { control_count: number })[]>('/facilities?withControlCounts=true');
   }
 
   async createFacility(facility: { name: string; description?: string; status?: string }): Promise<Facility> {
