@@ -386,15 +386,15 @@ export function Dashboard() {
             <p className={`text-gray-600 ${classes.subtitle}`}>Sık kullanılan işlemler</p>
           </div>
         </div>
-        <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-1.5">
+        <div className="grid grid-cols-8 gap-1">
           <Card 
             className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 hover:border-blue-300"
             onClick={() => navigate('/daily-checks')}
           >
-            <div className="p-1.5 text-center">
+            <div className="p-1 text-center">
               <div className="flex flex-col items-center">
-                <div className="p-1 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg mb-1 shadow-md">
-                  <Calendar className="h-3 w-3 text-white" />
+                <div className="p-0.5 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg mb-0.5 shadow-md">
+                  <Calendar className="h-2.5 w-2.5 text-white" />
                 </div>
                 <h3 className="font-semibold text-gray-900 text-xs mb-0.5">Günlük İş</h3>
                 <p className="text-xs text-gray-600">Programı</p>
@@ -406,10 +406,10 @@ export function Dashboard() {
             className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer bg-gradient-to-br from-green-50 to-green-100 border border-green-200 hover:border-green-300"
             onClick={() => navigate('/completed-works')}
           >
-            <div className="p-1.5 text-center">
+            <div className="p-1 text-center">
               <div className="flex flex-col items-center">
-                <div className="p-1 bg-gradient-to-r from-green-500 to-green-600 rounded-lg mb-1 shadow-md">
-                  <Activity className="h-3 w-3 text-white" />
+                <div className="p-0.5 bg-gradient-to-r from-green-500 to-green-600 rounded-lg mb-0.5 shadow-md">
+                  <Activity className="h-2.5 w-2.5 text-white" />
                 </div>
                 <h3 className="font-semibold text-gray-900 text-xs mb-0.5">Toplam Yapılan</h3>
                 <p className="text-xs text-gray-600">İşler</p>
@@ -421,10 +421,10 @@ export function Dashboard() {
             className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 hover:border-purple-300"
             onClick={() => navigate('/messages')}
           >
-            <div className="p-1.5 text-center">
+            <div className="p-1 text-center">
               <div className="flex flex-col items-center">
-                <div className="p-1 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg mb-1 shadow-md">
-                  <MessageSquare className="h-3 w-3 text-white" />
+                <div className="p-0.5 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg mb-0.5 shadow-md">
+                  <MessageSquare className="h-2.5 w-2.5 text-white" />
                 </div>
                 <h3 className="font-semibold text-gray-900 text-xs mb-0.5">Mesaj</h3>
                 <p className="text-xs text-gray-600">Yönetimi</p>
@@ -436,10 +436,10 @@ export function Dashboard() {
             className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 hover:border-orange-300"
             onClick={() => navigate('/bagtv')}
           >
-            <div className="p-1.5 text-center">
+            <div className="p-1 text-center">
               <div className="flex flex-col items-center">
-                <div className="p-1 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg mb-1 shadow-md">
-                  <Monitor className="h-3 w-3 text-white" />
+                <div className="p-0.5 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg mb-0.5 shadow-md">
+                  <Monitor className="h-2.5 w-2.5 text-white" />
                 </div>
                 <h3 className="font-semibold text-gray-900 text-xs mb-0.5">BağTV</h3>
                 <p className="text-xs text-gray-600">Sistemleri</p>
@@ -451,10 +451,10 @@ export function Dashboard() {
             className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer bg-gradient-to-br from-indigo-50 to-indigo-100 border border-indigo-200 hover:border-indigo-300"
             onClick={() => navigate('/facilities')}
           >
-            <div className="p-1.5 text-center">
+            <div className="p-1 text-center">
               <div className="flex flex-col items-center">
-                <div className="p-1 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg mb-1 shadow-md">
-                  <Building className="h-3 w-3 text-white" />
+                <div className="p-0.5 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg mb-0.5 shadow-md">
+                  <Building className="h-2.5 w-2.5 text-white" />
                 </div>
                 <h3 className="font-semibold text-gray-900 text-xs mb-0.5">Tesisler</h3>
                 <p className="text-xs text-gray-600">Bilgileri</p>
@@ -466,10 +466,10 @@ export function Dashboard() {
             className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer bg-gradient-to-br from-red-50 to-red-100 border border-red-200 hover:border-red-300"
             onClick={() => navigate('/ybs-work-program')}
           >
-            <div className="p-1.5 text-center">
+            <div className="p-1 text-center">
               <div className="flex flex-col items-center">
-                <div className="p-1 bg-gradient-to-r from-red-500 to-red-600 rounded-lg mb-1 shadow-md">
-                  <CheckCircle className="h-3 w-3 text-white" />
+                <div className="p-0.5 bg-gradient-to-r from-red-500 to-red-600 rounded-lg mb-0.5 shadow-md">
+                  <CheckCircle className="h-2.5 w-2.5 text-white" />
                 </div>
                 <h3 className="font-semibold text-gray-900 text-xs mb-0.5">YBS İş</h3>
                 <p className="text-xs text-gray-600">Programı</p>
@@ -481,10 +481,10 @@ export function Dashboard() {
             className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer bg-gradient-to-br from-teal-50 to-teal-100 border border-teal-200 hover:border-teal-300"
             onClick={() => navigate('/ybs-approvals')}
           >
-            <div className="p-1.5 text-center">
+            <div className="p-1 text-center">
               <div className="flex flex-col items-center">
-                <div className="p-1 bg-gradient-to-r from-teal-500 to-teal-600 rounded-lg mb-1 shadow-md">
-                  <CheckCircle className="h-3 w-3 text-white" />
+                <div className="p-0.5 bg-gradient-to-r from-teal-500 to-teal-600 rounded-lg mb-0.5 shadow-md">
+                  <CheckCircle className="h-2.5 w-2.5 text-white" />
                 </div>
                 <h3 className="font-semibold text-gray-900 text-xs mb-0.5">YBS Onay</h3>
                 <p className="text-xs text-gray-600">Ekranı</p>
@@ -496,10 +496,10 @@ export function Dashboard() {
             className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer bg-gradient-to-br from-pink-50 to-pink-100 border border-pink-200 hover:border-pink-300"
             onClick={() => navigate('/reports')}
           >
-            <div className="p-1.5 text-center">
+            <div className="p-1 text-center">
               <div className="flex flex-col items-center">
-                <div className="p-1 bg-gradient-to-r from-pink-500 to-pink-600 rounded-lg mb-1 shadow-md">
-                  <BarChart3 className="h-3 w-3 text-white" />
+                <div className="p-0.5 bg-gradient-to-r from-pink-500 to-pink-600 rounded-lg mb-0.5 shadow-md">
+                  <BarChart3 className="h-2.5 w-2.5 text-white" />
                 </div>
                 <h3 className="font-semibold text-gray-900 text-xs mb-0.5">Raporlar</h3>
                 <p className="text-xs text-gray-600">Görünümü</p>
