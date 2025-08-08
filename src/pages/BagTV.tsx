@@ -294,6 +294,9 @@ const BagTV: React.FC = () => {
       
       // Kontrolleri yeniden yükle
       await fetchControls(selectedFacility._id || selectedFacility.id);
+      
+      // Kontrol sayısını güncelle
+      await calculateTotalControlCount();
     } catch (error) {
       console.error('BagTV control save error:', error);
       alert('Kayıt yapılırken hata oluştu: ' + error.message);
@@ -307,6 +310,9 @@ const BagTV: React.FC = () => {
       try {
         await apiService.deleteBagTVControl(id);
         await fetchControls(selectedFacility._id || selectedFacility.id);
+        
+        // Kontrol sayısını güncelle
+        await calculateTotalControlCount();
       } catch (error) {
         console.error('BagTV control delete error:', error);
       }
