@@ -288,7 +288,7 @@ export const WeeklyChecks: React.FC = () => {
         subtitle: "text-sm",
         statsGrid: "grid grid-cols-2 gap-2 mb-2",
         filtersGrid: "grid grid-cols-1 gap-2 p-2",
-        tableContainer: "flex-1 overflow-visible",
+        tableContainer: "flex-1 overflow-auto",
         table: "w-full"
       };
     }
@@ -302,7 +302,7 @@ export const WeeklyChecks: React.FC = () => {
         subtitle: "text-sm",
         statsGrid: "grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3",
         filtersGrid: "grid grid-cols-2 lg:grid-cols-4 gap-3 p-3",
-        tableContainer: "flex-1 overflow-visible",
+        tableContainer: "flex-1 overflow-auto",
         table: "w-full"
       };
     }
@@ -316,7 +316,7 @@ export const WeeklyChecks: React.FC = () => {
         subtitle: "text-base",
         statsGrid: "grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3",
         filtersGrid: "grid grid-cols-2 lg:grid-cols-4 gap-3 p-3",
-        tableContainer: "flex-1 overflow-visible",
+        tableContainer: "flex-1 overflow-auto",
         table: "w-full"
       };
     }
@@ -329,7 +329,7 @@ export const WeeklyChecks: React.FC = () => {
       subtitle: "text-lg",
       statsGrid: "grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4",
       filtersGrid: "grid grid-cols-2 lg:grid-cols-4 gap-4 p-4",
-      tableContainer: "flex-1 overflow-visible",
+      tableContainer: "flex-1 overflow-auto",
       table: "w-full"
     };
   };
@@ -478,7 +478,7 @@ export const WeeklyChecks: React.FC = () => {
 
       {/* Tablo Bölümü */}
       <div className={classes.tableContainer}>
-        <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-visible">
+        <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-auto max-h-[calc(100vh-300px)]">
           <div className={classes.table}>
             <table className="w-full border border-gray-300">
               <thead className="sticky top-0 bg-white/90 backdrop-blur-sm z-10">
