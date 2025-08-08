@@ -184,31 +184,31 @@ const CompletedWorks: React.FC = () => {
           <table className="w-full bg-white border border-gray-200 rounded-lg shadow-sm text-xs">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-1 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-12">
+                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-16">
                   Kayıt No
                 </th>
-                <th className="px-1 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-28">
+                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-40">
                   İş Adı
                 </th>
-                <th className="px-1 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-32">
+                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-48">
                   Açıklama
                 </th>
-                <th className="px-1 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-32">
+                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-48">
                   Yapılan İş
                 </th>
-                <th className="px-1 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-20">
+                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-24">
                   Tarih
                 </th>
-                <th className="px-1 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-20">
+                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-24">
                   Tamamlanma
                 </th>
-                <th className="px-1 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-20">
+                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-24">
                   Kullanıcı
                 </th>
-                <th className="px-1 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-20">
+                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-24">
                   Tesis
                 </th>
-                <th className="px-1 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-16">
+                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-20">
                   Durum
                 </th>
               </tr>
@@ -216,54 +216,65 @@ const CompletedWorks: React.FC = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredWorks.map((work) => (
                 <tr key={work.id} className="hover:bg-gray-50">
-                  <td className="px-1 py-1 whitespace-nowrap">
+                  <td className="px-2 py-2 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 h-5 w-5">
-                        <div className="h-5 w-5 rounded-full bg-blue-500 flex items-center justify-center">
+                      <div className="flex-shrink-0 h-6 w-6">
+                        <div className="h-6 w-6 rounded-full bg-blue-500 flex items-center justify-center">
                           <span className="text-xs font-medium text-white">{work.id}</span>
                         </div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-1 py-1 text-xs text-gray-900 max-w-28 truncate" title={work.title}>
-                    {work.title || 'Başlık belirtilmemiş'}
+                  <td className="px-2 py-2 text-xs text-gray-900 max-w-40">
+                    <div 
+                      className="truncate cursor-help hover:text-blue-600 transition-colors" 
+                      title={work.title || 'Başlık belirtilmemiş'}
+                    >
+                      {work.title || 'Başlık belirtilmemiş'}
+                    </div>
                   </td>
-                  <td className="px-1 py-1 text-xs text-gray-900 max-w-32">
-                    <div className="truncate" title={work.description}>
+                  <td className="px-2 py-2 text-xs text-gray-900 max-w-48">
+                    <div 
+                      className="truncate cursor-help hover:text-blue-600 transition-colors" 
+                      title={work.description || '-'}
+                    >
                       {work.description || '-'}
                     </div>
                   </td>
-                  <td className="px-1 py-1 text-xs text-gray-900 max-w-32">
-                    <div className="truncate" title={work.work_done}>
+                  <td className="px-2 py-2 text-xs text-gray-900 max-w-48">
+                    <div 
+                      className="truncate cursor-help hover:text-blue-600 transition-colors" 
+                      title={work.work_done || '-'}
+                    >
                       {work.work_done || '-'}
                     </div>
                   </td>
-                  <td className="px-1 py-1 whitespace-nowrap text-xs text-gray-900">
+                  <td className="px-2 py-2 whitespace-nowrap text-xs text-gray-900">
                     <div className="flex items-center gap-1">
                       <Calendar className="h-3 w-3 text-gray-500" />
                       {formatDate(work.date)}
                     </div>
                   </td>
-                  <td className="px-1 py-1 whitespace-nowrap text-xs text-gray-900">
+                  <td className="px-2 py-2 whitespace-nowrap text-xs text-gray-900">
                     <div className="flex items-center gap-1">
                       <CheckCircle className="h-3 w-3 text-green-500" />
                       {work.completion_date ? formatDate(work.completion_date) : '-'}
                     </div>
                   </td>
-                  <td className="px-1 py-1 whitespace-nowrap text-xs text-gray-900">
+                  <td className="px-2 py-2 whitespace-nowrap text-xs text-gray-900">
                     <div className="flex items-center gap-1">
                       <User className="h-3 w-3 text-purple-500" />
                       <span className="truncate">{work.user_name || work.user || 'Belirtilmemiş'}</span>
                     </div>
                   </td>
-                  <td className="px-1 py-1 whitespace-nowrap text-xs text-gray-900">
+                  <td className="px-2 py-2 whitespace-nowrap text-xs text-gray-900">
                     <div className="flex items-center gap-1">
                       <Building className="h-3 w-3 text-gray-500" />
                       <span className="truncate">{facilities.find(f => f.id === work.facility_id)?.name || 'Belirtilmemiş'}</span>
                     </div>
                   </td>
-                  <td className="px-1 py-1 whitespace-nowrap">
-                    <span className={`px-1 py-0.5 text-xs font-medium rounded-full ${getStatusColor(work.status || '')}`}>
+                  <td className="px-2 py-2 whitespace-nowrap">
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(work.status || '')}`}>
                       {getStatusText(work.status || '')}
                     </span>
                   </td>
