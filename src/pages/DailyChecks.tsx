@@ -42,13 +42,21 @@ const DailyChecks: React.FC = () => {
           apiService.getUsers()
         ]);
         
+        // Kullanıcı bazlı filtreleme - Admin değilse sadece kendi işlerini göster
+        let filteredData = data;
+        if (!isAdmin && user?.username) {
+          filteredData = data.filter(item => 
+            item.user_name === user.username || item.user === user.username
+          );
+        }
+        
         // Aktif işleri filtrele (Beklemede ve İşlemde olanlar)
-        const activeItems = data.filter(item => 
+        const activeItems = filteredData.filter(item => 
           item.status === 'Beklemede' || item.status === 'İşlemde'
         );
         
         setItems(activeItems);
-        setAllDailyItems(data); // Tüm günlük işleri de setle
+        setAllDailyItems(filteredData); // Filtrelenmiş günlük işleri setle
         setFacilities(facilitiesData);
         setUsers(usersData);
       } finally {
@@ -61,7 +69,7 @@ const DailyChecks: React.FC = () => {
   const handleEdit = (index: number) => {
     const item = items[index];
     setFormData({
-      title: item.title,
+      title: item.title || '',
       workDone: item.work_done || '',
       plannedDate: '',
       completedDate: item.date,
@@ -80,7 +88,7 @@ const DailyChecks: React.FC = () => {
       try {
         const item = items[index];
         console.log('Deleting control item:', item.id);
-        await apiService.deleteControlItem(item.id);
+        await apiService.deleteControlItem(Number(item.id));
         console.log('Control item deleted successfully');
         // State'i güncelle
         setItems(prevItems => prevItems.filter((_, i) => i !== index));
@@ -102,15 +110,22 @@ const DailyChecks: React.FC = () => {
       workDone: formData.workDone,
       user: formData.user,
       status: formData.status,
-      ...(formData.completionDate && { completionDate: formData.completionDate })
+      ...(formData.completionDate || formData.status === 'Tamamlandı' ? { completionDate: formData.completionDate || new Date().toISOString().split('T')[0] } : {})
     };
     
     try {
       if (editIndex !== null) {
-        const updated = await apiService.updateControlItem(items[editIndex].id, newItem);
+        // Tamamlama modal'ından geliyorsa allDailyItems'dan al
+        const itemToUpdate = completeModalOpen ? allDailyItems[editIndex] : items[editIndex];
+        const updated = await apiService.updateControlItem(Number(itemToUpdate.id), newItem);
+        
+        // items array'ini güncelle
         const newItems = [...items];
-        newItems[editIndex] = updated;
-        setItems(newItems);
+        const itemIndex = newItems.findIndex(item => item.id === updated.id);
+        if (itemIndex !== -1) {
+          newItems[itemIndex] = updated;
+          setItems(newItems);
+        }
         
         // allDailyItems'ı da güncelle
         const newAllDailyItems = [...allDailyItems];
@@ -149,8 +164,49 @@ const DailyChecks: React.FC = () => {
       setModalOpen(false);
       setCompleteModalOpen(false);
       
+      // Verileri otomatik yenile
+      const fetchItems = async () => {
+        setLoading(true);
+        try {
+          // Admin ise tüm işleri, değilse sadece kendi işlerini getir
+          const isAdmin = user?.role === 'admin';
+          const [data, facilitiesData, usersData] = await Promise.all([
+            apiService.getControlItems({ 
+              period: 'Günlük',
+              user: isAdmin ? undefined : user?.username
+            }),
+            apiService.getFacilities(),
+            apiService.getUsers()
+          ]);
+          
+          // Kullanıcı bazlı filtreleme - Admin değilse sadece kendi işlerini göster
+          let filteredData = data;
+          if (!isAdmin && user?.username) {
+            filteredData = data.filter(item => 
+              item.user_name === user.username || item.user === user.username
+            );
+          }
+          
+          // Aktif işleri filtrele (Beklemede ve İşlemde olanlar)
+          const activeItems = filteredData.filter(item => 
+            item.status === 'Beklemede' || item.status === 'İşlemde'
+          );
+          
+          setItems(activeItems);
+          setAllDailyItems(filteredData); // Filtrelenmiş günlük işleri setle
+          setFacilities(facilitiesData);
+          setUsers(usersData);
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      // Verileri yenile
+      await fetchItems();
+      
       // Başarı mesajı göster
-      alert(editIndex !== null ? 'İş başarıyla güncellendi!' : 'İş başarıyla eklendi!');
+      const message = completeModalOpen ? 'İş başarıyla tamamlandı!' : (editIndex !== null ? 'İş başarıyla güncellendi!' : 'İş başarıyla eklendi!');
+      alert(message);
       
     } catch (error) {
       console.error('Kaydetme hatası:', error);
@@ -210,12 +266,12 @@ const DailyChecks: React.FC = () => {
 
   // İşi tamamla modal'ını aç
   const handleComplete = (index: number) => {
-    const item = items[index];
+    const item = allDailyItems[index];
     const today = new Date().toISOString().split('T')[0];
     
     setFormData({
-      title: item.title,
-      workDone: item.work_done || '',
+      title: item.title || '',
+      workDone: '', // Boş bırak - otomatik metin gelmesin
       plannedDate: item.date,
       completedDate: item.date,
       completionDate: today,
@@ -241,7 +297,9 @@ const DailyChecks: React.FC = () => {
               <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-700 bg-clip-text text-transparent">
                 Günlük İş Programı
               </h1>
-              <p className="text-slate-600 mt-1 text-lg">Günlük işlerinizi yönetin ve takip edin</p>
+              <p className="text-slate-600 mt-1 text-lg">
+                {isAdmin ? 'Tüm kullanıcıların günlük işlerini yönetin ve takip edin' : 'Kendi günlük işlerinizi yönetin ve takip edin'}
+              </p>
             </div>
           </div>
         </div>
@@ -277,11 +335,13 @@ const DailyChecks: React.FC = () => {
           <div className="relative p-8 text-white">
             <div className="flex items-center justify-between">
               <div className="space-y-2">
-                <p className="text-blue-100 font-medium">Toplam İş</p>
+                <p className="text-blue-100 font-medium">
+                  {isAdmin ? 'Toplam İş' : 'Kendi İşlerim'}
+                </p>
                 <p className="text-4xl font-bold">{allDailyItems.length}</p>
                 <div className="flex items-center gap-2 text-blue-200">
                   <TrendingUp className="w-4 h-4" />
-                  <span className="text-sm">Tümü</span>
+                  <span className="text-sm">{isAdmin ? 'Tümü' : 'Kişisel'}</span>
                 </div>
               </div>
               <div className="p-4 bg-white/20 backdrop-blur-sm rounded-2xl border border-white/30">
@@ -297,7 +357,9 @@ const DailyChecks: React.FC = () => {
             <div className="flex items-center justify-between">
               <div className="space-y-2">
                 <p className="text-emerald-100 font-medium">Tamamlanan</p>
-                <p className="text-4xl font-bold">{allDailyItems.filter(item => item.status === 'Tamamlandı').length}</p>
+                <p className="text-4xl font-bold">
+                  {allDailyItems.filter(item => item.status === 'Tamamlandı').length}
+                </p>
                 <div className="flex items-center gap-2 text-emerald-200">
                   <CheckCircle className="w-4 h-4" />
                   <span className="text-sm">Başarılı</span>
@@ -310,14 +372,16 @@ const DailyChecks: React.FC = () => {
           </div>
         </div>
         
-        <div className="group relative overflow-hidden bg-gradient-to-br from-violet-500 via-violet-600 to-purple-600 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-2">
+        <div className="group relative overflow-hidden bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-600 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-2">
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           <div className="relative p-8 text-white">
             <div className="flex items-center justify-between">
               <div className="space-y-2">
-                <p className="text-violet-100 font-medium">Bekleyen + İşlemde</p>
-                <p className="text-4xl font-bold">{allDailyItems.filter(item => item.status === 'Beklemede' || item.status === 'İşlemde').length}</p>
-                <div className="flex items-center gap-2 text-violet-200">
+                <p className="text-purple-100 font-medium">Bekleyen + İşlemde</p>
+                <p className="text-4xl font-bold">
+                  {allDailyItems.filter(item => item.status === 'Beklemede' || item.status === 'İşlemde').length}
+                </p>
+                <div className="flex items-center gap-2 text-purple-200">
                   <Activity className="w-4 h-4" />
                   <span className="text-sm">Aktif</span>
                 </div>
@@ -329,14 +393,16 @@ const DailyChecks: React.FC = () => {
           </div>
         </div>
         
-        <div className="group relative overflow-hidden bg-gradient-to-br from-rose-500 via-rose-600 to-pink-600 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-2">
+        <div className="group relative overflow-hidden bg-gradient-to-br from-red-500 via-red-600 to-pink-600 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-2">
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           <div className="relative p-8 text-white">
             <div className="flex items-center justify-between">
               <div className="space-y-2">
-                <p className="text-rose-100 font-medium">Yapılmayan</p>
-                <p className="text-4xl font-bold">{allDailyItems.filter(item => item.status === 'Yapılmadı').length}</p>
-                <div className="flex items-center gap-2 text-rose-200">
+                <p className="text-red-100 font-medium">Yapılmayan</p>
+                <p className="text-4xl font-bold">
+                  {allDailyItems.filter(item => item.status === 'Yapılmadı').length}
+                </p>
+                <div className="flex items-center gap-2 text-red-200">
                   <AlertCircle className="w-4 h-4" />
                   <span className="text-sm">Dikkat</span>
                 </div>
@@ -448,10 +514,18 @@ const DailyChecks: React.FC = () => {
                 </tr>
               </thead>
                               <tbody className="bg-white/50 divide-y divide-gray-300">
-                  {allDailyItems
-                    .filter(item => item.status === 'Beklemede' || item.status === 'İşlemde')
-                    .sort((a, b) => (b.recordNo || 0) - (a.recordNo || 0))
-                    .map((item, idx) => (
+                {allDailyItems
+                  .filter(item => {
+                    // Durum filtresi
+                    const statusFilter = item.status === 'Beklemede' || item.status === 'İşlemde';
+                    
+                    // Kullanıcı bazlı filtreleme - Admin değilse sadece kendi işlerini göster
+                    const userFilter = isAdmin || isUserOwnItem(item);
+                    
+                    return statusFilter && userFilter;
+                  })
+                  .sort((a, b) => (b.recordNo || 0) - (a.recordNo || 0))
+                  .map((item, idx) => (
                   <tr key={item.id} className="hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-indigo-50/50 transition-all duration-300 group border-b border-gray-300">
                     <td className="px-6 py-4">
                       <div className="text-sm font-bold text-slate-600">
@@ -508,13 +582,22 @@ const DailyChecks: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right text-sm font-medium space-x-3">
-                      <button onClick={() => handleEdit(idx)} className="text-blue-600 hover:text-blue-800 p-2 rounded-xl hover:bg-blue-100 transition-all duration-300 transform hover:scale-110" title="Düzenle">
-                        <Edit className="w-5 h-5" />
-                      </button>
-                      <button onClick={() => handleDelete(idx)} className="text-rose-600 hover:text-rose-800 p-2 rounded-xl hover:bg-rose-100 transition-all duration-300 transform hover:scale-110" title="Sil">
-                        <Trash2 className="w-5 h-5" />
-                      </button>
-                      {!isAdmin && isUserOwnItem(item) && item.status !== 'Tamamlandı' && (
+                      {/* Düzenleme - Sadece kendi işlerini düzenleyebilir */}
+                      {(isAdmin || isUserOwnItem(item)) && (
+                        <button onClick={() => handleEdit(idx)} className="text-blue-600 hover:text-blue-800 p-2 rounded-xl hover:bg-blue-100 transition-all duration-300 transform hover:scale-110" title="Düzenle">
+                          <Edit className="w-5 h-5" />
+                        </button>
+                      )}
+                      
+                      {/* Silme - Sadece kendi işlerini silebilir */}
+                      {(isAdmin || isUserOwnItem(item)) && (
+                        <button onClick={() => handleDelete(idx)} className="text-rose-600 hover:text-rose-800 p-2 rounded-xl hover:bg-rose-100 transition-all duration-300 transform hover:scale-110" title="Sil">
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      )}
+                      
+                      {/* Tamamlama - Admin tüm işleri, user sadece kendi işlerini tamamlayabilir */}
+                      {item.status !== 'Tamamlandı' && (isAdmin || isUserOwnItem(item)) && (
                         <button onClick={() => handleComplete(idx)} className="text-emerald-600 hover:text-emerald-800 p-2 rounded-xl hover:bg-emerald-100 transition-all duration-300 transform hover:scale-110" title="Tamamla">
                           <CheckSquare className="w-5 h-5" />
                         </button>

@@ -165,7 +165,7 @@ export function Navbar() {
                     />
                   )}
                 </div>
-                <span className="font-medium">{user?.username || user?.email || 'Kullanıcı'}</span>
+                <span className="font-medium">{user?.username || user?.email || 'Kullanıcı'} <span className="text-xs text-blue-200">({user?.role === 'admin' ? 'Admin' : 'User'})</span></span>
                 <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`} />
               </button>
               {userMenuOpen && (
@@ -191,6 +191,7 @@ export function Navbar() {
                         <div>
                           <div className="font-medium text-gray-900">{user?.username || 'Kullanıcı'}</div>
                           <div className="text-sm text-gray-500">{user?.email || 'admin@bagcilar.bel.tr'}</div>
+                          <div className="text-xs text-blue-600 font-medium">{user?.role === 'admin' ? 'Admin' : 'User'}</div>
                         </div>
                       </div>
                     </div>

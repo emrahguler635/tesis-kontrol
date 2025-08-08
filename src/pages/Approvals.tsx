@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, XCircle, Clock, AlertCircle, Shield, Filter, Calendar, User, Building, Activity, Plus } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, AlertCircle, Shield, Filter, Calendar, User, Building, Activity, Plus, Tag } from 'lucide-react';
 import { apiService } from '../services/api';
 import { Card } from '../components/Card';
 import { useAuthStore } from '../store';
 
 interface ControlItem {
-  id: number;
+  id: string | number;
+  displayId?: number;
   title?: string;
   description?: string;
-  period: string;
+  period?: string;
   date: string;
   facilityId?: string;
   workDone?: string;
@@ -17,6 +18,9 @@ interface ControlItem {
   approval_status?: string;
   approved_by?: string;
   approved_at?: string;
+  table_name?: string;
+  item_type?: string;
+  completionDate?: string;
 }
 
 const Approvals: React.FC = () => {
@@ -73,30 +77,34 @@ const Approvals: React.FC = () => {
     }
   };
 
-  const handleApprove = async (id: number) => {
+  const handleApprove = async (id: string | number) => {
     if (!isAdmin) {
       alert('Sadece admin kullanıcıları onay işlemi yapabilir!');
       return;
     }
     
     try {
-      await apiService.approveControlItem(id, user?.username || 'admin');
-      loadPendingApprovals();
+      await apiService.approveControlItem(id.toString(), user?.username || 'admin');
+      
+      // Verileri otomatik yenile
+      await loadPendingApprovals();
     } catch (error) {
       console.error('Onaylama hatası:', error);
       alert('Onaylama sırasında hata oluştu!');
     }
   };
 
-  const handleReject = async (id: number, reason: string) => {
+  const handleReject = async (id: string | number, reason: string) => {
     if (!isAdmin) {
       alert('Sadece admin kullanıcıları reddetme işlemi yapabilir!');
       return;
     }
     
     try {
-      await apiService.rejectControlItem(id, user?.username || 'admin', reason);
-      loadPendingApprovals();
+      await apiService.rejectControlItem(id.toString(), user?.username || 'admin', reason);
+      
+      // Verileri otomatik yenile
+      await loadPendingApprovals();
     } catch (error) {
       console.error('Reddetme hatası:', error);
       alert('Reddetme sırasında hata oluştu!');
@@ -126,6 +134,21 @@ const Approvals: React.FC = () => {
         return 'text-yellow-600 bg-yellow-100';
       default:
         return 'text-gray-600 bg-gray-100';
+    }
+  };
+
+  const getItemTypeColor = (itemType: string) => {
+    switch (itemType) {
+      case 'Günlük İş':
+        return 'bg-blue-100 text-blue-800';
+      case 'YBS İş':
+        return 'bg-purple-100 text-purple-800';
+      case 'BağTV Kontrol':
+        return 'bg-orange-100 text-orange-800';
+      case 'Mesaj':
+        return 'bg-green-100 text-green-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -193,6 +216,11 @@ const Approvals: React.FC = () => {
                        item.approval_status === 'approved' ? 'Onaylandı' : 
                        item.approval_status === 'rejected' ? 'Reddedildi' : 'Bilinmiyor'}
                     </span>
+                    {item.item_type && (
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${getItemTypeColor(item.item_type)}`}>
+                        {item.item_type}
+                      </span>
+                    )}
                   </div>
                   
                   {item.description && (
@@ -205,26 +233,31 @@ const Approvals: React.FC = () => {
                       <p className="text-sm text-blue-700">{item.workDone}</p>
                     </div>
                   )}
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                  
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
                     <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-gray-500" />
-                      <span className="text-gray-600">Tarih: {new Date(item.date).toLocaleDateString('tr-TR')}</span>
+                      <Calendar className="h-4 w-4 text-gray-400" />
+                      <span>Tarih: {new Date(item.date).toLocaleDateString('tr-TR')}</span>
                     </div>
-                    
                     <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-gray-500" />
-                      <span className="text-gray-600">Kullanıcı: {item.user || 'Belirtilmemiş'}</span>
+                      <User className="h-4 w-4 text-gray-400" />
+                      <span>Kullanıcı: {item.user || 'Belirtilmemiş'}</span>
                     </div>
-                    
+                    {item.period && (
+                      <div className="flex items-center gap-2">
+                        <Activity className="h-4 w-4 text-gray-400" />
+                        <span>Periyot: {item.period}</span>
+                      </div>
+                    )}
+                    {item.facilityId && (
+                      <div className="flex items-center gap-2">
+                        <Building className="h-4 w-4 text-gray-400" />
+                        <span>Tesis: {item.facilityId}</span>
+                      </div>
+                    )}
                     <div className="flex items-center gap-2">
-                      <Activity className="h-4 w-4 text-gray-500" />
-                      <span className="text-gray-600">Periyot: {item.period}</span>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <Building className="h-4 w-4 text-gray-500" />
-                      <span className="text-gray-600">Tesis: {item.facilityId || 'Belirtilmemiş'}</span>
+                      <Calendar className="h-4 w-4 text-gray-400" />
+                      <span>Kapanma Tarihi: {item.completionDate ? new Date(item.completionDate).toLocaleDateString('tr-TR') : 'Belirtilmemiş'}</span>
                     </div>
                   </div>
                 </div>

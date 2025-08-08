@@ -37,7 +37,18 @@ const CompletedWorks: React.FC = () => {
           item.approval_status === 'approved' || item.status === 'Tamamlandı'
         );
         
-        setCompletedWorks(completed);
+        // Çift kayıtları filtrele - daha güçlü filtreleme
+        const seenIds = new Set();
+        const uniqueCompleted = completed.filter(item => {
+          const itemId = item.id?.toString() || '';
+          if (seenIds.has(itemId)) {
+            return false;
+          }
+          seenIds.add(itemId);
+          return true;
+        });
+        
+        setCompletedWorks(uniqueCompleted);
         setFacilities(facilitiesData);
       } catch (error) {
         console.error('Tamamlanan işler yüklenirken hata:', error);
@@ -104,27 +115,27 @@ const CompletedWorks: React.FC = () => {
   const filteredWorks = getFilteredWorks();
 
   return (
-    <div className="h-screen overflow-y-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Yapılan İşler</h1>
+    <div className="h-screen overflow-y-auto p-4 w-full">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Yapılan İşler</h1>
         <div className="flex items-center gap-2 text-green-600">
-          <CheckCircle className="h-5 w-5" />
-          <span className="text-sm">Onaylanmış ve tamamlanmış işler</span>
+          <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+          <span className="text-xs sm:text-sm">Onaylanmış ve tamamlanmış işler</span>
         </div>
       </div>
 
       {/* Filtreler */}
       <Card className="mb-6">
-        <div className="flex items-center gap-4 p-4">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4 p-3 sm:p-4">
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-gray-500" />
-            <span className="text-sm font-medium text-gray-700">Filtreler:</span>
+            <span className="text-xs sm:text-sm font-medium text-gray-700">Filtreler:</span>
           </div>
           
           <select
             value={filterPeriod}
             onChange={(e) => setFilterPeriod(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="border border-gray-300 rounded-lg px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="all">Tüm Periyotlar</option>
             <option value="Günlük">Günlük</option>
@@ -136,7 +147,7 @@ const CompletedWorks: React.FC = () => {
           <select
             value={filterFacility}
             onChange={(e) => setFilterFacility(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="border border-gray-300 rounded-lg px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="all">Tüm Tesisler</option>
             {facilities.map(facility => (
@@ -150,7 +161,7 @@ const CompletedWorks: React.FC = () => {
             <select
               value={filterUser}
               onChange={(e) => setFilterUser(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="border border-gray-300 rounded-lg px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="all">Tüm Kullanıcılar</option>
               {Array.from(new Set(completedWorks.map(item => item.user_name || item.user))).map(user => (
@@ -169,97 +180,120 @@ const CompletedWorks: React.FC = () => {
           <p className="text-gray-500">Henüz tamamlanmış iş bulunmuyor.</p>
         </div>
       ) : (
-        <div className="grid gap-4">
-          {filteredWorks.map((work) => (
-            <Card key={work.id} className="p-6">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-3">
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      {work.title || 'Başlık belirtilmemiş'}
-                    </h3>
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(work.status || '')}`}>
+        <div className="overflow-x-auto max-w-full">
+          <table className="w-full bg-white border border-gray-200 rounded-lg shadow-sm text-xs">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-1 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-12">
+                  Kayıt No
+                </th>
+                <th className="px-1 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-28">
+                  İş Adı
+                </th>
+                <th className="px-1 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-32">
+                  Açıklama
+                </th>
+                <th className="px-1 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-32">
+                  Yapılan İş
+                </th>
+                <th className="px-1 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-20">
+                  Tarih
+                </th>
+                <th className="px-1 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-20">
+                  Tamamlanma
+                </th>
+                <th className="px-1 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-20">
+                  Kullanıcı
+                </th>
+                <th className="px-1 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-20">
+                  Tesis
+                </th>
+                <th className="px-1 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-16">
+                  Durum
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredWorks.map((work) => (
+                <tr key={work.id} className="hover:bg-gray-50">
+                  <td className="px-1 py-1 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0 h-5 w-5">
+                        <div className="h-5 w-5 rounded-full bg-blue-500 flex items-center justify-center">
+                          <span className="text-xs font-medium text-white">{work.id}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-1 py-1 text-xs text-gray-900 max-w-28 truncate" title={work.title}>
+                    {work.title || 'Başlık belirtilmemiş'}
+                  </td>
+                  <td className="px-1 py-1 text-xs text-gray-900 max-w-32">
+                    <div className="truncate" title={work.description}>
+                      {work.description || '-'}
+                    </div>
+                  </td>
+                  <td className="px-1 py-1 text-xs text-gray-900 max-w-32">
+                    <div className="truncate" title={work.work_done}>
+                      {work.work_done || '-'}
+                    </div>
+                  </td>
+                  <td className="px-1 py-1 whitespace-nowrap text-xs text-gray-900">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3 text-gray-500" />
+                      {formatDate(work.date)}
+                    </div>
+                  </td>
+                  <td className="px-1 py-1 whitespace-nowrap text-xs text-gray-900">
+                    <div className="flex items-center gap-1">
+                      <CheckCircle className="h-3 w-3 text-green-500" />
+                      {work.completion_date ? formatDate(work.completion_date) : '-'}
+                    </div>
+                  </td>
+                  <td className="px-1 py-1 whitespace-nowrap text-xs text-gray-900">
+                    <div className="flex items-center gap-1">
+                      <User className="h-3 w-3 text-purple-500" />
+                      <span className="truncate">{work.user_name || work.user || 'Belirtilmemiş'}</span>
+                    </div>
+                  </td>
+                  <td className="px-1 py-1 whitespace-nowrap text-xs text-gray-900">
+                    <div className="flex items-center gap-1">
+                      <Building className="h-3 w-3 text-gray-500" />
+                      <span className="truncate">{facilities.find(f => f.id === work.facility_id)?.name || 'Belirtilmemiş'}</span>
+                    </div>
+                  </td>
+                  <td className="px-1 py-1 whitespace-nowrap">
+                    <span className={`px-1 py-0.5 text-xs font-medium rounded-full ${getStatusColor(work.status || '')}`}>
                       {getStatusText(work.status || '')}
                     </span>
-                  </div>
-                  
-                  {work.description && (
-                    <p className="text-gray-600 mb-3">{work.description}</p>
-                  )}
-                  
-                  {work.work_done && (
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-3">
-                      <p className="text-sm font-medium text-green-800 mb-1">Yapılan İş:</p>
-                      <p className="text-sm text-green-700">{work.work_done}</p>
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-gray-500" />
-                      <span className="text-gray-600">Tarih: {formatDate(work.date)}</span>
-                    </div>
-                    
-                    {work.completion_date && (
-                      <div className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        <span className="text-gray-600">Tamamlanma: {formatDate(work.completion_date)}</span>
-                      </div>
-                    )}
-                    
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-gray-500" />
-                      <span className="text-gray-600">
-                        Kullanıcı: {work.user_name || work.user || 'Belirtilmemiş'}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <Building className="h-4 w-4 text-gray-500" />
-                      <span className="text-gray-600">
-                        Tesis: {facilities.find(f => f.id === work.facility_id)?.name || 'Belirtilmemiş'}
-                      </span>
-                    </div>
-                  </div>
-
-                  {work.approved_by && (
-                    <div className="mt-3 pt-3 border-t border-gray-200">
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        <span>
-                          Onaylayan: {work.approved_by} 
-                          {work.approved_at && ` (${formatDate(work.approved_at)})`}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </Card>
-          ))}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 
       {/* İstatistikler */}
       <Card className="mt-6">
-        <div className="p-4">
-          <h3 className="text-lg font-semibold text-gray-900 mb-3">İstatistikler</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="p-3 sm:p-4">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3">İstatistikler</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{filteredWorks.length}</div>
-              <div className="text-sm text-gray-600">Toplam Tamamlanan İş</div>
+              <div className="text-xl sm:text-2xl font-bold text-green-600">{filteredWorks.length}</div>
+              <div className="text-xs sm:text-sm text-gray-600">Toplam Tamamlanan İş</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-xl sm:text-2xl font-bold text-blue-600">
                 {filteredWorks.filter(w => w.completion_date).length}
               </div>
-              <div className="text-sm text-gray-600">Bu Ay Tamamlanan</div>
+              <div className="text-xs sm:text-sm text-gray-600">Bu Ay Tamamlanan</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">
+              <div className="text-xl sm:text-2xl font-bold text-purple-600">
                 {Array.from(new Set(filteredWorks.map(w => w.user_name || w.user))).length}
               </div>
-              <div className="text-sm text-gray-600">Aktif Kullanıcı</div>
+              <div className="text-xs sm:text-sm text-gray-600">Aktif Kullanıcı</div>
             </div>
           </div>
         </div>

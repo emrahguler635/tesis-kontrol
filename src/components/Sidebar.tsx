@@ -121,10 +121,14 @@ const Sidebar: React.FC = () => {
   const filteredMenuItems = menuItems.filter(item => {
     if (!item.enabled) return false;
     
-    // Admin kullanıcısı için tüm menüleri göster
-    if (user?.role === 'admin') return true;
+    // Admin kullanıcılar tüm modülleri görebilir
+    if (user?.role === 'admin') {
+      return true;
+    }
     
+    // User kullanıcılar sadece kendi yetkilerine sahip modülleri görebilir
     const hasPermission = Array.isArray(userPermissions) && userPermissions.includes(item.label);
+    
     return hasPermission;
   });
 

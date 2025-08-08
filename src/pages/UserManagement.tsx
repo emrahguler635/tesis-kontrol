@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Users, UserPlus, UserCheck, UserX } from 'lucide-react';
 import { apiService } from '../services/api';
 import { Card } from '../components/Card';
+import { useAuthStore } from '../store';
 
 interface User {
   id: number;
@@ -19,7 +20,7 @@ const UserManagement: React.FC = () => {
     username: '',
     email: '',
     password: '',
-    role: 'user',
+    role: 'user', // Varsayılan olarak user
     permissions: ['Ana Sayfa']
   });
   const [modalOpen, setModalOpen] = useState(false);
@@ -29,10 +30,33 @@ const UserManagement: React.FC = () => {
   // Kullanıcıları yükle
   useEffect(() => {
     const fetchUsers = async () => {
-    setLoading(true);
+      setLoading(true);
       try {
         const usersData = await apiService.getUsers();
-        setUsers(usersData);
+        
+        // Permissions'ları doğru şekilde parse et
+        const processedUsers = usersData.map((user: any) => {
+          let userPermissions = ['Ana Sayfa'];
+          if (user.permissions) {
+            if (typeof user.permissions === 'string') {
+              try {
+                userPermissions = JSON.parse(user.permissions);
+              } catch (error) {
+                console.error('Permissions parse error:', error);
+                userPermissions = ['Ana Sayfa'];
+              }
+            } else if (Array.isArray(user.permissions)) {
+              userPermissions = user.permissions;
+            }
+          }
+          
+          return {
+            ...user,
+            permissions: userPermissions
+          };
+        });
+        
+        setUsers(processedUsers);
       } catch (error) {
         console.error('Kullanıcılar yüklenirken hata:', error);
         setUsers([]);
@@ -54,16 +78,54 @@ const UserManagement: React.FC = () => {
         username: editItem.username,
         email: editItem.email,
         password: editItem.password,
-        role: editItem.role,
-        permissions: editItem.permissions
+        role: editItem.role, // Kullanıcının seçtiği role'ü kullan
+        permissions: Array.isArray(editItem.permissions) ? editItem.permissions : ['Ana Sayfa']
       });
-      setUsers([newUser, ...users]);
+      
+      // Verileri otomatik yenile
+      const fetchUsers = async () => {
+        setLoading(true);
+        try {
+          const usersData = await apiService.getUsers();
+          
+          // Permissions'ları doğru şekilde parse et
+          const processedUsers = usersData.map((user: any) => {
+            let userPermissions = ['Ana Sayfa'];
+            if (user.permissions) {
+              if (typeof user.permissions === 'string') {
+                try {
+                  userPermissions = JSON.parse(user.permissions);
+                } catch (error) {
+                  console.error('Permissions parse error:', error);
+                  userPermissions = ['Ana Sayfa'];
+                }
+              } else if (Array.isArray(user.permissions)) {
+                userPermissions = user.permissions;
+              }
+            }
+            
+            return {
+              ...user,
+              permissions: userPermissions
+            };
+          });
+          
+          setUsers(processedUsers);
+        } catch (error) {
+          console.error('Kullanıcılar yüklenirken hata:', error);
+          setUsers([]);
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      await fetchUsers();
       setModalOpen(false);
       setEditItem({ 
         username: '', 
         email: '', 
         password: '', 
-        role: 'user',
+        role: 'user', // Varsayılan olarak user
         permissions: ['Ana Sayfa']
       });
     } catch (error) {
@@ -75,7 +137,45 @@ const UserManagement: React.FC = () => {
   const handleDelete = async (id: number) => {
     try {
       await apiService.deleteUser(id);
-      setUsers(users.filter(user => user.id !== id));
+      
+      // Verileri otomatik yenile
+      const fetchUsers = async () => {
+        setLoading(true);
+        try {
+          const usersData = await apiService.getUsers();
+          
+          // Permissions'ları doğru şekilde parse et
+          const processedUsers = usersData.map((user: any) => {
+            let userPermissions = ['Ana Sayfa'];
+            if (user.permissions) {
+              if (typeof user.permissions === 'string') {
+                try {
+                  userPermissions = JSON.parse(user.permissions);
+                } catch (error) {
+                  console.error('Permissions parse error:', error);
+                  userPermissions = ['Ana Sayfa'];
+                }
+              } else if (Array.isArray(user.permissions)) {
+                userPermissions = user.permissions;
+              }
+            }
+            
+            return {
+              ...user,
+              permissions: userPermissions
+            };
+          });
+          
+          setUsers(processedUsers);
+        } catch (error) {
+          console.error('Kullanıcılar yüklenirken hata:', error);
+          setUsers([]);
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      await fetchUsers();
     } catch (error) {
       console.error('Kullanıcı silinirken hata:', error);
     }
@@ -83,12 +183,28 @@ const UserManagement: React.FC = () => {
 
   const handleEdit = (user: User) => {
     setEditingUser(user);
+    
+    // Permissions'ları doğru şekilde parse et
+    let userPermissions = ['Ana Sayfa'];
+    if (user.permissions) {
+      if (typeof user.permissions === 'string') {
+        try {
+          userPermissions = JSON.parse(user.permissions);
+        } catch (error) {
+          console.error('Permissions parse error:', error);
+          userPermissions = ['Ana Sayfa'];
+        }
+      } else if (Array.isArray(user.permissions)) {
+        userPermissions = user.permissions;
+      }
+    }
+    
     setEditItem({
       username: user.username,
       email: user.email,
       password: '',
-      role: user.role,
-      permissions: Array.isArray(user.permissions) ? user.permissions : ['Ana Sayfa']
+      role: user.role, // Kullanıcının mevcut role'ünü kullan
+      permissions: userPermissions
     });
     setEditModalOpen(true);
   };
@@ -102,28 +218,80 @@ const UserManagement: React.FC = () => {
         username: editItem.username,
         email: editItem.email,
         password: editItem.password || undefined,
-        role: editItem.role,
-        permissions: editItem.permissions
+        role: editItem.role, // Kullanıcının seçtiği role'ü kullan
+        permissions: Array.isArray(editItem.permissions) ? editItem.permissions : ['Ana Sayfa']
       });
       
-      setUsers(users.map(user => 
-        user.id === editingUser.id ? updatedUser : user
-      ));
+      // Store'u güncelle - eğer güncellenen kullanıcı mevcut kullanıcı ise
+      const { user, updateUser } = useAuthStore.getState();
+      if (user && String(user.id) === String(editingUser.id)) {
+        const updatedUserData = {
+          username: editItem.username,
+          email: editItem.email,
+          role: editItem.role,
+          permissions: Array.isArray(editItem.permissions) ? editItem.permissions : ['Ana Sayfa']
+        };
+        updateUser(updatedUserData);
+        console.log('🔍 Store güncellendi:', updatedUserData);
+      }
+      
+      // Verileri otomatik yenile
+      const fetchUsers = async () => {
+        setLoading(true);
+        try {
+          const usersData = await apiService.getUsers();
+          
+          // Permissions'ları doğru şekilde parse et
+          const processedUsers = usersData.map((user: any) => {
+            let userPermissions = ['Ana Sayfa'];
+            if (user.permissions) {
+              if (typeof user.permissions === 'string') {
+                try {
+                  userPermissions = JSON.parse(user.permissions);
+                } catch (error) {
+                  console.error('Permissions parse error:', error);
+                  userPermissions = ['Ana Sayfa'];
+                }
+              } else if (Array.isArray(user.permissions)) {
+                userPermissions = user.permissions;
+              }
+            }
+            
+            return {
+              ...user,
+              permissions: userPermissions
+            };
+          });
+          
+          setUsers(processedUsers);
+        } catch (error) {
+          console.error('Kullanıcılar yüklenirken hata:', error);
+          setUsers([]);
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      await fetchUsers();
       setEditModalOpen(false);
       setEditingUser(null);
       setEditItem({ 
         username: '', 
         email: '', 
         password: '', 
-        role: 'user',
+        role: 'user', // Varsayılan olarak user
         permissions: ['Ana Sayfa']
       });
-      
-      // Kullanıcıya uyarı göster
-      alert('✅ Kullanıcı güncellendi!\n\n🔄 Sistem otomatik olarak güncellendi.\n\n⚠️ Değişikliklerin etkili olması için:\n1. Uygulamayı yeniden deploy edin\n2. Kullanıcıyı yeniden giriş yaptırın');
     } catch (error) {
       console.error('Kullanıcı güncellenirken hata:', error);
-      alert('Kullanıcı güncellenirken bir hata oluştu.');
+      // Daha detaylı hata mesajı
+      let errorMessage = 'Bilinmeyen hata';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null) {
+        errorMessage = JSON.stringify(error);
+      }
+      alert(`❌ Kullanıcı güncellenirken bir hata oluştu.\n\nHata detayı: ${errorMessage}\n\nLütfen tekrar deneyin.`);
     }
   };
 
@@ -132,18 +300,18 @@ const UserManagement: React.FC = () => {
 
   const modulePermissions = [
     { key: 'Ana Sayfa', value: 'Ana Sayfa' },
-    { key: 'Tesisler', value: 'Tesisler' },
     { key: 'Günlük İş Programı', value: 'Günlük İş Programı' },
-    { key: 'Toplam Yapılan İşler', value: 'Toplam Yapılan İşler' },
     { key: 'Raporlar', value: 'Raporlar' },
-    { key: 'Mesaj Yönetimi', value: 'Mesaj Yönetimi' },
     { key: 'BağTV Yönetim', value: 'BağTV Yönetim' },
-    { key: 'YBS İş Programı', value: 'YBS İş Programı' },
     { key: 'YBS Onay Ekranları', value: 'YBS Onay Ekranları' },
-    { key: 'Veri Kontrol', value: 'Veri Kontrol' },
     { key: 'Onay Yönetimi', value: 'Onay Yönetimi' },
-    { key: 'Yapılan İşler', value: 'Yapılan İşler' },
     { key: 'Kullanıcı Yönetimi', value: 'Kullanıcı Yönetimi' },
+    { key: 'Tesisler', value: 'Tesisler' },
+    { key: 'Toplam Yapılan İşler', value: 'Toplam Yapılan İşler' },
+    { key: 'Mesaj Yönetimi', value: 'Mesaj Yönetimi' },
+    { key: 'YBS İş Programı', value: 'YBS İş Programı' },
+    { key: 'Veri Kontrol', value: 'Veri Kontrol' },
+    { key: 'Yapılan İşler', value: 'Yapılan İşler' },
     { key: 'Ayarlar', value: 'Ayarlar' }
   ];
 
@@ -157,7 +325,7 @@ const UserManagement: React.FC = () => {
           <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
             Kullanıcı Yönetimi
           </h1>
-          <p className="text-gray-600 mt-1">Kullanıcı hesapları ve yetki yönetimi</p>
+          <p className="text-gray-600 mt-1">Kullanıcı hesapları ve yetki yönetimi - Tüm kullanıcılar Admin rolünde</p>
         </div>
       </div>
 
@@ -238,20 +406,27 @@ const UserManagement: React.FC = () => {
                           ? 'bg-purple-100 text-purple-800' 
                           : 'bg-blue-100 text-blue-800'
                       }`}>
-                        {user.role}
+                        {user.role === 'admin' ? 'Admin' : 'User'}
                       </span>
                     </div>
                     
                     {/* Yetkiler */}
-                    {user.permissions && Array.isArray(user.permissions) && (
+                    {user.permissions && Array.isArray(user.permissions) && user.permissions.length > 0 && (
                       <div className="mt-2">
-                        <p className="text-xs text-gray-500 mb-1">Yetkiler:</p>
-                        <div className="flex flex-wrap gap-1">
-                          {user.permissions.map((permission, index) => (
-                            <span key={index} className="px-1 py-0.5 bg-green-100 text-green-700 text-xs rounded">
+                        <p className="text-xs text-gray-500 mb-1">
+                          Yetkiler ({user.permissions.length}):
+                        </p>
+                        <div className="flex flex-wrap gap-1 max-h-16 overflow-y-auto">
+                          {user.permissions.slice(0, 4).map((permission, index) => (
+                            <span key={index} className="px-1.5 py-0.5 bg-green-100 text-green-700 text-xs rounded-full whitespace-nowrap">
                               {permission}
                             </span>
                           ))}
+                          {user.permissions.length > 4 && (
+                            <span className="px-1.5 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">
+                              +{user.permissions.length - 4} daha
+                            </span>
+                          )}
                         </div>
                       </div>
                     )}
@@ -347,6 +522,22 @@ const UserManagement: React.FC = () => {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Rol
+                </label>
+                <select
+                  name="role"
+                  value={editItem.role}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  required
+                >
+                  <option value="user">User</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Şifre
                 </label>
                 <input
@@ -359,18 +550,12 @@ const UserManagement: React.FC = () => {
                 />
               </div>
               
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Rol
-                </label>
-                <select
-                  name="role"
-                  value={editItem.role}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                >
-                  <option value="admin">Admin</option>
-                </select>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-sm text-blue-800 font-medium mb-1">ℹ️ Bilgi</p>
+                <p className="text-xs text-blue-700">
+                  <strong>Admin</strong> rolündeki kullanıcılar tüm modülleri görebilir. 
+                  <strong>User</strong> rolündeki kullanıcılar sadece aşağıda seçilen modül yetkilerine sahip olur.
+                </p>
               </div>
               
               <div>
@@ -384,15 +569,16 @@ const UserManagement: React.FC = () => {
                         type="checkbox"
                         checked={Array.isArray(editItem.permissions) && editItem.permissions.includes(value)}
                         onChange={(e) => {
+                          const currentPermissions = Array.isArray(editItem.permissions) ? editItem.permissions : [];
                           if (e.target.checked) {
                             setEditItem(prev => ({
                               ...prev,
-                              permissions: [...(Array.isArray(prev.permissions) ? prev.permissions : []), value]
+                              permissions: [...currentPermissions, value]
                             }));
                           } else {
                             setEditItem(prev => ({
                               ...prev,
-                              permissions: (Array.isArray(prev.permissions) ? prev.permissions : []).filter(p => p !== value)
+                              permissions: currentPermissions.filter(p => p !== value)
                             }));
                           }
                         }}
@@ -472,6 +658,22 @@ const UserManagement: React.FC = () => {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Rol
+                </label>
+                <select
+                  name="role"
+                  value={editItem.role}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  required
+                >
+                  <option value="user">User</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Şifre (Boş bırakılırsa değişmez)
                 </label>
                 <input
@@ -484,18 +686,12 @@ const UserManagement: React.FC = () => {
                 />
               </div>
               
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Rol
-                </label>
-                <select
-                  name="role"
-                  value={editItem.role}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                >
-                  <option value="admin">Admin</option>
-                </select>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-sm text-blue-800 font-medium mb-1">ℹ️ Bilgi</p>
+                <p className="text-xs text-blue-700">
+                  <strong>Admin</strong> rolündeki kullanıcılar tüm modülleri görebilir. 
+                  <strong>User</strong> rolündeki kullanıcılar sadece aşağıda seçilen modül yetkilerine sahip olur.
+                </p>
               </div>
               
               <div>
@@ -509,15 +705,16 @@ const UserManagement: React.FC = () => {
                         type="checkbox"
                         checked={Array.isArray(editItem.permissions) && editItem.permissions.includes(value)}
                         onChange={(e) => {
+                          const currentPermissions = Array.isArray(editItem.permissions) ? editItem.permissions : [];
                           if (e.target.checked) {
                             setEditItem(prev => ({
                               ...prev,
-                              permissions: [...(Array.isArray(prev.permissions) ? prev.permissions : []), value]
+                              permissions: [...currentPermissions, value]
                             }));
                           } else {
                             setEditItem(prev => ({
                               ...prev,
-                              permissions: (Array.isArray(prev.permissions) ? prev.permissions : []).filter(p => p !== value)
+                              permissions: currentPermissions.filter(p => p !== value)
                             }));
                           }
                         }}

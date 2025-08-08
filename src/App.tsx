@@ -27,7 +27,7 @@ const pagePermissions = {
   '/haftalik': 'Toplam Yapılan İşler',
   '/reports': 'Raporlar',
   '/messages': 'Mesaj Yönetimi',
-  '/bagtv': 'BağTV',
+  '/bagtv': 'BağTV Yönetim',
   '/data-control': 'Veri Kontrol',
   '/approvals': 'Onay Yönetimi',
   '/completed-works': 'Yapılan İşler',
@@ -35,13 +35,14 @@ const pagePermissions = {
   '/user-management': 'Kullanıcı Yönetimi',
   '/whatsapp': 'WhatsApp Bildirimleri',
   '/ybs-work-program': 'YBS İş Programı',
-  '/ybs-approvals': 'YBS Onay Ekranı'
+  '/ybs-approvals': 'YBS Onay Ekranları'
 };
 
 // PrivateRoute bileşeni
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, checkAuth } = useAuthStore();
   const checkAuthResult = checkAuth();
+  const location = useLocation();
   
   // Sadece development'ta debug log
   if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
@@ -58,6 +59,27 @@ const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   
   if (!checkAuthResult) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Sayfa yetki kontrolü
+  const currentPath = location.pathname;
+  const requiredPermission = pagePermissions[currentPath];
+  
+  if (requiredPermission) {
+    const userPermissions = useAuthStore.getState().user?.permissions || [];
+    const userRole = useAuthStore.getState().user?.role;
+    
+    // Admin kullanıcılar tüm sayfalara erişebilir
+    if (userRole === 'admin') {
+      console.log(`✅ Admin kullanıcı - ${requiredPermission} sayfasına erişim izni`);
+    }
+    // User kullanıcılar sadece kendi yetkilerine sahip sayfalara erişebilir
+    else if (!userPermissions.includes(requiredPermission)) {
+      console.log(`❌ Yetki yok - ${requiredPermission} yetkisi gerekli`);
+      return <Navigate to="/" replace />;
+    } else {
+      console.log(`✅ Yetki var - ${requiredPermission} yetkisi mevcut`);
+    }
   }
   
   return <>{children}</>;
@@ -87,7 +109,7 @@ function App() {
                     <Route path="/user-management" element={<UserManagement />} />
                     <Route path="/data-control" element={<DataViewer />} />
                     <Route path="/approvals" element={<Approvals />} />
-                                                          <Route path="/completed-works" element={<CompletedWorks />} />
+                    <Route path="/completed-works" element={<CompletedWorks />} />
                     <Route path="/whatsapp" element={<WhatsAppNotifications />} />
                     <Route path="/ybs-work-program" element={<YBSWorkProgram />} />
                     <Route path="/ybs-approvals" element={<YBSApprovals />} />

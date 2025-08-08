@@ -25,7 +25,19 @@ const Facilities: React.FC = () => {
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     const newFacility = await apiService.createFacility({ name });
-    setFacilities([...facilities, newFacility]);
+    
+    // Verileri otomatik yenile
+    const fetchFacilities = async () => {
+      setLoading(true);
+      try {
+        const data = await apiService.getFacilities();
+        setFacilities(data);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    await fetchFacilities();
     setName('');
   };
 

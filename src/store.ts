@@ -20,6 +20,7 @@ interface AuthState {
   clearAuth: () => void;
   checkSessionTimeout: () => boolean;
   resetSessionTimer: () => void;
+  updateUser: (updatedUser: Partial<User>) => void;
 }
 
 export const useAuthStore = create<AuthState>()((set, get) => ({
@@ -89,6 +90,14 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
         console.log('🔄 Oturum süresi sıfırlandı');
       }
+    }
+  },
+  updateUser: (updatedUser) => {
+    const state = get();
+    if (state.user) {
+      const newUser = { ...state.user, ...updatedUser };
+      set({ user: newUser });
+      console.log('🔍 Store user updated:', newUser);
     }
   },
 }));

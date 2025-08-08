@@ -96,7 +96,9 @@ const Messages: React.FC = () => {
       }
       setIsModalOpen(false);
       setEditItem(null);
-      fetchData();
+      
+      // Verileri otomatik yenile
+      await fetchData();
     } catch (error) {
       console.error('Mesaj kaydedilirken hata:', error);
     }

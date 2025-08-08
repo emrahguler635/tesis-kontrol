@@ -45,6 +45,21 @@ app.get('/api/test', (req, res) => {
   });
 });
 
+// Kullanıcıları test etmek için endpoint
+app.get('/api/test-users', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT id, username, email, role, permissions FROM users ORDER BY id');
+    res.json({
+      message: 'Kullanıcılar listesi',
+      users: result.rows,
+      count: result.rows.length
+    });
+  } catch (error) {
+    console.error('Test users error:', error);
+    res.status(500).json({ error: 'Kullanıcılar alınamadı' });
+  }
+});
+
 // Login endpoint
 app.post('/api/login', async (req, res) => {
   try {
@@ -58,13 +73,29 @@ app.post('/api/login', async (req, res) => {
     
     if (result.rows.length > 0) {
       const user = result.rows[0];
+      
+      // Permissions'ları parse et
+      let permissions = ['Ana Sayfa'];
+      try {
+        if (user.permissions) {
+          if (typeof user.permissions === 'string') {
+            permissions = JSON.parse(user.permissions);
+          } else {
+            permissions = user.permissions;
+          }
+        }
+      } catch (error) {
+        console.error('Permissions parse error:', error);
+        permissions = ['Ana Sayfa'];
+      }
+      
       res.json({
         success: true,
         id: user.id,
         username: user.username,
         email: user.email,
-        role: user.role,
-        permissions: ['Ana Sayfa', 'Tesisler', 'Günlük İş Programı', 'Toplam Yapılan İşler', 'Raporlar', 'Mesaj Yönetimi', 'BağTV', 'Veri Kontrol', 'Onay Yönetimi', 'Yapılan İşler', 'Ayarlar', 'Kullanıcı Yönetimi']
+        role: user.role || 'user',
+        permissions: permissions
       });
     } else {
       res.json({
@@ -172,11 +203,202 @@ app.post('/api/messages/setup', async (req, res) => {
 // Control items endpoints
 app.get('/api/control-items', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM control_items ORDER BY date DESC');
+    const { period, user } = req.query;
+    
+    let query = 'SELECT DISTINCT * FROM control_items';
+    let params = [];
+    let conditions = [];
+    
+    if (period) {
+      conditions.push(`period = $${params.length + 1}`);
+      params.push(period);
+    }
+    
+    if (user && user !== 'admin') {
+      conditions.push(`(user_name = $${params.length + 1} OR user = $${params.length + 1})`);
+      params.push(user);
+    }
+    
+    if (conditions.length > 0) {
+      query += ' WHERE ' + conditions.join(' AND ');
+    }
+    
+    query += ' ORDER BY date DESC';
+    
+    const result = await pool.query(query, params);
+    
     res.json(result.rows);
   } catch (error) {
     console.error('Control items error:', error);
     res.status(500).json({ error: 'Control items alınamadı' });
+  }
+});
+
+// Onay bekleyen işler endpoint'i - Tüm tabloları destekler
+app.get('/api/control-items/pending-approvals', async (req, res) => {
+  try {
+    const { user } = req.query;
+    
+    let allPendingItems = [];
+    
+    // 1. Control Items tablosundan onay bekleyen işler
+    let controlItemsQuery = `
+      SELECT 
+        id,
+        title,
+        description,
+        period,
+        date,
+        facility_id,
+        work_done,
+        user_name as user,
+        status,
+        approval_status,
+        completion_date,
+        'control_items' as table_name,
+        'Günlük İş' as item_type
+      FROM control_items 
+      WHERE approval_status = 'pending' 
+    `;
+    let controlItemsParams = [];
+    
+    if (user && user !== 'admin') {
+      controlItemsQuery += ` AND user_name = $1`;
+      controlItemsParams.push(user);
+    }
+    
+    const controlItemsResult = await pool.query(controlItemsQuery, controlItemsParams);
+    allPendingItems.push(...controlItemsResult.rows.map(item => ({
+      ...item,
+      id: `control_${item.id}`,
+      displayId: item.id,
+      workDone: item.work_done,
+      completionDate: item.completion_date
+    })));
+    
+    // 2. YBS Work Items tablosundan onay bekleyen işler
+    let ybsItemsQuery = `
+      SELECT 
+        id,
+        title,
+        description,
+        request_date as date,
+        completion_date,
+        requesting_department as user,
+        status,
+        approval_status,
+        'ybs_work_items' as table_name,
+        'YBS İş' as item_type
+      FROM ybs_work_items 
+      WHERE approval_status = 'pending' AND status = 'completed'
+    `;
+    let ybsItemsParams = [];
+    
+    if (user && user !== 'admin') {
+      ybsItemsQuery += ` AND created_by = $1`;
+      ybsItemsParams.push(user);
+    }
+    
+    const ybsItemsResult = await pool.query(ybsItemsQuery, ybsItemsParams);
+    allPendingItems.push(...ybsItemsResult.rows.map(item => ({
+      ...item,
+      id: `ybs_${item.id}`,
+      displayId: item.id,
+      workDone: item.description, // YBS işlerinde description'ı workDone olarak kullan
+      completionDate: item.completion_date
+    })));
+    
+    // 3. BagTV Controls tablosundan onay bekleyen işler (eğer approval_status alanı varsa)
+    try {
+      const bagtvColumnCheck = await pool.query(`
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'bagtv_controls' AND column_name = 'approval_status'
+      `);
+      
+      if (bagtvColumnCheck.rows.length > 0) {
+        let bagtvQuery = `
+          SELECT 
+            bc.id,
+            bc.action as title,
+            bc.description,
+            bc.date,
+            bc.checked_by as user,
+            bc.approval_status,
+            'bagtv_controls' as table_name,
+            'BağTV Kontrol' as item_type
+          FROM bagtv_controls bc
+          WHERE bc.approval_status = 'pending'
+        `;
+        let bagtvParams = [];
+        
+        if (user && user !== 'admin') {
+          bagtvQuery += ` AND bc.checked_by = $1`;
+          bagtvParams.push(user);
+        }
+        
+        const bagtvResult = await pool.query(bagtvQuery, bagtvParams);
+        allPendingItems.push(...bagtvResult.rows.map(item => ({
+          ...item,
+          id: `bagtv_${item.id}`,
+          displayId: item.id,
+          workDone: item.description,
+          completionDate: item.date
+        })));
+      }
+    } catch (error) {
+      console.log('BagTV Controls tablosunda approval_status alanı yok, atlanıyor');
+    }
+    
+    // 4. Messages tablosundan onay bekleyen işler (eğer approval_status alanı varsa)
+    try {
+      const messagesColumnCheck = await pool.query(`
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'messages' AND column_name = 'approval_status'
+      `);
+      
+      if (messagesColumnCheck.rows.length > 0) {
+        let messagesQuery = `
+          SELECT 
+            id,
+            description as title,
+            description,
+            date,
+            sender as user,
+            approval_status,
+            'messages' as table_name,
+            'Mesaj' as item_type
+          FROM messages 
+          WHERE approval_status = 'pending'
+        `;
+        let messagesParams = [];
+        
+        if (user && user !== 'admin') {
+          messagesQuery += ` AND sender = $1`;
+          messagesParams.push(user);
+        }
+        
+        const messagesResult = await pool.query(messagesQuery, messagesParams);
+        allPendingItems.push(...messagesResult.rows.map(item => ({
+          ...item,
+          id: `message_${item.id}`,
+          displayId: item.id,
+          workDone: item.description,
+          completionDate: item.date
+        })));
+      }
+    } catch (error) {
+      console.log('Messages tablosunda approval_status alanı yok, atlanıyor');
+    }
+    
+    // Tarihe göre sırala (en yeni önce)
+    allPendingItems.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    
+    console.log('🔍 Total pending items found:', allPendingItems.length);
+    res.json(allPendingItems);
+    
+  } catch (error) {
+    console.error('Pending approvals error:', error);
+    res.status(500).json({ error: 'Onay bekleyen işler alınamadı' });
   }
 });
 
@@ -198,20 +420,58 @@ app.post('/api/control-items', async (req, res) => {
 app.put('/api/control-items/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, period, date, facilityId, workDone, user, status } = req.body;
+    const { title, description, period, date, facilityId, workDone, user, status, completionDate } = req.body;
     
-    const result = await pool.query(
-      `UPDATE control_items SET 
+    console.log('🔍 Control item update request:', { id, title, description, period, date, facilityId, workDone, user, status, completionDate });
+    
+    // Önce completion_date alanının var olup olmadığını kontrol et
+    const columnCheck = await pool.query(`
+      SELECT 1 FROM information_schema.columns 
+      WHERE table_name = 'control_items' AND column_name = 'completion_date'
+    `);
+    
+    const hasCompletionDate = columnCheck.rows.length > 0;
+    
+    // Sadece iş tamamlandığında approval_status'u 'pending' yap
+    let query = `UPDATE control_items SET 
        title = $1, description = $2, period = $3, date = $4, facility_id = $5, 
-       work_done = $6, user_name = $7, status = $8, updated_at = NOW() 
-       WHERE id = $9 RETURNING *`,
-      [title, description, period, date, facilityId, workDone, user, status, id]
-    );
+       work_done = $6, user_name = $7, status = $8`;
+    let params = [title, description, period, date, facilityId, workDone, user, status];
+    
+    // Eğer iş tamamlandıysa ve approval_status henüz 'pending' değilse, 'pending' yap
+    if (status === 'Tamamlandı') {
+      query += `, approval_status = 'pending'`;
+      
+      // Eğer completion_date alanı varsa, completion_date alanını da güncelle
+      if (hasCompletionDate) {
+        if (completionDate) {
+          query += `, completion_date = $${params.length + 1}`;
+          params.push(completionDate);
+        } else {
+          // Eğer completionDate yoksa, bugünün tarihini kullan
+          query += `, completion_date = CURRENT_DATE`;
+        }
+      }
+    } else if (completionDate && hasCompletionDate) {
+      // Eğer status 'Tamamlandı' değilse ama completionDate varsa, yine de güncelle
+      query += `, completion_date = $${params.length + 1}`;
+      params.push(completionDate);
+    }
+    
+    query += ` WHERE id = $${params.length + 1} RETURNING *`;
+    params.push(id);
+    
+    console.log('🔍 SQL Query:', query);
+    console.log('🔍 SQL Params:', params);
+    console.log('🔍 Has completion_date column:', hasCompletionDate);
+    
+    const result = await pool.query(query, params);
     
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Control item bulunamadı.' });
     }
     
+    console.log('🔍 Control item updated successfully:', result.rows[0]);
     res.json(result.rows[0]);
   } catch (error) {
     console.error('Control item update error:', error);
@@ -230,6 +490,116 @@ app.delete('/api/control-items/:id', async (req, res) => {
   } catch (error) {
     console.error('Control item delete error:', error);
     res.status(500).json({ error: 'Control item silinemedi' });
+  }
+});
+
+// Control item onaylama endpoint'i - Tüm tabloları destekler
+app.put('/api/control-items/:id/approve', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { approvedBy } = req.body;
+    
+    console.log('🔍 Control item approval request:', { id, approvedBy });
+    
+    // ID formatını kontrol et (table_prefix_actual_id)
+    const idParts = id.split('_');
+    if (idParts.length < 2) {
+      return res.status(400).json({ error: 'Geçersiz ID formatı' });
+    }
+    
+    const tablePrefix = idParts[0];
+    const actualId = idParts.slice(1).join('_');
+    
+    let query = '';
+    let params = [];
+    
+    switch (tablePrefix) {
+      case 'control':
+        query = `UPDATE control_items SET approval_status = 'approved', approved_by = $1, approved_at = NOW() WHERE id = $2 RETURNING *`;
+        params = [approvedBy, actualId];
+        break;
+      case 'ybs':
+        query = `UPDATE ybs_work_items SET approval_status = 'approved', approved_by = $1, approved_at = NOW() WHERE id = $2 RETURNING *`;
+        params = [approvedBy, actualId];
+        break;
+      case 'bagtv':
+        query = `UPDATE bagtv_controls SET approval_status = 'approved', approved_by = $1, approved_at = NOW() WHERE id = $2 RETURNING *`;
+        params = [approvedBy, actualId];
+        break;
+      case 'message':
+        query = `UPDATE messages SET approval_status = 'approved', approved_by = $1, approved_at = NOW() WHERE id = $2 RETURNING *`;
+        params = [approvedBy, actualId];
+        break;
+      default:
+        return res.status(400).json({ error: 'Geçersiz tablo türü' });
+    }
+    
+    const result = await pool.query(query, params);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'İş bulunamadı.' });
+    }
+    
+    console.log('🔍 Item approved successfully:', result.rows[0]);
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Approval error:', error);
+    res.status(500).json({ error: 'Onaylama işlemi başarısız' });
+  }
+});
+
+// Control item reddetme endpoint'i - Tüm tabloları destekler
+app.put('/api/control-items/:id/reject', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rejectedBy, reason } = req.body;
+    
+    console.log('🔍 Control item rejection request:', { id, rejectedBy, reason });
+    
+    // ID formatını kontrol et (table_prefix_actual_id)
+    const idParts = id.split('_');
+    if (idParts.length < 2) {
+      return res.status(400).json({ error: 'Geçersiz ID formatı' });
+    }
+    
+    const tablePrefix = idParts[0];
+    const actualId = idParts.slice(1).join('_');
+    
+    let query = '';
+    let params = [];
+    
+    switch (tablePrefix) {
+      case 'control':
+        query = `UPDATE control_items SET approval_status = 'rejected', approved_by = $1, approved_at = NOW() WHERE id = $2 RETURNING *`;
+        params = [rejectedBy, actualId];
+        break;
+      case 'ybs':
+        query = `UPDATE ybs_work_items SET approval_status = 'rejected', approved_by = $1, approved_at = NOW() WHERE id = $2 RETURNING *`;
+        params = [rejectedBy, actualId];
+        break;
+      case 'bagtv':
+        query = `UPDATE bagtv_controls SET approval_status = 'rejected', approved_by = $1, approved_at = NOW() WHERE id = $2 RETURNING *`;
+        params = [rejectedBy, actualId];
+        break;
+      case 'message':
+        query = `UPDATE messages SET approval_status = 'rejected', approved_by = $1, approved_at = NOW() WHERE id = $2 RETURNING *`;
+        params = [rejectedBy, actualId];
+        break;
+      default:
+        return res.status(400).json({ error: 'Geçersiz tablo türü' });
+    }
+    
+    const result = await pool.query(query, params);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'İş bulunamadı.' });
+    }
+    
+    console.log('🔍 Item rejected successfully:', result.rows[0]);
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Rejection error:', error);
+    res.status(500).json({ error: 'Reddetme işlemi başarısız' });
   }
 });
 
@@ -305,7 +675,9 @@ app.post('/api/setup-database', async (req, res) => {
         password VARCHAR(100) NOT NULL,
         email VARCHAR(200),
         role VARCHAR(50) DEFAULT 'user',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        permissions JSONB DEFAULT '["Ana Sayfa"]',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
@@ -333,6 +705,7 @@ app.post('/api/setup-database', async (req, res) => {
         user_name VARCHAR(100),
         status VARCHAR(20) DEFAULT 'pending',
         approval_status VARCHAR(20) DEFAULT 'pending',
+        completion_date DATE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -732,7 +1105,7 @@ app.put('/api/ybs-work-items/:id/approval', async (req, res) => {
 // Users endpoints (for getUsers function)
 app.get('/api/users', async (req, res) => {
   try {
-    const result = await pool.query('SELECT id, username, email, role, created_at FROM users ORDER BY created_at DESC');
+    const result = await pool.query('SELECT id, username, email, role, permissions, created_at FROM users ORDER BY created_at DESC');
     res.json(result.rows);
   } catch (error) {
     console.error('Users error:', error);
@@ -742,47 +1115,98 @@ app.get('/api/users', async (req, res) => {
 
 app.post('/api/users', async (req, res) => {
   try {
-    const { username, email, password, role } = req.body;
+    const { username, email, password, role, permissions } = req.body;
+    
+    // Permissions'ları doğru formatta hazırla - JSONB için JSON.stringify kullan
+    let permissionsData = ['Ana Sayfa'];
+    if (permissions && Array.isArray(permissions)) {
+      permissionsData = permissions;
+    }
+    
+    // JSONB için JSON.stringify kullan
+    const permissionsJson = JSON.stringify(permissionsData);
+    
     const result = await pool.query(
-      'INSERT INTO users (username, email, password, role, created_at) VALUES ($1, $2, $3, $4, NOW()) RETURNING id, username, email, role, created_at',
-      [username, email, password, role || 'user']
+      'INSERT INTO users (username, email, password, role, permissions, created_at) VALUES ($1, $2, $3, $4, $5, NOW()) RETURNING id, username, email, role, permissions, created_at',
+      [username, email, password, role || 'user', permissionsJson]
     );
     res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error('User create error:', error);
-    res.status(500).json({ error: 'User oluşturulamadı' });
+    res.status(500).json({ error: 'User oluşturulamadı', details: error.message });
   }
 });
 
-app.put('/api/users/:id', async (req, res) => {
+app.put('/api/users', async (req, res) => {
   try {
-    const { id } = req.params;
-    const { username, email, password, role } = req.body;
-    let query = 'UPDATE users SET username = $1, email = $2, role = $3';
-    let params = [username, email, role];
+    const { id } = req.query; // Query parametresinden al
+    const { username, email, password, role, permissions } = req.body;
     
-    if (password) {
-      query += ', password = $4';
-      params.push(password);
+    if (!id) {
+      return res.status(400).json({ error: 'Kullanıcı ID gerekli' });
     }
     
-    query += ', updated_at = NOW() WHERE id = $' + (params.length + 1) + ' RETURNING id, username, email, role, created_at';
+    console.log('🔍 User update request:', { id, username, email, role, permissions });
+    
+    // Permissions'ları doğru formatta hazırla - JSONB için JSON.stringify kullan
+    let permissionsData = ['Ana Sayfa'];
+    if (permissions && Array.isArray(permissions)) {
+      permissionsData = permissions;
+    }
+    
+    // JSONB için JSON.stringify kullan
+    const permissionsJson = JSON.stringify(permissionsData);
+    
+    // Önce updated_at alanının var olup olmadığını kontrol et
+    const columnCheck = await pool.query(`
+      SELECT 1 FROM information_schema.columns 
+      WHERE table_name = 'users' AND column_name = 'updated_at'
+    `);
+    
+    const hasUpdatedAt = columnCheck.rows.length > 0;
+    
+    let query = 'UPDATE users SET username = $1, email = $2, role = $3, permissions = $4';
+    let params = [username, email, role || 'user', permissionsJson];
+    
+    if (password && password.trim() !== '') {
+      query = 'UPDATE users SET username = $1, email = $2, role = $3, permissions = $4, password = $5';
+      params = [username, email, role || 'user', permissionsJson, password];
+    }
+    
+    // updated_at alanı varsa ekle
+    if (hasUpdatedAt) {
+      query += ', updated_at = NOW()';
+    }
+    
+    query += ' WHERE id = $' + (params.length + 1) + ' RETURNING id, username, email, role, permissions, created_at';
     params.push(id);
+    
+    console.log('🔍 SQL Query:', query);
+    console.log('🔍 SQL Params:', params);
+    console.log('🔍 Has updated_at column:', hasUpdatedAt);
+    console.log('🔍 Permissions JSON:', permissionsJson);
     
     const result = await pool.query(query, params);
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'User bulunamadı.' });
     }
+    
+    console.log('🔍 User updated successfully:', result.rows[0]);
     res.json(result.rows[0]);
   } catch (error) {
     console.error('User update error:', error);
-    res.status(500).json({ error: 'User güncellenemedi' });
+    res.status(500).json({ error: 'User güncellenemedi', details: error.message });
   }
 });
 
-app.delete('/api/users/:id', async (req, res) => {
+app.delete('/api/users', async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id } = req.query; // Query parametresinden al
+    
+    if (!id) {
+      return res.status(400).json({ error: 'Kullanıcı ID gerekli' });
+    }
+    
     const result = await pool.query('DELETE FROM users WHERE id = $1 RETURNING id', [id]);
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'User bulunamadı.' });
@@ -791,6 +1215,65 @@ app.delete('/api/users/:id', async (req, res) => {
   } catch (error) {
     console.error('User delete error:', error);
     res.status(500).json({ error: 'User silinemedi' });
+  }
+});
+
+// Database migration endpoint - updated_at alanını ekle
+app.post('/api/migrate-users', async (req, res) => {
+  try {
+    // Users tablosuna updated_at alanını ekle (eğer yoksa)
+    await pool.query(`
+      DO $$ 
+      BEGIN 
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name = 'users' AND column_name = 'updated_at'
+        ) THEN 
+          ALTER TABLE users ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+        END IF;
+      END $$;
+    `);
+    
+    res.json({ message: 'Users tablosu güncellendi - updated_at alanı eklendi' });
+  } catch (error) {
+    console.error('Migration error:', error);
+    res.status(500).json({ error: 'Migration başarısız', details: error.message });
+  }
+});
+
+// Database migration endpoint - completion_date alanını ekle
+app.post('/api/migrate-control-items', async (req, res) => {
+  try {
+    // Control_items tablosuna completion_date alanını ekle (eğer yoksa)
+    await pool.query(`
+      DO $$ 
+      BEGIN 
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name = 'control_items' AND column_name = 'completion_date'
+        ) THEN 
+          ALTER TABLE control_items ADD COLUMN completion_date DATE;
+        END IF;
+      END $$;
+    `);
+    
+    // approval_status alanını da ekle (eğer yoksa)
+    await pool.query(`
+      DO $$ 
+      BEGIN 
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name = 'control_items' AND column_name = 'approval_status'
+        ) THEN 
+          ALTER TABLE control_items ADD COLUMN approval_status VARCHAR(20) DEFAULT 'pending';
+        END IF;
+      END $$;
+    `);
+    
+    res.json({ message: 'Control_items tablosu güncellendi - completion_date ve approval_status alanları eklendi' });
+  } catch (error) {
+    console.error('Migration error:', error);
+    res.status(500).json({ error: 'Migration başarısız', details: error.message });
   }
 });
 

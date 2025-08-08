@@ -13,15 +13,18 @@ export interface Facility {
 
 // ControlItem type definition
 export interface ControlItem {
-  id: number;
+  id: string | number;
+  displayId?: number;
   recordNo?: number; // Kayıt numarası
-  title: string;
+  title?: string;
   description?: string;
-  period: string;
+  period?: string;
   frequency?: string; // Backend'de frequency alanı da kullanılıyor
   date: string;
   facility_id?: number;
+  facilityId?: string;
   work_done?: string;
+  workDone?: string;
   user?: string;
   user_name?: string; // Backend'den gelen user_name alanı
   item_name?: string; // Backend'den gelen item_name alanı
@@ -29,6 +32,8 @@ export interface ControlItem {
   approval_status?: string; // Onay durumu
   completion_date?: string; // Tamamlanma tarihi
   created_at?: string;
+  table_name?: string;
+  item_type?: string;
 }
 
 export interface Message {
@@ -146,18 +151,18 @@ class ApiService {
     return this.request<ControlItem[]>(`/control-items/pending-approvals${user ? `?user=${user}` : ''}`);
   }
 
-  async approveControlItem(id: number, approvedBy: string): Promise<any> {
+  async approveControlItem(id: string, approvedBy: string): Promise<any> {
     this.log('info', `Approving control item ${id}`, { approvedBy });
     return this.request<any>(`/control-items/${id}/approve`, {
-      method: 'POST',
+      method: 'PUT',
       body: JSON.stringify({ approvedBy }),
     });
   }
 
-  async rejectControlItem(id: number, rejectedBy: string, reason: string): Promise<any> {
+  async rejectControlItem(id: string, rejectedBy: string, reason: string): Promise<any> {
     this.log('warn', `Rejecting control item ${id}`, { rejectedBy, reason });
     return this.request<any>(`/control-items/${id}/reject`, {
-      method: 'POST',
+      method: 'PUT',
       body: JSON.stringify({ rejectedBy, reason }),
     });
   }
@@ -272,7 +277,7 @@ class ApiService {
 
   async updateUser(id: number, user: { username: string; email: string; password?: string; role: string; permissions?: string[] }): Promise<any> {
     this.log('info', `Updating user ${id}`, user);
-    return this.request<any>(`/users/${id}`, {
+    return this.request<any>(`/users?id=${id}`, {
       method: 'PUT',
       body: JSON.stringify(user),
     });
@@ -280,7 +285,7 @@ class ApiService {
 
   async deleteUser(id: number): Promise<any> {
     this.log('warn', `Deleting user ${id}`);
-    return this.request<any>(`/users/${id}`, {
+    return this.request<any>(`/users?id=${id}`, {
       method: 'DELETE',
     });
   }

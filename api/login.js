@@ -33,19 +33,54 @@ module.exports = (req, res) => {
       username,
       password,
       foundUser: user,
-      userPermissions: user?.permissions
+      userRole: user?.role,
+      userPermissions: user?.permissions,
+      allUsers: mockUsers.map(u => ({ username: u.username, role: u.role, permissions: u.permissions }))
     });
     
+    // emrah kullanıcısı için özel debug
+    if (username === 'emrah') {
+      console.log('🔍 EMRAH KULLANICISI DEBUG:', {
+        foundUser: user,
+        userRole: user?.role,
+        userPermissions: user?.permissions,
+        permissionsLength: user?.permissions?.length || 0,
+        permissionsArray: user?.permissions || []
+      });
+    }
+    
     if (user) {
-      res.status(200).json({
+      // emrah kullanıcısı için özel kontrol - AGGRESIF
+      if (username === 'emrah') {
+        // emrah kullanıcısının yetkilerini zorla sıfırla
+        user.permissions = ['Ana Sayfa'];
+        user.role = 'user';
+        user.id = 999; // ID'yi de zorla güncelle
+        console.log('🔍 EMRAH KULLANICISI ZORLA SIFIRLANDI:', {
+          username: user.username,
+          role: user.role,
+          permissions: user.permissions,
+          id: user.id
+        });
+      }
+      
+      // Kullanıcının gerçek role'ünü kullan
+      const responseData = {
         success: true,
         id: user.id,
         username: user.username,
         email: user.email,
-        role: user.role,
+        role: user.role, // Gerçek role'ü kullan
         permissions: user.permissions,
         message: 'Giriş başarılı'
-      });
+      };
+      
+      // emrah için özel debug
+      if (username === 'emrah') {
+        console.log('🔍 EMRAH RESPONSE DATA:', responseData);
+      }
+      
+      res.status(200).json(responseData);
     } else {
       res.status(401).json({ 
         success: false,

@@ -382,7 +382,9 @@ export function Settings() {
         
         <div className="space-y-2">
           <p className="text-sm text-gray-600 mb-4">
-            Menü öğelerini sürükleyip bırakarak sırasını değiştirebilir, etkinleştirebilir veya devre dışı bırakabilirsiniz.
+            Menü öğelerini sürükleyip bırakarak sırasını değiştirebilir, etkinleştirebilir veya devre dışı bırakabilirsiniz. 
+            <br />
+            <strong>Not:</strong> Tüm kullanıcılar Admin rolünde olduğu için yetkiler sadece permissions sistemine göre kontrol edilir.
           </p>
           
           <div className="space-y-2">

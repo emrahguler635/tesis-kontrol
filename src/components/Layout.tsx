@@ -111,7 +111,7 @@ export function Layout({ children }: LayoutProps) {
       <Navbar />
       <div className="flex flex-1 overflow-hidden relative z-10">
         <Sidebar />
-        <main className={classes.main}>
+        <main className={`${classes.main} min-w-0 flex-1`}>
           <div className={classes.content}>
             {children}
           </div>

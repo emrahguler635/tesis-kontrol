@@ -27,23 +27,31 @@ export function Login() {
       const data = await apiService.login({ username, password });
 
       if (data.success !== false) {
-        // Kullanıcı verilerini hazırla
+        // Kullanıcı verilerini hazırla - backend'den gelen role'ü kullan
         const userData = {
           id: data.id || data.user?.id || '1',
           username: data.username || data.user?.username || username,
           email: data.email || data.user?.email || `${username}@example.com`,
-          role: data.role || data.user?.role || 'user',
-          permissions: data.permissions || data.user?.permissions || []
+          role: data.role || data.user?.role || 'user', // Backend'den gelen role'ü kullan
+          permissions: data.permissions || data.user?.permissions || ['Ana Sayfa']
         };
         
-        // Admin kullanıcısı için tüm modülleri ekle
-        if (userData.role === 'admin') {
-          userData.permissions = [
-            'Ana Sayfa', 'Tesisler', 'Günlük İş Programı', 'Toplam Yapılan İşler', 
-            'Raporlar', 'Mesaj Yönetimi', 'BağTV', 'Veri Kontrol', 'Onay Yönetimi', 
-            'Yapılan İşler', 'Ayarlar', 'Kullanıcı Yönetimi'
-          ];
-        }
+        // Debug için console log
+        console.log('🔍 Login Debug - Frontend:', {
+          backendData: data,
+          preparedUserData: userData,
+          username: username,
+          permissionsLength: userData.permissions?.length || 0,
+          permissionsArray: userData.permissions || []
+        });
+        
+        // Cache temizleme - localStorage'ı temizle
+        localStorage.removeItem('auth');
+        sessionStorage.removeItem('auth');
+        
+        // Tüm cache'i temizle
+        localStorage.clear();
+        sessionStorage.clear();
         
         // Kullanıcı verilerini store'a kaydet
         useAuthStore.getState().login(userData);
