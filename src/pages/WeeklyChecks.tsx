@@ -5,7 +5,7 @@ import { apiService } from '../services/api';
 import { useAuthStore } from '../store';
 import { 
   TrendingUp, Target, CheckCircle, Clock, Activity, 
-  Edit, Trash2, Copy, Filter, Calendar, User, Search, Building2 
+  Edit, Trash2, Copy, Filter, Calendar, User, Search, Building2, Eye
 } from 'lucide-react';
 
 interface ControlItem {
@@ -45,6 +45,8 @@ export const WeeklyChecks: React.FC = () => {
   const [filterStartDate, setFilterStartDate] = useState('');
   const [filterEndDate, setFilterEndDate] = useState('');
   const [filterUser, setFilterUser] = useState('all');
+  const [selectedItem, setSelectedItem] = useState<ControlItem | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const [screenSize, setScreenSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight
@@ -202,16 +204,25 @@ export const WeeklyChecks: React.FC = () => {
   const handleModalSave = async (data: any) => {
     try {
       if (editingItem) {
-        await apiService.updateControlItem(editingItem.id, data);
+        await apiService.updateControlItem(editingItem.id.toString(), data);
       } else {
         await apiService.createControlItem(data);
       }
       loadData();
       handleModalClose();
     } catch (error) {
-      console.error('İş kaydedilirken hata:', error);
-      alert('İş kaydedilirken bir hata oluştu.');
+      console.error('Kaydetme hatası:', error);
     }
+  };
+
+  const handleViewDetails = (item: ControlItem) => {
+    setSelectedItem(item);
+    setShowDetailModal(true);
+  };
+
+  const closeDetailModal = () => {
+    setShowDetailModal(false);
+    setSelectedItem(null);
   };
 
   const getFacilityName = (facilityId: string) => {
@@ -472,34 +483,22 @@ export const WeeklyChecks: React.FC = () => {
             <table className="w-full border border-gray-300">
               <thead className="sticky top-0 bg-white/90 backdrop-blur-sm z-10">
                 <tr className="border-b-2 border-gray-400">
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
                     KAYIT NO
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
                     İŞ ADI
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
-                    AÇIKLAMA
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
-                    YAPILAN İŞ
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
                     TARİH
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
                     TAMAMLANMA
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
-                    KULLANICI
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
-                    TESİS
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
                     DURUM
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
                     İŞLEMLER
                   </th>
                 </tr>
@@ -509,72 +508,55 @@ export const WeeklyChecks: React.FC = () => {
                   .sort((a, b) => (b.recordNo || b.id) - (a.recordNo || a.id))
                   .map((item, index) => (
                   <tr key={item.id} className="hover:bg-gray-50 transition-colors duration-200">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                       <div className="flex items-center">
-                        <div className="flex-shrink-0 h-8 w-8">
-                          <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center">
+                        <div className="flex-shrink-0 h-6 w-6">
+                          <div className="h-6 w-6 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center">
                             <span className="text-xs font-bold text-white">{item.recordNo || item.id}</span>
                           </div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900 max-w-48 truncate" title={item.name || item.title || item.item_name}>
                         {item.name || item.title || item.item_name}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">
-                      {item.description}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">
-                      {item.work_done || '-'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                       <div className="flex items-center">
-                        <Calendar className="h-4 w-4 text-gray-400 mr-2" />
+                        <Calendar className="h-3 w-3 text-gray-400 mr-1" />
                         {new Date(item.date).toLocaleDateString('tr-TR')}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                       <div className="flex items-center">
-                        <CheckCircle className="h-4 w-4 text-gray-400 mr-2" />
+                        <CheckCircle className="h-3 w-3 text-gray-400 mr-1" />
                         {item.completion_date ? new Date(item.completion_date).toLocaleDateString('tr-TR') : '-'}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-8 w-8">
-                          <div className="h-8 w-8 rounded-full bg-gradient-to-r from-purple-500 to-purple-600 flex items-center justify-center">
-                            <User className="h-4 w-4 text-white" />
-                          </div>
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">{item.user_name || item.user}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <div className="flex items-center">
-                        <Building2 className="h-4 w-4 text-gray-400 mr-2" />
-                        {getFacilityName(item.facility_id)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(item.status)}`}>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(item.status)}`}>
                         {getStatusIcon(item.status)} {getStatusText(item.status)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex items-center justify-end gap-2">
+                    <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => handleViewDetails(item)}
+                          className="p-1 text-blue-600 hover:text-blue-800 transition-colors"
+                          title="Detayları Görüntüle"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
                         <button
                           onClick={() => handleEdit(item)}
-                          className="p-1 text-blue-600 hover:text-blue-800 transition-colors"
+                          className="p-1 text-green-600 hover:text-green-800 transition-colors"
                           title="Düzenle"
                         >
                           <Edit className="h-4 w-4" />
                         </button>
                         <button
-                          onClick={() => handleDelete(item.id)}
+                          onClick={() => handleDelete(item.id.toString())}
                           className="p-1 text-red-600 hover:text-red-800 transition-colors"
                           title="Sil"
                         >
@@ -638,6 +620,91 @@ export const WeeklyChecks: React.FC = () => {
                 className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-lg hover:from-purple-600 hover:to-pink-700 transition-all duration-200 disabled:opacity-50"
               >
                 {copyLoading ? 'Kopyalanıyor...' : 'Kopyala'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Detay Modal'ı */}
+      {showDetailModal && selectedItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">İş Detayları</h2>
+              <button
+                onClick={closeDetailModal}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Kayıt No</h3>
+                  <p className="text-sm text-gray-900">{selectedItem.recordNo || selectedItem.id}</p>
+                </div>
+                
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">İş Adı</h3>
+                  <p className="text-sm text-gray-900">{selectedItem.name || selectedItem.title || selectedItem.item_name || 'Belirtilmemiş'}</p>
+                </div>
+                
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Tarih</h3>
+                  <p className="text-sm text-gray-900">{new Date(selectedItem.date).toLocaleDateString('tr-TR')}</p>
+                </div>
+                
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Tamamlanma Tarihi</h3>
+                  <p className="text-sm text-gray-900">
+                    {selectedItem.completion_date ? new Date(selectedItem.completion_date).toLocaleDateString('tr-TR') : 'Belirtilmemiş'}
+                  </p>
+                </div>
+                
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Kullanıcı</h3>
+                  <p className="text-sm text-gray-900">{selectedItem.user_name || selectedItem.user || 'Belirtilmemiş'}</p>
+                </div>
+                
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Tesis</h3>
+                  <p className="text-sm text-gray-900">{getFacilityName(selectedItem.facility_id)}</p>
+                </div>
+                
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Durum</h3>
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(selectedItem.status)}`}>
+                    {getStatusIcon(selectedItem.status)} {getStatusText(selectedItem.status)}
+                  </span>
+                </div>
+              </div>
+              
+              {selectedItem.description && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Açıklama</h3>
+                  <p className="text-sm text-gray-900 mt-1">{selectedItem.description}</p>
+                </div>
+              )}
+              
+              {selectedItem.work_done && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Yapılan İş</h3>
+                  <p className="text-sm text-gray-900 mt-1">{selectedItem.work_done}</p>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex justify-end p-6 border-t border-gray-200">
+              <button
+                onClick={closeDetailModal}
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                Kapat
               </button>
             </div>
           </div>
