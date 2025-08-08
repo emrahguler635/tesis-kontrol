@@ -638,81 +638,155 @@ export const WeeklyChecks: React.FC = () => {
 
       {/* Detay Modal'ı */}
       {showDetailModal && selectedItem && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">İş Detayları</h2>
-              <button
-                onClick={closeDetailModal}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden">
+            {/* Header */}
+            <div className="relative bg-gradient-to-r from-purple-500 to-pink-600 text-white p-6 rounded-t-2xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white/20 rounded-xl">
+                    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold">İş Detayları</h2>
+                    <p className="text-purple-100 text-sm">Kayıt No: {selectedItem.recordNo || selectedItem.id}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={closeDetailModal}
+                  className="p-2 hover:bg-white/20 rounded-xl transition-colors"
+                >
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
             </div>
             
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Kayıt No</h3>
-                  <p className="text-sm text-gray-900">{selectedItem.recordNo || selectedItem.id}</p>
+            {/* Content */}
+            <div className="p-6 space-y-6">
+              {/* Ana Bilgiler */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-100">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="p-1.5 bg-blue-500 rounded-lg">
+                        <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      </div>
+                      <h3 className="font-semibold text-blue-900">İş Adı</h3>
+                    </div>
+                    <p className="text-blue-800 font-medium">{selectedItem.name || selectedItem.title || selectedItem.item_name || 'Belirtilmemiş'}</p>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-xl border border-green-100">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="p-1.5 bg-green-500 rounded-lg">
+                        <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <h3 className="font-semibold text-green-900">Tarih</h3>
+                    </div>
+                    <p className="text-green-800 font-medium">{new Date(selectedItem.date).toLocaleDateString('tr-TR')}</p>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-4 rounded-xl border border-purple-100">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="p-1.5 bg-purple-500 rounded-lg">
+                        <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      </div>
+                      <h3 className="font-semibold text-purple-900">Kullanıcı</h3>
+                    </div>
+                    <p className="text-purple-800 font-medium">{selectedItem.user_name || selectedItem.user || 'Belirtilmemiş'}</p>
+                  </div>
                 </div>
-                
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">İş Adı</h3>
-                  <p className="text-sm text-gray-900">{selectedItem.name || selectedItem.title || selectedItem.item_name || 'Belirtilmemiş'}</p>
-                </div>
-                
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Tarih</h3>
-                  <p className="text-sm text-gray-900">{new Date(selectedItem.date).toLocaleDateString('tr-TR')}</p>
-                </div>
-                
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Tamamlanma Tarihi</h3>
-                  <p className="text-sm text-gray-900">
-                    {selectedItem.completion_date ? new Date(selectedItem.completion_date).toLocaleDateString('tr-TR') : 'Belirtilmemiş'}
-                  </p>
-                </div>
-                
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Kullanıcı</h3>
-                  <p className="text-sm text-gray-900">{selectedItem.user_name || selectedItem.user || 'Belirtilmemiş'}</p>
-                </div>
-                
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Tesis</h3>
-                  <p className="text-sm text-gray-900">{getFacilityName(selectedItem.facility_id)}</p>
-                </div>
-                
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Durum</h3>
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(selectedItem.status, selectedItem.completion_date)}`}>
-                    {getStatusIcon(selectedItem.status, selectedItem.completion_date)} {getStatusText(selectedItem.status, selectedItem.completion_date)}
-                  </span>
+
+                <div className="space-y-4">
+                  <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-4 rounded-xl border border-orange-100">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="p-1.5 bg-orange-500 rounded-lg">
+                        <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <h3 className="font-semibold text-orange-900">Tamamlanma Tarihi</h3>
+                    </div>
+                    <p className="text-orange-800 font-medium">
+                      {selectedItem.completion_date ? new Date(selectedItem.completion_date).toLocaleDateString('tr-TR') : 'Belirtilmemiş'}
+                    </p>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-indigo-50 to-blue-50 p-4 rounded-xl border border-indigo-100">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="p-1.5 bg-indigo-500 rounded-lg">
+                        <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                      </div>
+                      <h3 className="font-semibold text-indigo-900">Tesis</h3>
+                    </div>
+                    <p className="text-indigo-800 font-medium">{getFacilityName(selectedItem.facility_id)}</p>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-emerald-50 to-teal-50 p-4 rounded-xl border border-emerald-100">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="p-1.5 bg-emerald-500 rounded-lg">
+                        <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <h3 className="font-semibold text-emerald-900">Durum</h3>
+                    </div>
+                    <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium ${getStatusColor(selectedItem.status, selectedItem.completion_date)}`}>
+                      {getStatusIcon(selectedItem.status, selectedItem.completion_date)} {getStatusText(selectedItem.status, selectedItem.completion_date)}
+                    </span>
+                  </div>
                 </div>
               </div>
               
-              {selectedItem.description && (
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Açıklama</h3>
-                  <p className="text-sm text-gray-900 mt-1">{selectedItem.description}</p>
-                </div>
-              )}
-              
-              {selectedItem.work_done && (
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Yapılan İş</h3>
-                  <p className="text-sm text-gray-900 mt-1">{selectedItem.work_done}</p>
-                </div>
-              )}
+              {/* Açıklama ve Yapılan İş */}
+              <div className="space-y-4">
+                {selectedItem.description && (
+                  <div className="bg-gradient-to-br from-gray-50 to-slate-50 p-4 rounded-xl border border-gray-200">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="p-1.5 bg-gray-500 rounded-lg">
+                        <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      </div>
+                      <h3 className="font-semibold text-gray-900">Açıklama</h3>
+                    </div>
+                    <p className="text-gray-700 leading-relaxed">{selectedItem.description}</p>
+                  </div>
+                )}
+                
+                {selectedItem.work_done && (
+                  <div className="bg-gradient-to-br from-yellow-50 to-amber-50 p-4 rounded-xl border border-yellow-200">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="p-1.5 bg-yellow-500 rounded-lg">
+                        <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                      </div>
+                      <h3 className="font-semibold text-yellow-900">Yapılan İş</h3>
+                    </div>
+                    <p className="text-yellow-800 leading-relaxed">{selectedItem.work_done}</p>
+                  </div>
+                )}
+              </div>
             </div>
             
-            <div className="flex justify-end p-6 border-t border-gray-200">
+            {/* Footer */}
+            <div className="flex justify-end p-6 border-t border-gray-100 bg-gray-50">
               <button
                 onClick={closeDetailModal}
-                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-xl hover:from-purple-600 hover:to-pink-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
               >
                 Kapat
               </button>
