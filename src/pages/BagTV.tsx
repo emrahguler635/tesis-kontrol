@@ -617,40 +617,93 @@ const BagTV: React.FC = () => {
 
       {/* Tüm Kontroller Paneli */}
       {showAllControls && (
-        <div className="bg-white rounded-lg p-6 w-full shadow-lg mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
-            <h2 className="text-xl font-bold">Tüm Tesislerin Kontrol Geçmişi</h2>
+        <div className="bg-white rounded-lg p-4 w-full shadow-lg mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 gap-2">
+            <h2 className="text-lg font-bold">Tüm Tesislerin Kontrol Geçmişi</h2>
             <div className="flex flex-col sm:flex-row gap-2 items-center">
-              <input type="date" value={allFilterStart} onChange={e => setAllFilterStart(e.target.value)} className="border rounded px-2 py-1" />
-              <span>-</span>
-              <input type="date" value={allFilterEnd} onChange={e => setAllFilterEnd(e.target.value)} className="border rounded px-2 py-1" />
-              <button onClick={handleAllFilter} className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs">Filtrele</button>
-              <button onClick={handleAllExportExcel} className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-xs">Excel'e Aktar</button>
+              <div className="flex items-center gap-1">
+                <input 
+                  type="date" 
+                  value={allFilterStart} 
+                  onChange={e => setAllFilterStart(e.target.value)} 
+                  className="border rounded px-2 py-1 text-sm" 
+                />
+                <span className="text-gray-500">-</span>
+                <input 
+                  type="date" 
+                  value={allFilterEnd} 
+                  onChange={e => setAllFilterEnd(e.target.value)} 
+                  className="border rounded px-2 py-1 text-sm" 
+                />
+              </div>
+              <div className="flex gap-1">
+                <button 
+                  onClick={handleAllFilter} 
+                  className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs"
+                >
+                  Filtrele
+                </button>
+                <button 
+                  onClick={handleAllExportExcel} 
+                  className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-xs"
+                >
+                  Excel'e Aktar
+                </button>
+              </div>
             </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+          <div className="overflow-x-auto max-h-[60vh]">
+            <table className="min-w-full divide-y divide-gray-200 text-sm">
+              <thead className="bg-gray-50 sticky top-0 z-10">
                 <tr>
-                  <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase">Tesis</th>
-                  <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase">Tarih</th>
-                  <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase">Ne Yapıldı</th>
-                  <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase">Açıklama</th>
-                  <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase">Kontrol Eden</th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Tesis
+                  </th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Tarih
+                  </th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Ne Yapıldı
+                  </th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Açıklama
+                  </th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Kontrol Eden
+                  </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="bg-white divide-y divide-gray-200">
                 {allFilteredControls.map((control: any) => (
-                  <tr key={control._id}>
-                    <td className="px-2 py-1">{(facilities.find((f: any) => f._id === control.facilityId || f.id === control.facilityId)?.name) || ''}</td>
-                    <td className="px-2 py-1">{control.date ? new Date(control.date).toLocaleDateString('tr-TR') : ''}</td>
-                    <td className="px-2 py-1">{control.action}</td>
-                    <td className="px-2 py-1">{control.description}</td>
-                    <td className="px-2 py-1">{control.checkedBy}</td>
+                  <tr key={control._id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-2 py-2 text-xs font-medium text-gray-900">
+                      {(facilities.find((f: any) => f._id === control.facilityId || f.id === control.facilityId)?.name) || ''}
+                    </td>
+                    <td className="px-2 py-2 text-xs text-gray-900">
+                      {control.date ? new Date(control.date).toLocaleDateString('tr-TR') : ''}
+                    </td>
+                    <td className="px-2 py-2 text-xs text-gray-900 max-w-32 truncate" title={control.action}>
+                      {control.action}
+                    </td>
+                    <td className="px-2 py-2 text-xs text-gray-600 max-w-48 truncate" title={control.description}>
+                      {control.description}
+                    </td>
+                    <td className="px-2 py-2 text-xs text-gray-900">
+                      {control.checkedBy || '-'}
+                    </td>
                   </tr>
                 ))}
                 {allFilteredControls.length === 0 && (
-                  <tr><td colSpan={5} className="text-center text-gray-400 py-2">Kayıt yok</td></tr>
+                  <tr>
+                    <td colSpan={5} className="text-center text-gray-400 py-4">
+                      <div className="flex flex-col items-center gap-2">
+                        <svg className="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span className="text-sm">Kayıt bulunamadı</span>
+                      </div>
+                    </td>
+                  </tr>
                 )}
               </tbody>
             </table>
