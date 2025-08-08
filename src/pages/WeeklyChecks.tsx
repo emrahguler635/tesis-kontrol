@@ -365,9 +365,9 @@ export const WeeklyChecks: React.FC = () => {
       {/* Başlık ve İstatistikler */}
       <div className={classes.header}>
         <div className="flex items-center justify-between mb-1">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl">
-              <TrendingUp className="h-7 w-7 text-white" />
+          <div className="flex items-center gap-2">
+            <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg">
+              <TrendingUp className="h-5 w-5 text-white" />
             </div>
             <div>
               <h1 className={`font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent ${classes.title}`}>
@@ -380,50 +380,50 @@ export const WeeklyChecks: React.FC = () => {
 
         {/* İstatistik Kartları */}
         <div className={classes.statsGrid}>
-          <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-2">
-            <div className="flex items-center gap-2">
-              <div className="p-1 bg-white/20 rounded-lg">
-                <Target className="h-5 w-5" />
+          <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-1">
+            <div className="flex items-center gap-1">
+              <div className="p-1 bg-white/20 rounded">
+                <Target className="h-4 w-4" />
               </div>
               <div>
                 <p className="text-xs opacity-90">Toplam İş</p>
-                <p className="text-xl font-bold">{totalItems}</p>
+                <p className="text-lg font-bold">{totalItems}</p>
               </div>
             </div>
           </Card>
 
-          <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white p-2">
-            <div className="flex items-center gap-2">
-              <div className="p-1 bg-white/20 rounded-lg">
-                <CheckCircle className="h-5 w-5" />
+          <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white p-1">
+            <div className="flex items-center gap-1">
+              <div className="p-1 bg-white/20 rounded">
+                <CheckCircle className="h-4 w-4" />
               </div>
               <div>
                 <p className="text-xs opacity-90">Tamamlanan</p>
-                <p className="text-xl font-bold">{completedItems}</p>
+                <p className="text-lg font-bold">{completedItems}</p>
               </div>
             </div>
           </Card>
 
-          <Card className="bg-gradient-to-r from-yellow-500 to-orange-600 text-white p-2">
-            <div className="flex items-center gap-2">
-              <div className="p-1 bg-white/20 rounded-lg">
-                <Clock className="h-5 w-5" />
+          <Card className="bg-gradient-to-r from-yellow-500 to-orange-600 text-white p-1">
+            <div className="flex items-center gap-1">
+              <div className="p-1 bg-white/20 rounded">
+                <Clock className="h-4 w-4" />
               </div>
               <div>
                 <p className="text-xs opacity-90">Bekleyen</p>
-                <p className="text-xl font-bold">{pendingItems}</p>
+                <p className="text-lg font-bold">{pendingItems}</p>
               </div>
             </div>
           </Card>
 
-          <Card className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white p-2">
-            <div className="flex items-center gap-2">
-              <div className="p-1 bg-white/20 rounded-lg">
-                <Activity className="h-5 w-5" />
+          <Card className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white p-1">
+            <div className="flex items-center gap-1">
+              <div className="p-1 bg-white/20 rounded">
+                <Activity className="h-4 w-4" />
               </div>
               <div>
                 <p className="text-xs opacity-90">İşlemde</p>
-                <p className="text-xl font-bold">{inProgressItems}</p>
+                <p className="text-lg font-bold">{inProgressItems}</p>
               </div>
             </div>
           </Card>
@@ -466,7 +466,7 @@ export const WeeklyChecks: React.FC = () => {
             <div className="flex items-end">
               <button
                 onClick={() => setCopyModalOpen(true)}
-                className="w-full bg-gradient-to-r from-purple-500 to-pink-600 text-white px-3 py-1 text-sm rounded-lg hover:from-purple-600 hover:to-pink-700 transition-all duration-200 flex items-center justify-center gap-1"
+                className="w-full bg-gradient-to-r from-purple-500 to-pink-600 text-white px-2 py-1 text-xs rounded-lg hover:from-purple-600 hover:to-pink-700 transition-all duration-200 flex items-center justify-center gap-1"
               >
                 <Copy className="h-3 w-3" />
                 Günlük İşleri Kopyala
@@ -478,7 +478,7 @@ export const WeeklyChecks: React.FC = () => {
 
       {/* Tablo Bölümü */}
       <div className={classes.tableContainer}>
-        <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-auto max-h-[calc(100vh-150px)]">
+        <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-auto max-h-[calc(100vh-100px)]">
           <div className={classes.table}>
             <table className="w-full border border-gray-300">
               <thead className="sticky top-0 bg-white/90 backdrop-blur-sm z-10">
