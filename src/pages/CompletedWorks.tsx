@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Card } from '../components/Card';
-import { CheckCircle, Calendar, User, Building, Clock, Filter } from 'lucide-react';
+import { CheckCircle, Calendar, User, Building, Clock, Filter, Eye } from 'lucide-react';
 import { apiService, ControlItem, Facility } from '../services/api';
 import { useAuthStore } from '../store';
 
@@ -19,6 +19,8 @@ const CompletedWorks: React.FC = () => {
   const [filterPeriod, setFilterPeriod] = useState<string>('all');
   const [filterFacility, setFilterFacility] = useState<string>('all');
   const [filterUser, setFilterUser] = useState<string>('all');
+  const [selectedWork, setSelectedWork] = useState<CompletedWork | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     const fetchCompletedWorks = async () => {
@@ -104,6 +106,16 @@ const CompletedWorks: React.FC = () => {
     return new Date(dateString).toLocaleDateString('tr-TR');
   };
 
+  const handleViewDetails = (work: CompletedWork) => {
+    setSelectedWork(work);
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedWork(null);
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -187,14 +199,8 @@ const CompletedWorks: React.FC = () => {
                 <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-16">
                   Kayıt No
                 </th>
-                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-40">
+                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-48">
                   İş Adı
-                </th>
-                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-48">
-                  Açıklama
-                </th>
-                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-48">
-                  Yapılan İş
                 </th>
                 <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-24">
                   Tarih
@@ -202,14 +208,11 @@ const CompletedWorks: React.FC = () => {
                 <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-24">
                   Tamamlanma
                 </th>
-                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-24">
-                  Kullanıcı
-                </th>
-                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-24">
-                  Tesis
-                </th>
                 <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-20">
                   Durum
+                </th>
+                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 w-16">
+                  Detay
                 </th>
               </tr>
             </thead>
@@ -225,28 +228,12 @@ const CompletedWorks: React.FC = () => {
                       </div>
                     </div>
                   </td>
-                  <td className="px-2 py-2 text-xs text-gray-900 max-w-40">
+                  <td className="px-2 py-2 text-xs text-gray-900 max-w-48">
                     <div 
                       className="truncate cursor-help hover:text-blue-600 transition-colors" 
                       title={work.title || 'Başlık belirtilmemiş'}
                     >
                       {work.title || 'Başlık belirtilmemiş'}
-                    </div>
-                  </td>
-                  <td className="px-2 py-2 text-xs text-gray-900 max-w-48">
-                    <div 
-                      className="truncate cursor-help hover:text-blue-600 transition-colors" 
-                      title={work.description || '-'}
-                    >
-                      {work.description || '-'}
-                    </div>
-                  </td>
-                  <td className="px-2 py-2 text-xs text-gray-900 max-w-48">
-                    <div 
-                      className="truncate cursor-help hover:text-blue-600 transition-colors" 
-                      title={work.work_done || '-'}
-                    >
-                      {work.work_done || '-'}
                     </div>
                   </td>
                   <td className="px-2 py-2 whitespace-nowrap text-xs text-gray-900">
@@ -261,27 +248,121 @@ const CompletedWorks: React.FC = () => {
                       {work.completion_date ? formatDate(work.completion_date) : '-'}
                     </div>
                   </td>
-                  <td className="px-2 py-2 whitespace-nowrap text-xs text-gray-900">
-                    <div className="flex items-center gap-1">
-                      <User className="h-3 w-3 text-purple-500" />
-                      <span className="truncate">{work.user_name || work.user || 'Belirtilmemiş'}</span>
-                    </div>
-                  </td>
-                  <td className="px-2 py-2 whitespace-nowrap text-xs text-gray-900">
-                    <div className="flex items-center gap-1">
-                      <Building className="h-3 w-3 text-gray-500" />
-                      <span className="truncate">{facilities.find(f => f.id === work.facility_id)?.name || 'Belirtilmemiş'}</span>
-                    </div>
-                  </td>
                   <td className="px-2 py-2 whitespace-nowrap">
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(work.status || '')}`}>
                       {getStatusText(work.status || '')}
                     </span>
                   </td>
+                  <td className="px-2 py-2 whitespace-nowrap">
+                    <button
+                      onClick={() => handleViewDetails(work)}
+                      className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
+                      title="Detayları Görüntüle"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Detay Modal */}
+      {showModal && selectedWork && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">İş Detayları</h2>
+              <button
+                onClick={closeModal}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Kayıt No</h3>
+                  <p className="text-sm text-gray-900">{selectedWork.id}</p>
+                </div>
+                
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">İş Adı</h3>
+                  <p className="text-sm text-gray-900">{selectedWork.title || 'Başlık belirtilmemiş'}</p>
+                </div>
+                
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Tarih</h3>
+                  <p className="text-sm text-gray-900">{formatDate(selectedWork.date)}</p>
+                </div>
+                
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Tamamlanma Tarihi</h3>
+                  <p className="text-sm text-gray-900">
+                    {selectedWork.completion_date ? formatDate(selectedWork.completion_date) : 'Belirtilmemiş'}
+                  </p>
+                </div>
+                
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Kullanıcı</h3>
+                  <p className="text-sm text-gray-900">{selectedWork.user_name || selectedWork.user || 'Belirtilmemiş'}</p>
+                </div>
+                
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Tesis</h3>
+                  <p className="text-sm text-gray-900">
+                    {facilities.find(f => f.id === selectedWork.facility_id)?.name || 'Belirtilmemiş'}
+                  </p>
+                </div>
+                
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Durum</h3>
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(selectedWork.status || '')}`}>
+                    {getStatusText(selectedWork.status || '')}
+                  </span>
+                </div>
+              </div>
+              
+              {selectedWork.description && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Açıklama</h3>
+                  <p className="text-sm text-gray-900 mt-1">{selectedWork.description}</p>
+                </div>
+              )}
+              
+              {selectedWork.work_done && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Yapılan İş</h3>
+                  <p className="text-sm text-gray-900 mt-1">{selectedWork.work_done}</p>
+                </div>
+              )}
+              
+              {selectedWork.approved_by && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Onaylayan</h3>
+                  <p className="text-sm text-gray-900">
+                    {selectedWork.approved_by}
+                    {selectedWork.approved_at && ` (${formatDate(selectedWork.approved_at)})`}
+                  </p>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex justify-end p-6 border-t border-gray-200">
+              <button
+                onClick={closeModal}
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                Kapat
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
