@@ -286,8 +286,8 @@ export const WeeklyChecks: React.FC = () => {
         header: "flex-shrink-0 p-1",
         title: "text-xl",
         subtitle: "text-sm",
-        statsGrid: "grid grid-cols-2 gap-2 mb-1",
-        filtersGrid: "grid grid-cols-1 gap-2 p-1",
+        statsGrid: "grid grid-cols-2 gap-1 mb-1",
+        filtersGrid: "grid grid-cols-1 gap-1 p-1",
         tableContainer: "flex-1 overflow-auto",
         table: "w-full"
       };
@@ -297,11 +297,11 @@ export const WeeklyChecks: React.FC = () => {
     if (width < 1024) {
       return {
         container: "min-h-screen flex flex-col",
-        header: "flex-shrink-0 p-2",
+        header: "flex-shrink-0 p-1",
         title: "text-2xl",
         subtitle: "text-sm",
-        statsGrid: "grid grid-cols-2 lg:grid-cols-4 gap-2 mb-2",
-        filtersGrid: "grid grid-cols-2 lg:grid-cols-4 gap-2 p-2",
+        statsGrid: "grid grid-cols-2 lg:grid-cols-4 gap-1 mb-1",
+        filtersGrid: "grid grid-cols-2 lg:grid-cols-4 gap-1 p-1",
         tableContainer: "flex-1 overflow-auto",
         table: "w-full"
       };
@@ -311,11 +311,11 @@ export const WeeklyChecks: React.FC = () => {
     if (width < 1440) {
       return {
         container: "min-h-screen flex flex-col",
-        header: "flex-shrink-0 p-3",
+        header: "flex-shrink-0 p-2",
         title: "text-3xl",
         subtitle: "text-base",
-        statsGrid: "grid grid-cols-2 lg:grid-cols-4 gap-2 mb-2",
-        filtersGrid: "grid grid-cols-2 lg:grid-cols-4 gap-2 p-2",
+        statsGrid: "grid grid-cols-2 lg:grid-cols-4 gap-2 mb-1",
+        filtersGrid: "grid grid-cols-2 lg:grid-cols-4 gap-2 p-1",
         tableContainer: "flex-1 overflow-auto",
         table: "w-full"
       };
@@ -324,11 +324,11 @@ export const WeeklyChecks: React.FC = () => {
     // Büyük ekranlar
     return {
       container: "min-h-screen flex flex-col",
-      header: "flex-shrink-0 p-4",
+      header: "flex-shrink-0 p-3",
       title: "text-4xl",
       subtitle: "text-lg",
-      statsGrid: "grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3",
-      filtersGrid: "grid grid-cols-2 lg:grid-cols-4 gap-3 p-3",
+      statsGrid: "grid grid-cols-2 lg:grid-cols-4 gap-2 mb-2",
+      filtersGrid: "grid grid-cols-2 lg:grid-cols-4 gap-2 p-2",
       tableContainer: "flex-1 overflow-auto",
       table: "w-full"
     };
@@ -364,7 +364,7 @@ export const WeeklyChecks: React.FC = () => {
     <div className={classes.container}>
       {/* Başlık ve İstatistikler */}
       <div className={classes.header}>
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl">
               <TrendingUp className="h-7 w-7 text-white" />
@@ -380,57 +380,57 @@ export const WeeklyChecks: React.FC = () => {
 
         {/* İstatistik Kartları */}
         <div className={classes.statsGrid}>
-          <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-3">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 rounded-lg">
-                <Target className="h-6 w-6" />
+          <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-2">
+            <div className="flex items-center gap-2">
+              <div className="p-1 bg-white/20 rounded-lg">
+                <Target className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm opacity-90">Toplam İş</p>
-                <p className="text-2xl font-bold">{totalItems}</p>
+                <p className="text-xs opacity-90">Toplam İş</p>
+                <p className="text-xl font-bold">{totalItems}</p>
               </div>
             </div>
           </Card>
 
-          <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white p-3">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 rounded-lg">
-                <CheckCircle className="h-6 w-6" />
+          <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white p-2">
+            <div className="flex items-center gap-2">
+              <div className="p-1 bg-white/20 rounded-lg">
+                <CheckCircle className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm opacity-90">Tamamlanan</p>
-                <p className="text-2xl font-bold">{completedItems}</p>
+                <p className="text-xs opacity-90">Tamamlanan</p>
+                <p className="text-xl font-bold">{completedItems}</p>
               </div>
             </div>
           </Card>
 
-          <Card className="bg-gradient-to-r from-yellow-500 to-orange-600 text-white p-3">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 rounded-lg">
-                <Clock className="h-6 w-6" />
+          <Card className="bg-gradient-to-r from-yellow-500 to-orange-600 text-white p-2">
+            <div className="flex items-center gap-2">
+              <div className="p-1 bg-white/20 rounded-lg">
+                <Clock className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm opacity-90">Bekleyen</p>
-                <p className="text-2xl font-bold">{pendingItems}</p>
+                <p className="text-xs opacity-90">Bekleyen</p>
+                <p className="text-xl font-bold">{pendingItems}</p>
               </div>
             </div>
           </Card>
 
-          <Card className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white p-3">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 rounded-lg">
-                <Activity className="h-6 w-6" />
+          <Card className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white p-2">
+            <div className="flex items-center gap-2">
+              <div className="p-1 bg-white/20 rounded-lg">
+                <Activity className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm opacity-90">İşlemde</p>
-                <p className="text-2xl font-bold">{inProgressItems}</p>
+                <p className="text-xs opacity-90">İşlemde</p>
+                <p className="text-xl font-bold">{inProgressItems}</p>
               </div>
             </div>
           </Card>
         </div>
 
         {/* Filtreler ve Kontroller */}
-        <Card className="backdrop-blur-sm bg-white/80 border border-white/20 shadow-xl mb-3">
+        <Card className="backdrop-blur-sm bg-white/80 border border-white/20 shadow-xl mb-1">
           <div className={classes.filtersGrid}>
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Başlangıç Tarihi</label>
@@ -478,7 +478,7 @@ export const WeeklyChecks: React.FC = () => {
 
       {/* Tablo Bölümü */}
       <div className={classes.tableContainer}>
-        <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-auto max-h-[calc(100vh-200px)]">
+        <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-auto max-h-[calc(100vh-150px)]">
           <div className={classes.table}>
             <table className="w-full border border-gray-300">
               <thead className="sticky top-0 bg-white/90 backdrop-blur-sm z-10">
