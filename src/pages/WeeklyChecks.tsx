@@ -85,13 +85,8 @@ export const WeeklyChecks: React.FC = () => {
         apiService.getFacilities()
       ]);
       
-      // Onaylanmış günlük işleri filtrele
-      const approvedDailyItems = dailyItems.filter(item => 
-        item.approval_status === 'approved' || item.status === 'Tamamlandı'
-      );
-      
-      // Haftalık işler ve onaylanmış günlük işleri birleştir
-      const allItems = [...weeklyItems, ...approvedDailyItems];
+      // Tüm günlük işleri dahil et (sadece tamamlanmış olanları değil)
+      const allItems = [...weeklyItems, ...dailyItems];
       
       setItems(allItems);
       setFilteredItems(allItems);
