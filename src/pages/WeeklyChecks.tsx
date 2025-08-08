@@ -282,55 +282,55 @@ export const WeeklyChecks: React.FC = () => {
     // Mobil
     if (width < 768) {
       return {
-        container: "h-screen flex flex-col overflow-hidden",
+        container: "min-h-screen flex flex-col",
         header: "flex-shrink-0 p-2",
         title: "text-xl",
         subtitle: "text-sm",
         statsGrid: "grid grid-cols-2 gap-2 mb-2",
         filtersGrid: "grid grid-cols-1 gap-2 p-2",
-        tableContainer: "flex-1 min-h-0 overflow-hidden",
-        table: "h-full overflow-auto"
+        tableContainer: "flex-1 overflow-visible",
+        table: "w-full"
       };
     }
     
     // Tablet
     if (width < 1024) {
       return {
-        container: "h-screen flex flex-col overflow-hidden",
+        container: "min-h-screen flex flex-col",
         header: "flex-shrink-0 p-3",
         title: "text-2xl",
         subtitle: "text-sm",
         statsGrid: "grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3",
         filtersGrid: "grid grid-cols-2 lg:grid-cols-4 gap-3 p-3",
-        tableContainer: "flex-1 min-h-0 overflow-hidden",
-        table: "h-full overflow-auto"
+        tableContainer: "flex-1 overflow-visible",
+        table: "w-full"
       };
     }
     
     // Desktop
     if (width < 1440) {
       return {
-        container: "h-screen flex flex-col overflow-hidden",
+        container: "min-h-screen flex flex-col",
         header: "flex-shrink-0 p-4",
         title: "text-3xl",
         subtitle: "text-base",
         statsGrid: "grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3",
         filtersGrid: "grid grid-cols-2 lg:grid-cols-4 gap-3 p-3",
-        tableContainer: "flex-1 min-h-0 overflow-hidden",
-        table: "h-full overflow-auto"
+        tableContainer: "flex-1 overflow-visible",
+        table: "w-full"
       };
     }
     
     // Büyük ekranlar
     return {
-      container: "h-screen flex flex-col overflow-hidden",
+      container: "min-h-screen flex flex-col",
       header: "flex-shrink-0 p-6",
       title: "text-4xl",
       subtitle: "text-lg",
       statsGrid: "grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4",
       filtersGrid: "grid grid-cols-2 lg:grid-cols-4 gap-4 p-4",
-      tableContainer: "flex-1 min-h-0 overflow-hidden",
-      table: "h-full overflow-auto"
+      tableContainer: "flex-1 overflow-visible",
+      table: "w-full"
     };
   };
 
@@ -478,7 +478,7 @@ export const WeeklyChecks: React.FC = () => {
 
       {/* Tablo Bölümü */}
       <div className={classes.tableContainer}>
-        <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden h-full">
+        <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-visible">
           <div className={classes.table}>
             <table className="w-full border border-gray-300">
               <thead className="sticky top-0 bg-white/90 backdrop-blur-sm z-10">
