@@ -225,7 +225,12 @@ export const WeeklyChecks: React.FC = () => {
     return facility?.name || 'Bilinmeyen Tesis';
   };
 
-  const getStatusColor = (status: string | undefined) => {
+  const getStatusColor = (status: string | undefined, completionDate?: string) => {
+    // Eğer completion_date varsa Tamamlandı olarak göster
+    if (completionDate) {
+      return 'bg-green-100 text-green-800 border-green-200';
+    }
+    
     switch (status?.toLowerCase()) {
       case 'tamamlandı':
         return 'bg-green-100 text-green-800 border-green-200';
@@ -236,11 +241,16 @@ export const WeeklyChecks: React.FC = () => {
       case 'yapılmadı':
         return 'bg-red-100 text-red-800 border-red-200';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-blue-100 text-blue-800 border-blue-200'; // Varsayılan olarak İşlemde
     }
   };
 
-  const getStatusIcon = (status: string | undefined) => {
+  const getStatusIcon = (status: string | undefined, completionDate?: string) => {
+    // Eğer completion_date varsa Tamamlandı olarak göster
+    if (completionDate) {
+      return '✅';
+    }
+    
     switch (status?.toLowerCase()) {
       case 'tamamlandı':
         return '✅';
@@ -251,11 +261,16 @@ export const WeeklyChecks: React.FC = () => {
       case 'yapılmadı':
         return '❌';
       default:
-        return '❓';
+        return '🔄'; // Varsayılan olarak İşlemde
     }
   };
 
-  const getStatusText = (status: string | undefined) => {
+  const getStatusText = (status: string | undefined, completionDate?: string) => {
+    // Eğer completion_date varsa Tamamlandı olarak göster
+    if (completionDate) {
+      return 'Tamamlandı';
+    }
+    
     switch (status?.toLowerCase()) {
       case 'tamamlandı':
         return 'Tamamlandı';
@@ -266,7 +281,7 @@ export const WeeklyChecks: React.FC = () => {
       case 'yapılmadı':
         return 'Yapılmadı';
       default:
-        return 'Belirsiz';
+        return 'İşlemde'; // Varsayılan olarak İşlemde
     }
   };
 
@@ -530,8 +545,8 @@ export const WeeklyChecks: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(item.status)}`}>
-                        {getStatusIcon(item.status)} {getStatusText(item.status)}
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(item.status, item.completion_date)}`}>
+                        {getStatusIcon(item.status, item.completion_date)} {getStatusText(item.status, item.completion_date)}
                       </span>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
@@ -673,8 +688,8 @@ export const WeeklyChecks: React.FC = () => {
                 
                 <div>
                   <h3 className="text-sm font-medium text-gray-500">Durum</h3>
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(selectedItem.status)}`}>
-                    {getStatusIcon(selectedItem.status)} {getStatusText(selectedItem.status)}
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(selectedItem.status, selectedItem.completion_date)}`}>
+                    {getStatusIcon(selectedItem.status, selectedItem.completion_date)} {getStatusText(selectedItem.status, selectedItem.completion_date)}
                   </span>
                 </div>
               </div>
