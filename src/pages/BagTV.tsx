@@ -47,6 +47,7 @@ const BagTV: React.FC = () => {
     width: window.innerWidth,
     height: window.innerHeight
   });
+  const [totalControlCount, setTotalControlCount] = useState(0);
 
   useEffect(() => {
     const handleResize = () => {
@@ -72,10 +73,24 @@ const BagTV: React.FC = () => {
       const tvSum = formattedData.reduce((sum: number, f: any) => sum + (f.tvCount || 0), 0);
       setTotalTV(tvSum);
       setControlCount(0);
+      
+      // Toplam kontrol sayısını hesapla
+      await calculateTotalControlCount();
     } catch (error) {
       console.error('BağTV tesisleri alınamadı:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Toplam kontrol sayısını hesapla
+  const calculateTotalControlCount = async () => {
+    try {
+      const allControls = await apiService.getBagTVControls();
+      setTotalControlCount(allControls.length);
+    } catch (error) {
+      console.error('Kontrol sayısı hesaplanamadı:', error);
+      setTotalControlCount(0);
     }
   };
 
@@ -434,9 +449,9 @@ const BagTV: React.FC = () => {
           <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
             <div className="flex items-center justify-between h-32 p-4 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl">
               <div className="flex-1">
-                <p className="text-sm font-medium text-purple-100 mb-2">Toplam Tesis</p>
-                <p className="text-3xl font-bold text-white mb-1">{facilities.length}</p>
-                <p className="text-xs text-purple-200">Tüm Tesisler</p>
+                <p className="text-sm font-medium text-purple-100 mb-2">Kontrol Edilen Toplam Tesis</p>
+                <p className="text-3xl font-bold text-white mb-1">{totalControlCount}</p>
+                <p className="text-xs text-purple-200">Kontrol Sayısı</p>
               </div>
               <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
                 <Calendar className="h-8 w-8 text-white" />
