@@ -48,7 +48,6 @@ const BagTV: React.FC = () => {
     height: window.innerHeight
   });
   const [totalControlCount, setTotalControlCount] = useState(0);
-  const [showControlCounts, setShowControlCounts] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -64,49 +63,12 @@ const BagTV: React.FC = () => {
 
   const fetchFacilities = async () => {
     try {
-      console.log(`Fetching BagTV facilities ${showControlCounts ? 'with' : 'without'} control counts...`);
-      
-      let data;
-      
-      if (showControlCounts) {
-        console.log('Calling apiService.getBagTVFacilitiesWithControlCounts()');
-        data = await apiService.getBagTVFacilitiesWithControlCounts();
-        console.log('Data with control counts:', data);
-        
-        // Backend boş objeler döndürüyor, her zaman mock data kullan
-        console.log('Backend returns empty objects, using frontend mock data');
-        data = [
-          { _id: '1', name: 'talha', tvCount: 3, description: 'aaa', status: 'Aktif', control_count: 5 },
-          { _id: '2', name: '60', tvCount: 3, description: '', status: 'Aktif', control_count: 3 },
-          { _id: '3', name: '24', tvCount: 4, description: '', status: 'Aktif', control_count: 7 },
-          { _id: '4', name: '27', tvCount: 1, description: '', status: 'Aktif', control_count: 2 },
-          { _id: '5', name: '6', tvCount: 2, description: '', status: 'Aktif', control_count: 4 },
-          { _id: '6', name: '21', tvCount: 1, description: '', status: 'Aktif', control_count: 6 },
-          { _id: '7', name: '4', tvCount: 2, description: '', status: 'Aktif', control_count: 8 },
-          { _id: '8', name: '3', tvCount: 1, description: '', status: 'Aktif', control_count: 1 },
-          { _id: '9', name: '2', tvCount: 1, description: '', status: 'Aktif', control_count: 9 },
-          { _id: '10', name: 'BagTV Merkez', tvCount: 5, description: 'Merkez BagTV tesisleri', status: 'Aktif', control_count: 12 },
-          { _id: '11', name: 'BagTV Şube', tvCount: 3, description: 'Şube BagTV tesisleri', status: 'Aktif', control_count: 6 },
-          { _id: '12', name: 'Tesis A', tvCount: 2, description: 'Test tesis A', status: 'Aktif', control_count: 4 },
-          { _id: '13', name: 'Tesis B', tvCount: 4, description: 'Test tesis B', status: 'Aktif', control_count: 7 },
-          { _id: '14', name: 'Tesis C', tvCount: 1, description: 'Test tesis C', status: 'Aktif', control_count: 3 },
-          { _id: '15', name: 'Tesis D', tvCount: 3, description: 'Test tesis D', status: 'Aktif', control_count: 5 }
-        ];
-        console.log('Using frontend mock data with control counts:', data);
-      } else {
-        console.log('Calling apiService.getBagTVFacilities()');
-        data = await apiService.getBagTVFacilities();
-        console.log('Data without control counts:', data);
-      }
-      
+      const data = await apiService.getBagTVFacilities();
       // Backend'den gelen tv_count alanını frontend'in beklediği tvCount formatına dönüştür
       const formattedData = data.map((facility: any) => ({
         ...facility,
-        tvCount: facility.tv_count || facility.tvCount || 0
+        tvCount: facility.tv_count || 0
       }));
-      console.log('Formatted data:', formattedData);
-      console.log('First facility control_count:', formattedData[0]?.control_count);
-      console.log('All facilities control_count values:', formattedData.map(f => ({ name: f.name, control_count: f.control_count })));
       setFacilities(formattedData);
       const tvSum = formattedData.reduce((sum: number, f: any) => sum + (f.tvCount || 0), 0);
       setTotalTV(tvSum);
@@ -115,7 +77,7 @@ const BagTV: React.FC = () => {
       // Toplam kontrol sayısını hesapla
       await calculateTotalControlCount();
     } catch (error) {
-      console.error('Error fetching facilities:', error);
+      console.error('BağTV tesisleri alınamadı:', error);
     } finally {
       setLoading(false);
     }
@@ -135,7 +97,7 @@ const BagTV: React.FC = () => {
   useEffect(() => {
     fetchFacilities();
     fetchUsers();
-  }, [showControlCounts]);
+  }, []);
 
   const fetchUsers = async () => {
     try {
@@ -444,17 +406,6 @@ const BagTV: React.FC = () => {
           </div>
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setShowControlCounts(!showControlCounts)}
-              className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
-                showControlCounts
-                  ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg hover:from-purple-600 hover:to-purple-700'
-                  : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg hover:from-blue-600 hover:to-blue-700'
-              }`}
-            >
-              <div className={`w-4 h-4 rounded-full border-2 border-current ${showControlCounts ? 'bg-white' : 'bg-white'}`}></div>
-              {showControlCounts ? 'Kontrol Sayıları Gizle' : 'Kontrol Sayılarını Göster'}
-            </button>
-            <button
               className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
               onClick={() => {
                 setShowAllControlsPage(true);
@@ -585,26 +536,21 @@ const BagTV: React.FC = () => {
         <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden h-full">
           <div className={classes.table}>
             <table className="w-full border border-gray-300">
-              <thead className="sticky top-0 bg-white/95 backdrop-blur-md z-20 shadow-sm">
+              <thead className="sticky top-0 bg-white/90 backdrop-blur-sm z-10">
                 <tr className="border-b-2 border-gray-400">
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider bg-gray-50">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
                     TESİS
                   </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider bg-gray-50">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
                     TV ADETİ
                   </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider bg-gray-50">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
                     AÇIKLAMA
                   </th>
-                  {showControlCounts && (
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider bg-gray-50">
-                      KONTROL SAYISI
-                    </th>
-                  )}
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider bg-gray-50">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
                     DURUM
                   </th>
-                  <th className="px-4 py-2 text-right text-xs font-medium text-gray-600 uppercase tracking-wider bg-gray-50">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
                     İŞLEMLER
                   </th>
                 </tr>
@@ -612,7 +558,7 @@ const BagTV: React.FC = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredFacilities.map((facility: any) => (
                   <tr key={facility._id || facility.id} className="hover:bg-gray-50 transition-colors duration-200">
-                    <td className="px-4 py-3 whitespace-nowrap">
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-8 w-8">
                           <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center">
@@ -624,31 +570,21 @@ const BagTV: React.FC = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <div className="flex items-center">
                         <Tv className="h-4 w-4 text-gray-400 mr-2" />
                         {facility.tvCount ?? '-'}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-600 max-w-xs truncate">
+                    <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">
                       {facility.description ?? '-'}
                     </td>
-                    {showControlCounts && (
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                        <div className="flex items-center gap-2">
-                          <div className="p-1 bg-blue-100 rounded-full">
-                            <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-                          </div>
-                          <span className="font-medium">{facility.control_count || 0}</span>
-                        </div>
-                      </td>
-                    )}
-                    <td className="px-4 py-3 whitespace-nowrap">
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
                         {facility.status ?? 'Aktif'}
                       </span>
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end gap-2">
                         <button 
                           className="p-1 text-blue-600 hover:text-blue-800 transition-colors" 
